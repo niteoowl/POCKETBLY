@@ -2,36 +2,31 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>거래 내역 기록</title>
-    
-    <!-- Google Material Icons CDN -->
+    <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <!-- Pretendard 폰트 CDN -->
+    <!-- Pretendard Font -->
     <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
-
-    <!-- Firebase SDK (Compat 버전) -->
+    
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     
     <style>
-        /* [공통 설정] */
-        * { 
-            -webkit-tap-highlight-color: transparent; 
-            box-sizing: border-box; /* 박스 모델 통일 */
-        }
+        /* [공통] 스타일 리셋 */
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         
         :root {
-            --primary-color: #333333;
-            --text-dark: #191f28;      /* 토스 스타일 진한 검정 */
-            --text-gray: #8b95a1;      /* 토스 스타일 회색 */
-            --bg-gray: #f2f4f6;        /* 배경 회색 */
-            --border-color: #e5e8eb;   /* 연한 테두리 */
-            --income-color: #2c92ff;   /* 파란색 (수입) */
-            --expense-color: #f04452;  /* 빨간색 (지출) */
-            --header-height: 60px; 
-            --ripple-color: rgba(0, 0, 0, 0.05);
+            --primary-blue: #3b82f6;
+            --text-dark: #191f28;      /* 진한 검정 */
+            --text-gray: #8b95a1;      /* 연한 회색 */
+            --border-light: #e5e8eb;   /* 연한 테두리 */
+            --header-height: 80px; 
+            --ripple-color: rgba(0, 0, 0, 0.08);
+            --income-color: #2c92ff;   
+            --expense-color: #f04452;
         }
 
         body {
@@ -39,200 +34,249 @@
             background-color: #ffffff;
             margin: 0; padding: 0;
             display: flex; flex-direction: column; align-items: center;
+            overflow-y: scroll; 
             padding-top: var(--header-height); 
-            padding-bottom: 100px; /* 하단 탭바 공간 */
+            padding-bottom: 110px; 
             color: var(--text-dark);
         }
 
-        /* 컨테이너 */
+        /* [메인 컨테이너] - 기존 유지 */
         .container {
-            width: 100%; 
-            max-width: 600px; /* 모바일 최적화 폭 */
-            padding: 0 20px; 
+            width: 95%;
+            max-width: 1024px; 
+            background-color: #ffffff;
+            padding: 0 24px 24px 24px; 
         }
 
-        /* [헤더] */
+        /* [헤더] - 기존 유지 */
         .header {
             position: fixed; top: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 600px; z-index: 1000;
-            background-color: rgba(255, 255, 255, 0.95); 
+            width: 95%; max-width: 1024px; z-index: 1005;
+            background-color: rgba(255, 255, 255, 0.95); /* 살짝 투명 */
             backdrop-filter: blur(5px);
             height: var(--header-height); 
             display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px;
+            padding: 16px 24px;
         }
-        .header h1 { font-size: 22px; font-weight: 700; color: var(--text-dark); margin: 0; }
-        .header-action { display: flex; gap: 8px; }
+        .header h1 { font-size: 28px; font-weight: 800; color: var(--text-dark); margin: 0; }
+        .header-action { display: flex; gap: 12px; }
         
         .icon-button {
             background: none; border: none; color: var(--text-dark); cursor: pointer;
             padding: 8px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center;
-            position: relative; overflow: hidden; /* 리플 효과 가둠 */
+            position: relative; overflow: hidden; /* 리플 튀어나감 방지 */
             transition: background-color 0.2s;
         }
-        .icon-button:hover { background-color: rgba(0,0,0,0.03); }
+        .icon-button:hover { background-color: #f2f4f6; }
         
-        /* [요약 카드 - 토스 스타일] */
-        .summary-section {
-            margin-top: 10px;
-            margin-bottom: 30px;
+        /* [요약 카드] - 토스 스타일로 변경 (배경 제거, 테두리 적용) */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 24px;
         }
-        .summary-cards { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr 1fr; 
-            gap: 10px; 
-        }
+
         .summary-card {
-            background-color: #ffffff; 
-            border: 1px solid var(--border-color); /* 깔끔한 테두리 */
-            border-radius: 16px;
+            background-color: #ffffff; /* 흰색 배경 */
+            border: 1px solid var(--border-light); /* 깔끔한 테두리 */
             padding: 16px 12px;
-            display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
-            min-height: auto; /* 높이 자동 조절 */
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02); /* 아주 연한 그림자 */
-        }
-        .summary-card-title { 
-            font-size: 12px; 
-            font-weight: 500; 
-            color: var(--text-gray); 
-            margin-bottom: 6px;
-            display: flex; align-items: center; gap: 2px;
-        }
-        .summary-card-value { 
-            font-size: 16px; 
-            font-weight: 700; 
-            color: var(--text-dark); 
-            letter-spacing: -0.5px;
-        }
-
-        .val-income { color: var(--income-color); }
-        .val-expense { color: var(--expense-color); }
-        .val-net { color: var(--text-dark); } /* 자산은 기본 검정 */
-
-        /* [날짜 탐색] */
-        .date-navigation {
-            display: flex; justify-content: center; align-items: center; gap: 20px;
-            margin-bottom: 20px;
-        }
-        .date-display { font-size: 18px; font-weight: 700; color: var(--text-dark); }
-        
-        /* [거래 목록] */
-        .transaction-list-section h2 { 
-            font-size: 18px; font-weight: 700; margin-bottom: 10px; display: none; /* 제목 숨김 (깔끔하게) */
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 80px; /* 높이 최소화 */
         }
         
-        .daily-group { margin-bottom: 30px; }
-        .daily-header {
-            padding: 10px 0; 
-            font-size: 14px; 
+        .summary-card-title {
+            font-size: 13px;
             font-weight: 500;
             color: var(--text-gray);
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .summary-card-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+            word-break: keep-all;
+        }
+
+        /* 금액 색상 */
+        .val-income { color: var(--income-color); }
+        .val-expense { color: var(--expense-color); }
+        .val-net { color: var(--text-dark); }
+
+        /* [날짜 탐색 바] - 기존 유지 */
+        .date-navigation {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 10px; margin-bottom: 20px; padding: 12px 0;
+        }
+        .date-display { font-size: 18px; font-weight: 700; color: var(--text-dark); flex-grow: 1; text-align: center; }
+        .nav-arrow {
+            background: none; border: none; color: var(--text-dark); cursor: pointer;
+            padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+        .nav-arrow:hover { background-color: #f2f4f6; }
+
+        /* [거래 목록] */
+        .transaction-list-section h2 { 
+            font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 12px; 
+        }
+        .transaction-list { list-style: none; padding: 0; margin: 0; }
+        
+        /* 일별 헤더 */
+        .daily-header {
+            padding: 24px 0 10px 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: #4e5968; /* 부드러운 진회색 */
             border-bottom: 1px solid transparent;
         }
 
+        /* 개별 아이템 - 디자인 변경 */
         .transaction-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 16px 0; 
-            cursor: pointer; 
-            position: relative; 
-            overflow: hidden; /* 리플 효과 가둠 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #f2f4f6; /* 아주 연한 구분선 */
+            cursor: pointer;
+            position: relative;
+            overflow: hidden; /* 리플 효과 가두기 */
         }
         
-        /* 텍스트 영역 (왼쪽) */
-        .trans-info { 
-            display: flex; 
-            flex-direction: column; 
-            gap: 4px; /* 사용처와 카테고리 사이 간격 */
-            max-width: 70%;
+        /* 왼쪽 텍스트 영역 */
+        .transaction-text-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px; /* 사용처와 메모 사이 간격 */
         }
-        .trans-usage { 
-            font-size: 16px; 
-            font-weight: 600; 
+
+        /* 사용처 (크고 진하게) */
+        .trans-usage {
+            font-size: 16px;
+            font-weight: 600;
             color: var(--text-dark);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .trans-meta { 
-            font-size: 13px; 
+
+        /* 카테고리 | 메모 (작고 연하게) */
+        .trans-meta {
+            font-size: 13px;
             color: var(--text-gray);
             font-weight: 400;
         }
-
-        /* 금액 영역 (오른쪽) */
-        .trans-amount { 
-            font-size: 17px; 
-            font-weight: 700; 
+        
+        /* 오른쪽 금액 */
+        .transaction-amount {
+            font-weight: 700;
+            font-size: 17px;
             text-align: right;
         }
-
-        /* [하단 내비게이션 - 캡슐 스타일] */
+        
+        /* [하단 내비게이션] - 기존 디자인 복구 */
         .bottom-nav {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 400px; height: 65px;
-            background-color: #ffffff;
-            border-radius: 35px;
-            display: flex; justify-content: space-around; align-items: center;
-            z-index: 1000; 
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* 부드러운 그림자 */
+            position: fixed;
+            bottom: 20px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 75%; 
+            max-width: 450px; 
+            height: 70px;
+            background-color: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(10px); 
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); 
+            border: 1px solid var(--border-light); 
+            border-radius: 50px; 
             padding: 0 10px;
         }
-        
+
         .nav-item {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-decoration: none; color: #b0b8c1; 
-            font-size: 11px; 
-            flex-grow: 1; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #b0b8c1; 
+            font-size: 11px;
+            font-weight: 500;
+            flex-grow: 1;
+            height: 60px;
             position: relative;
-            transition: color 0.2s;
+            border-radius: 25px; 
         }
-        .nav-item .material-icons { font-size: 26px; margin-bottom: 2px; }
-        
-        /* 활성화 상태 */
-        .nav-item.active { color: var(--text-dark); font-weight: 600; }
-        
-        /* 활성화 배경 (캡슐) */
+
+        .nav-item.active {
+            color: var(--text-dark); 
+            font-weight: 600;
+        }
+
+        /* 활성 상태 타원형 배경 */
         .nav-item.active::before {
             content: '';
             position: absolute;
-            width: 60px; height: 45px;
-            background-color: #f2f4f6; /* 연한 회색 배경 */
-            border-radius: 20px;
-            z-index: -1;
-            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            top: 50%; left: 50%;
+            width: 100px; height: 55px;
+            background-color: #f2f4f6; 
+            border-radius: 30px; 
+            transform: translate(-50%, -50%);
+            z-index: -1; 
         }
+        
+        .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
 
         /* [모달] */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #ffffff; z-index: 2000; 
-            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex; flex-direction: column;
+            background-color: #ffffff; z-index: 2000;
+            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex; flex-direction: column; visibility: hidden;
         }
-        .modal.open { transform: translateY(0); }
+        .modal.open { transform: translateY(0); visibility: visible; }
         .modal-header { 
             display: flex; justify-content: space-between; align-items: center; 
-            padding: 0 20px; height: 60px;
-            border-bottom: 1px solid var(--border-color); 
+            padding: 16px 24px; border-bottom: 1px solid var(--border-light); 
+            flex-shrink: 0; 
         }
+        .modal-content { flex-grow: 1; }
         .modal-iframe { width: 100%; height: 100%; border: none; }
 
         /* [리플 효과] */
         .ripple {
             position: absolute; border-radius: 50%; transform: scale(0);
-            animation: ripple 0.5s linear; background-color: rgba(0, 0, 0, 0.1); 
-            pointer-events: none;
+            animation: ripple-anim 0.5s linear; background-color: var(--ripple-color); pointer-events: none; 
         }
-        @keyframes ripple { to { transform: scale(4); opacity: 0; } }
+        @keyframes ripple-anim { to { transform: scale(2.8); opacity: 0; } }
 
+        /* 반응형 미세 조정 */
+        @media (max-width: 600px) {
+            .header { width: 100%; padding: 0 20px; }
+            .container { padding: 0 20px 20px 20px; }
+            .bottom-nav { width: 85%; bottom: 20px; }
+            /* 모바일에서 요약 카드 높이 줄임 */
+            .summary-card { padding: 14px 12px; min-height: auto; } 
+            .summary-card-value { font-size: 17px; }
+        }
     </style>
 </head>
 <body>
     
     <!-- 헤더 -->
     <header class="header">
-        <h1>내역</h1>
+        <h1>기록</h1>
         <div class="header-action">
-            <button class="icon-button ripple-target" onclick="openAddModal()">
+            <button class="icon-button ripple-target" title="필터">
+                <span class="material-icons">filter_list</span>
+            </button>
+            <button class="icon-button ripple-target" title="새 기록 추가" onclick="openAddModal()">
                 <span class="material-icons">add</span>
             </button>
         </div>
@@ -240,58 +284,55 @@
 
     <div class="container">
         
-        <!-- 날짜 탐색 -->
-        <section class="date-navigation">
-            <button class="icon-button ripple-target" onclick="changeMonth(-1)">
-                <span class="material-icons" style="font-size: 20px;">arrow_back_ios</span>
-            </button>
-            <div class="date-display" id="current-month-display">2025년 11월</div>
-            <button class="icon-button ripple-target" onclick="changeMonth(1)">
-                <span class="material-icons" style="font-size: 20px;">arrow_forward_ios</span>
-            </button>
+        <!-- 요약 카드 (깔끔한 테두리 스타일) -->
+        <section class="summary-cards">
+            <div class="summary-card">
+                <div class="summary-card-title">수입</div>
+                <div class="summary-card-value val-income" id="total-income">0</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-title">지출</div>
+                <div class="summary-card-value val-expense" id="total-expense">0</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-title">합계</div>
+                <div class="summary-card-value val-net" id="total-asset">0</div>
+            </div>
         </section>
 
-        <!-- 요약 카드 (토스 스타일) -->
-        <section class="summary-section">
-            <div class="summary-cards">
-                <div class="summary-card">
-                    <div class="summary-card-title">수입</div>
-                    <div class="summary-card-value val-income" id="total-income">0</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-card-title">지출</div>
-                    <div class="summary-card-value val-expense" id="total-expense">0</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-card-title">합계</div>
-                    <div class="summary-card-value val-net" id="total-asset">0</div>
-                </div>
-            </div>
+        <!-- 날짜 탐색 바 -->
+        <section class="date-navigation">
+            <button class="nav-arrow ripple-target" onclick="changeMonth(-1)">
+                <span class="material-icons">chevron_left</span>
+            </button>
+            <div class="date-display" id="current-month-display">2025년 11월</div>
+            <button class="nav-arrow ripple-target" onclick="changeMonth(1)">
+                <span class="material-icons">chevron_right</span>
+            </button>
         </section>
 
         <!-- 상세 거래 목록 -->
-        <section class="transaction-list-section" id="transaction-list-container">
-            <!-- 로딩 또는 데이터 없음 -->
-            <div style="text-align: center; padding: 60px 0; color: #b0b8c1; font-size: 14px;">
-                불러오는 중...
-            </div>
+        <section class="transaction-list-section">
+            <ul class="transaction-list" id="transaction-list-container">
+                <li style="text-align: center; padding: 60px; color: #b0b8c1; font-size: 14px;">불러오는 중...</li>
+            </ul>
         </section>
     </div>
     
-    <!-- 하단 내비게이션 -->
+    <!-- 하단 내비게이션 (기존 스타일 복구) -->
     <nav class="bottom-nav">
         <a href="/" class="nav-item">
             <span class="material-icons">home</span>
             <span>홈</span>
         </a>
-        <!-- 현재 페이지 활성화 -->
+        <!-- 활성화 상태 -->
         <a href="#" class="nav-item active">
             <span class="material-icons">receipt_long</span>
-            <span>내역</span>
+            <span>기록</span>
         </a>
         <a href="#" class="nav-item">
-            <span class="material-icons">pie_chart</span>
-            <span>분석</span>
+            <span class="material-icons">track_changes</span>
+            <span>목표</span>
         </a>
         <a href="#" class="nav-item">
             <span class="material-icons">person</span>
@@ -302,17 +343,16 @@
     <!-- 새 기록 추가 모달 -->
     <div id="add-modal" class="modal">
         <div class="modal-header">
-            <h2 style="font-size: 18px; font-weight: 700;">작성하기</h2>
+            <h2>새 기록 추가</h2>
             <button class="icon-button ripple-target" onclick="closeAddModal()">
                 <span class="material-icons">close</span>
             </button>
         </div>
-        <div class="modal-content" style="flex:1;">
-            <iframe class="modal-iframe" src="/plus"></iframe>
+        <div class="modal-content">
+            <iframe class="modal-iframe" src="/plus" title="새 기록 추가 페이지"></iframe>
         </div>
     </div>
 
-    <!-- 스크립트 -->
     <script>
         // Firebase 설정
         const firebaseConfig = {
@@ -333,18 +373,16 @@
         let allTransactions = [];
         let currentDate = new Date();
 
-        // 1. 로그인 확인
         auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUserId = user.uid;
                 fetchTransactions(currentUserId);
             } else {
                 document.getElementById('transaction-list-container').innerHTML = 
-                    '<div style="text-align:center; padding:50px; color:#999;">로그인이 필요합니다.</div>';
+                    '<li style="text-align:center; padding:50px;">로그인이 필요합니다.</li>';
             }
         });
 
-        // 2. 데이터 불러오기
         function fetchTransactions(uid) {
             db.collection('users').doc(uid).collection('transaction_list')
                 .orderBy('createdAt', 'desc')
@@ -352,12 +390,8 @@
                     allTransactions = [];
                     snapshot.forEach((doc) => {
                         const data = doc.data();
-                        // 날짜 변환 안전 처리
-                        if (data.createdAt && data.createdAt.toDate) {
+                        if (data.createdAt) {
                             data.dateObj = data.createdAt.toDate();
-                        } else if (data.timestampStr) {
-                            // 혹시 timestamp가 없을 경우 문자열 파싱 시도 혹은 현재 시간
-                            data.dateObj = new Date(); 
                         } else {
                             data.dateObj = new Date();
                         }
@@ -367,7 +401,6 @@
                 });
         }
 
-        // 3. UI 렌더링
         function renderUI() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -375,19 +408,16 @@
             // 날짜 표시
             document.getElementById('current-month-display').textContent = `${year}년 ${month + 1}월`;
 
-            // 이번 달 데이터 필터링
+            // 이번 달 필터링
             const filteredData = allTransactions.filter(item => {
                 return item.dateObj.getFullYear() === year && item.dateObj.getMonth() === month;
             });
 
-            // 요약 계산
+            // 합계 계산
             let totalIncome = 0;
             let totalExpense = 0;
 
             filteredData.forEach(item => {
-                // 지출: type='지출' or amount < 0
-                // 수입: type='수입' or amount > 0
-                // 데이터 저장 방식에 따라 유연하게 처리
                 const amt = parseInt(item.amount);
                 if (item.type === '수입' || amt > 0) {
                     totalIncome += Math.abs(amt);
@@ -395,83 +425,73 @@
                     totalExpense += Math.abs(amt);
                 }
             });
-
             const netAsset = totalIncome - totalExpense;
 
-            document.getElementById('total-income').innerText = totalIncome.toLocaleString();
-            document.getElementById('total-expense').innerText = totalExpense.toLocaleString();
-            document.getElementById('total-asset').innerText = netAsset.toLocaleString();
+            document.getElementById('total-income').innerText = `₩ ${totalIncome.toLocaleString()}`;
+            document.getElementById('total-expense').innerText = `₩ ${totalExpense.toLocaleString()}`;
+            document.getElementById('total-asset').innerText = `₩ ${netAsset.toLocaleString()}`;
 
-            // 목록 그리기
+            // 리스트 렌더링
             const listContainer = document.getElementById('transaction-list-container');
             listContainer.innerHTML = '';
 
             if (filteredData.length === 0) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:60px 0; color:#b0b8c1; font-size:14px;">거래 내역이 없습니다.</div>';
+                listContainer.innerHTML = '<li style="text-align:center; padding:60px 0; color:#b0b8c1; font-size:14px;">거래 내역이 없습니다.</li>';
                 return;
             }
 
-            // 날짜별 그룹화
             const grouped = {};
             filteredData.forEach(item => {
-                const dateKey = item.dateObj.toDateString(); // Key로 사용
+                const dateKey = item.dateObj.toDateString();
                 if (!grouped[dateKey]) grouped[dateKey] = [];
                 grouped[dateKey].push(item);
             });
 
-            // 날짜 순 정렬
+            // 날짜 내림차순 정렬
             const sortedKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
 
             sortedKeys.forEach(key => {
                 const dayItems = grouped[key];
                 const dateObj = dayItems[0].dateObj;
-                
-                // 날짜 헤더 (예: 21일 금요일)
-                const dayHeader = document.createElement('div');
-                dayHeader.className = 'daily-header';
-                dayHeader.innerText = `${dateObj.getDate()}일 ${getDayName(dateObj.getDay())}`;
-                
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'daily-group';
-                groupDiv.appendChild(dayHeader);
+                const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
 
+                // 날짜 헤더
+                const dayHeader = document.createElement('li');
+                dayHeader.className = 'daily-header';
+                dayHeader.textContent = `${dateObj.getDate()}일 ${days[dateObj.getDay()]}`;
+                listContainer.appendChild(dayHeader);
+
+                // 아이템들
                 dayItems.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'transaction-item ripple-target';
-                    div.onclick = createRipple; // 리플 이벤트 연결
+                    const li = document.createElement('li');
+                    li.className = 'transaction-item ripple-target';
+                    li.onclick = createRipple; // 리플 이벤트 바로 연결
 
                     const isIncome = item.type === '수입' || item.amount > 0;
                     const colorClass = isIncome ? 'val-income' : 'val-expense';
-                    const sign = isIncome ? '' : ''; // 지출에 굳이 - 안 붙여도 색으로 구분됨 (원하면 붙임)
+                    const sign = isIncome ? '' : ''; // 필요시 '+' 등 추가
                     const amtStr = Math.abs(item.amount).toLocaleString();
 
-                    div.innerHTML = `
-                        <div class="trans-info">
-                            <span class="trans-usage">${item.usage}</span>
+                    // HTML 구조: 위쪽 사용처 / 아래쪽 카테고리|메모
+                    li.innerHTML = `
+                        <div class="transaction-text-group">
+                            <span class="trans-usage">${item.usage || '사용처 없음'}</span>
                             <span class="trans-meta">${item.category} | ${item.memo}</span>
                         </div>
-                        <div class="trans-amount ${colorClass}">
-                            ${isIncome ? '' : '- '}${amtStr}원
+                        <div class="transaction-amount ${colorClass}">
+                            ${isIncome ? '' : '-'} ${amtStr}
                         </div>
                     `;
-                    groupDiv.appendChild(div);
+                    listContainer.appendChild(li);
                 });
-                listContainer.appendChild(groupDiv);
             });
         }
 
-        // 유틸리티
         function changeMonth(delta) {
             currentDate.setMonth(currentDate.getMonth() + delta);
             renderUI();
         }
 
-        function getDayName(dayIndex) {
-            const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
-            return days[dayIndex];
-        }
-
-        // 모달
         function openAddModal() {
             const modal = document.getElementById('add-modal');
             modal.classList.add('open');
@@ -483,14 +503,17 @@
             document.body.style.overflow = '';
         }
 
-        // 리플 효과 (수정됨: overflow hidden된 부모 기준 좌표 계산)
+        // 리플 효과 (부모 기준 좌표, overflow:hidden으로 튀어나감 방지)
         function createRipple(event) {
             const button = event.currentTarget;
             
+            // 기존 리플 제거
+            const oldRipple = button.querySelector('.ripple');
+            if(oldRipple) oldRipple.remove();
+
             const circle = document.createElement('span');
             const diameter = Math.max(button.clientWidth, button.clientHeight);
             const radius = diameter / 2;
-            
             const rect = button.getBoundingClientRect();
 
             circle.style.width = circle.style.height = `${diameter}px`;
@@ -498,24 +521,14 @@
             circle.style.top = `${event.clientY - rect.top - radius}px`;
             circle.classList.add('ripple');
 
-            // 기존 리플 제거
-            const ripple = button.getElementsByClassName('ripple')[0];
-            if (ripple) {
-                ripple.remove();
-            }
-
             button.appendChild(circle);
-            
-            setTimeout(() => {
-                circle.remove();
-            }, 500);
+            setTimeout(() => circle.remove(), 500);
         }
-
-        // 초기 로드 시 정적 버튼에 리플 이벤트 할당
+        
+        // 초기 정적 버튼에 리플 달기
         document.querySelectorAll('.ripple-target').forEach(btn => {
             if(!btn.onclick) btn.addEventListener('click', createRipple);
         });
-
     </script>
 </body>
 </html>
