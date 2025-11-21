@@ -13,9 +13,24 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     
     <style>
-        /* [공통] 스타일 리셋 */
+        /* [공통] 스타일 리셋 & 복사 방지 */
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         
+        /* 전체 선택 방지 */
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        /* 입력창은 선택 가능 */
+        input, textarea {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
         :root {
             --primary-blue: #3b82f6;
             --text-dark: #191f28;
@@ -123,19 +138,15 @@
         .ripple { position: absolute; border-radius: 50%; transform: scale(0); animation: ripple-anim 0.5s linear; background-color: var(--ripple-color); pointer-events: none; }
         @keyframes ripple-anim { to { transform: scale(2.8); opacity: 0; } }
 
-        /* [수정됨] 모바일 최적화 */
+        /* [모바일 최적화] */
         @media (max-width: 600px) {
-            /* 헤더 여백은 원래대로 (16px) */
             .header { width: 100%; padding: 0 16px; } 
-            
-            /* [요청 반영] 내용 여백을 10px로 줄임 */
             .container { padding: 0 10px 20px 10px; } 
-            
             .bottom-nav { width: 85%; bottom: 20px; }
             .summary-card { padding: 14px 10px; min-height: auto; } 
 
-            /* [요청 반영] 활성화 메뉴 길이 축소 */
-            .nav-item.active::before { width: 55px; }
+            /* [수정됨] 활성화 탭 길이 75px로 조정 */
+            .nav-item.active::before { width: 75px; }
         }
 
         /* 수정/삭제용 바텀 시트 모달 스타일 */
@@ -204,7 +215,6 @@
         </section>
     </div>
     
-    <!-- [수정됨] 내비게이션 링크 업데이트 -->
     <nav class="bottom-nav">
         <a href="/" class="nav-item">
             <span class="material-icons">home</span><span>홈</span>
@@ -290,6 +300,9 @@
     </div>
 
     <script>
+        // [추가] 우클릭 방지
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
         const firebaseConfig = { apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI", authDomain: "pocketbly.firebaseapp.com", projectId: "pocketbly", storageBucket: "pocketbly.firebasestorage.app", messagingSenderId: "535063683428", appId: "1:535063683428:web:4729815738bee4f8305a71", measurementId: "G-RE71JXSNR3" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
@@ -307,7 +320,8 @@
                 fetchTransactions(currentUserId);
                 listenForParentDecision(user.uid); 
             } else {
-                document.getElementById('transaction-list-container').innerHTML = '<li style="text-align:center; padding:50px;">로그인이 필요합니다.</li>';
+                // [수정됨] 로그인 안됨 -> 강제 리디렉션
+                window.location.href = '/auth';
             }
         });
 
