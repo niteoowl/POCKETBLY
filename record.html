@@ -45,6 +45,7 @@
             width: 95%;
             max-width: 1024px; 
             background-color: #ffffff;
+            /* PC 여백 문제를 해결하기 위해 검색창도 이 패딩 안으로 들어옵니다 */
             padding: 0 24px 24px 24px; 
         }
 
@@ -70,28 +71,50 @@
         }
         .icon-button:hover { background-color: #f2f4f6; }
 
-        /* 검색바 스타일 */
+        /* [수정된 검색창 스타일] */
         .search-bar-container {
             width: 100%;
-            padding: 0 10px 15px 10px;
+            margin-bottom: 16px; /* 아래 카드와의 간격 */
             display: none; /* 기본 숨김 */
             animation: slideDown 0.3s ease-out;
+            margin-top: 10px;
         }
         @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .search-input {
+
+        .search-box-wrapper {
+            display: flex;
+            align-items: center;
             width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--border-light);
+            background-color: #ffffff; /* 흰색 배경 */
+            border: 1px solid #191f28; /* 검정 테두리 */
             border-radius: 12px;
+            padding: 6px 12px;
+        }
+
+        .search-input {
+            flex-grow: 1;
+            border: none;
+            background: transparent;
             font-size: 15px;
-            background-color: #f9fafb;
+            padding: 8px 0;
             outline: none;
             color: var(--text-dark);
         }
         .search-input::placeholder { color: #b0b8c1; }
-        
+
+        .search-submit-btn {
+            background: none;
+            border: none;
+            color: #191f28;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         /* [요약 카드] */
-        .summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 10px; }
+        .summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 0; }
         .summary-label { font-size: 15px; font-weight: 700; color: var(--text-dark); }
         .toggle-btn { background-color: #f2f4f6; border: none; border-radius: 12px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--text-gray); cursor: pointer; transition: all 0.2s; }
         .toggle-btn.active { background-color: var(--text-dark); color: #fff; }
@@ -104,7 +127,7 @@
 
         /* 날짜 탐색 */
         .date-navigation { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 20px; padding: 12px 0; transition: opacity 0.3s; }
-        .date-navigation.hidden { display: none; } /* 전체 보기 시 숨김 */
+        .date-navigation.hidden { display: none; } 
         .date-display { font-size: 18px; font-weight: 700; color: var(--text-dark); flex-grow: 1; text-align: center; }
         .nav-arrow { background: none; border: none; color: var(--text-dark); cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
         .nav-arrow:hover { background-color: #f2f4f6; }
@@ -170,11 +193,10 @@
             .summary-card { padding: 14px 10px; min-height: auto; } 
             
             .bottom-nav { width: 93%; bottom: 20px; }
-            /* [수정됨] 활성화 표시: 너비 90px로 축소 */
             .nav-item.active::before { width: 90px; height: 60px; border-radius: 30px; }
         }
 
-        /* 기타 팝업 스타일 (생략 가능하나 유지) */
+        /* 기타 팝업 스타일 */
         .edit-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 2500; display: none; align-items: flex-end; justify-content: center; }
         .edit-modal-sheet { width: 100%; max-width: 600px; background-color: #fff; border-radius: 24px 24px 0 0; padding: 24px; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -207,7 +229,6 @@
             <button class="icon-button ripple-target" title="부모님께 전송" onclick="openShareModal()">
                 <span class="material-icons">ios_share</span>
             </button>
-            <!-- [수정] 필터 버튼 -> 검색 버튼으로 변경 -->
             <button class="icon-button ripple-target" title="검색" onclick="toggleSearchBar()">
                 <span class="material-icons">search</span>
             </button>
@@ -217,12 +238,17 @@
         </div>
     </header>
 
-    <!-- 검색창 컨테이너 -->
-    <div id="search-bar-container" class="search-bar-container">
-        <input type="text" id="search-input" class="search-input" placeholder="사용처 또는 내용을 검색하세요..." onkeyup="handleSearch()">
-    </div>
-
     <div class="container">
+        <!-- [수정됨] 검색창이 container 내부로 이동되었습니다 -->
+        <div id="search-bar-container" class="search-bar-container">
+            <div class="search-box-wrapper">
+                <input type="text" id="search-input" class="search-input" placeholder="사용처 또는 내용을 검색하세요..." onkeyup="handleSearch()">
+                <button class="search-submit-btn ripple-target" onclick="handleSearch()">
+                    <span class="material-icons" style="font-size: 20px;">search</span>
+                </button>
+            </div>
+        </div>
+
         <div class="summary-header">
             <span class="summary-label" id="summary-status-text">이번 달 현황</span>
             <button class="toggle-btn ripple-target" id="summary-toggle-btn" onclick="toggleSummaryMode()">월별 보기</button>
@@ -254,12 +280,6 @@
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="width: 120px; height: 20px;" class="skeleton"></div>
                         <div style="width: 50px; height: 20px;" class="skeleton"></div>
-                    </div>
-                </li>
-                <li style="padding: 14px 0; border-bottom: 1px solid #f2f4f6;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div style="width: 90px; height: 20px;" class="skeleton"></div>
-                        <div style="width: 70px; height: 20px;" class="skeleton"></div>
                     </div>
                 </li>
             </ul>
@@ -367,9 +387,9 @@
         let currentUserId = null;
         let allTransactions = [];
         let currentDate = new Date();
-        let isSummaryTotalMode = false; // false: 월별 보기, true: 전체 보기
+        let isSummaryTotalMode = false; 
         let pendingReportDocId = null;
-        let currentSearchTerm = ""; // 검색어
+        let currentSearchTerm = "";
 
         // [추가] 커스텀 다이얼로그 함수
         function showGlobalDialog(type, msg, onConfirm) {
@@ -437,7 +457,7 @@
         function toggleSummaryMode() { 
             isSummaryTotalMode = !isSummaryTotalMode; 
             updateToggleUI(); 
-            renderUI(); // UI 갱신
+            renderUI(); 
         }
 
         function updateToggleUI() {
@@ -446,21 +466,18 @@
             const dateNav = document.getElementById('date-nav-section');
 
             if (isSummaryTotalMode) { 
-                // 전체 보기 모드
                 btn.textContent = '월별 보기'; 
                 btn.classList.add('active'); 
                 label.textContent = '전체 누적 현황'; 
-                dateNav.classList.add('hidden'); // 날짜 탐색 숨김
+                dateNav.classList.add('hidden'); 
             } else { 
-                // 월별 보기 모드
                 btn.textContent = '전체 보기'; 
                 btn.classList.remove('active'); 
                 label.textContent = '이번 달 현황';
-                dateNav.classList.remove('hidden'); // 날짜 탐색 표시
+                dateNav.classList.remove('hidden'); 
             }
         }
 
-        // [수정됨] 검색 기능 관련
         function toggleSearchBar() {
             const bar = document.getElementById('search-bar-container');
             if(bar.style.display === 'block') {
@@ -487,7 +504,6 @@
         function renderSummary() {
             let dataToCalculate = [];
             
-            // 1. 전체보기 모드 or 월별 필터링
             if (isSummaryTotalMode) { 
                 dataToCalculate = allTransactions; 
             } else {
@@ -496,7 +512,6 @@
                 dataToCalculate = allTransactions.filter(item => item.dateObj.getFullYear() === year && item.dateObj.getMonth() === month);
             }
 
-            // 2. 검색어가 있다면 검색 결과 내에서만 합계 계산 (선택 사항, 여기선 적용)
             if(currentSearchTerm) {
                 dataToCalculate = dataToCalculate.filter(item => 
                     (item.usage && item.usage.includes(currentSearchTerm)) || 
@@ -524,17 +539,13 @@
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
 
-            // 1. 데이터 필터링 (전체 vs 월별)
             if (isSummaryTotalMode) {
-                // 전체 보기: 모든 데이터 사용
                 filteredData = [...allTransactions];
             } else {
-                // 월별 보기: 해당 월 데이터만
                 document.getElementById('current-month-display').textContent = `${year}년 ${month + 1}월`;
                 filteredData = allTransactions.filter(item => item.dateObj.getFullYear() === year && item.dateObj.getMonth() === month);
             }
 
-            // 2. 검색 필터링
             if (currentSearchTerm) {
                 filteredData = filteredData.filter(item => 
                     (item.usage && item.usage.includes(currentSearchTerm)) || 
@@ -550,7 +561,6 @@
                 return; 
             }
 
-            // 3. 날짜별 그룹화 및 렌더링
             const grouped = {};
             filteredData.forEach(item => {
                 const dateKey = item.dateObj.toDateString();
@@ -558,7 +568,6 @@
                 grouped[dateKey].push(item);
             });
             
-            // 최신 날짜순 정렬
             const sortedKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
             
             sortedKeys.forEach(key => {
@@ -566,10 +575,8 @@
                 const dateObj = dayItems[0].dateObj;
                 const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
                 
-                // 날짜 헤더
                 const dayHeader = document.createElement('li');
                 dayHeader.className = 'daily-header';
-                // 전체 보기일 때는 연도도 표시해주면 좋음, 여기선 간단히 월/일 표시 유지 혹은 필요시 수정
                 const displayDateStr = isSummaryTotalMode ? 
                     `${dateObj.getFullYear()}년 ${dateObj.getMonth()+1}월 ${dateObj.getDate()}일 ${days[dateObj.getDay()]}` : 
                     `${dateObj.getDate()}일 ${days[dateObj.getDay()]}`;
