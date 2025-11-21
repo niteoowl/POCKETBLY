@@ -16,25 +16,9 @@
     
     <style>
         /* [공통] 스타일 리셋 & 복사 방지 */
-        * { 
-            -webkit-tap-highlight-color: transparent; 
-            box-sizing: border-box; 
-        }
-        
-        /* 전체 선택 방지 (복사 금지) */
-        body {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-        /* 입력창은 선택 가능해야 함 */
-        input, textarea {
-            -webkit-user-select: text;
-            -moz-user-select: text;
-            -ms-user-select: text;
-            user-select: text;
-        }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+        input, textarea { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
 
         :root {
             --primary-blue: #3b82f6;
@@ -172,10 +156,10 @@
         /* [모바일 최적화] */
         @media (max-width: 600px) {
             .header { width: 100%; padding: 0 16px; } 
-            .container { padding: 0 10px 20px 10px; } 
-            .bottom-nav { width: 85%; bottom: 20px; }
+            /* [수정됨] 내용 여백 5px로 축소 */
+            .container { padding: 0 5px 20px 5px; } 
             
-            /* [수정됨] 활성화 탭 길이 75px로 조정 */
+            .bottom-nav { width: 85%; bottom: 20px; }
             .nav-item.active::before { width: 75px; }
         }
     </style>
@@ -268,7 +252,6 @@
     </nav>
 
     <script>
-        // [추가] 우클릭 방지
         document.addEventListener('contextmenu', event => event.preventDefault());
 
         const firebaseConfig = { apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI", authDomain: "pocketbly.firebaseapp.com", projectId: "pocketbly", storageBucket: "pocketbly.firebasestorage.app", messagingSenderId: "535063683428", appId: "1:535063683428:web:4729815738bee4f8305a71", measurementId: "G-RE71JXSNR3" };
@@ -289,7 +272,6 @@
                 document.getElementById('greeting-text').innerText = `${timeGreeting}, ${name}님`;
                 loadHomeData(user.uid);
             } else {
-                // [수정됨] 로그인 안됨 -> 강제 리디렉션
                 window.location.href = '/auth';
             }
         });
