@@ -100,7 +100,7 @@
         .transaction-amount { font-weight: 700; font-size: 17px; text-align: right; letter-spacing: -0.5px;}
         
         /* 하단 내비게이션 */
-        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 75%; max-width: 450px; height: 70px; background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; z-index: 1000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); border: 1px solid var(--border-light); border-radius: 50px; padding: 0 10px; }
+        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 75%; max-width: 450px; height: 75px; background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; z-index: 1000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); border: 1px solid var(--border-light); border-radius: 50px; padding: 0 10px; }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #b0b8c1; font-size: 11px; font-weight: 500; flex-grow: 1; height: 60px; position: relative; border-radius: 25px; }
         .nav-item.active { color: var(--text-dark); font-weight: 600; }
         .nav-item.active::before { content: ''; position: absolute; top: 50%; left: 50%; width: 100px; height: 55px; background-color: #f2f4f6; border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; }
@@ -131,8 +131,8 @@
             .container { padding: 0 5px 20px 5px; } 
             .summary-card { padding: 14px 10px; min-height: auto; } 
             
-            /* [수정됨] 모바일에서 내비게이션 바 너비 96%로 확장 */
-            .bottom-nav { width: 96%; bottom: 20px; }
+            /* [수정됨] 모바일에서 내비게이션 바 너비 93%로 변경 */
+            .bottom-nav { width: 93%; bottom: 20px; }
             .nav-item.active::before { width: 75px; }
         }
 
