@@ -2,229 +2,255 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>POCKETBLY - 기록</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>POCKETBLY - 홈</title>
+    <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Pretendard Font -->
     <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
     
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     
     <style>
+        /* [공통] 스타일 리셋 */
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        
         :root {
-            --primary: #191f28; --secondary: #8b95a1; --white: #ffffff;
-            --blue: #3182f6; --red: #f04452;
-            --nav-height: 60px;
+            --primary-blue: #3b82f6;
+            --text-dark: #191f28;
+            --text-gray: #8b95a1;
+            --border-light: #e5e8eb;
+            --header-height: 80px; 
+            --ripple-color: rgba(0, 0, 0, 0.08);
+            --income-color: #2c92ff;   
+            --expense-color: #f04452;
         }
+
         body {
-            font-family: 'Pretendard', sans-serif; background: var(--white);
-            margin: 0; padding: 0; padding-bottom: calc(var(--nav-height) + 20px);
-            color: var(--primary);
-        }
-
-        /* 헤더 (여백 16px로 수정) */
-        .header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 16px; /* 20px -> 16px 변경 */
-            position: sticky; top: 0; background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(5px); z-index: 100; border-bottom: 1px solid #f2f4f6;
-        }
-        .title { font-size: 20px; font-weight: 800; }
-        .icon-btn { background: none; border: none; padding: 8px; cursor: pointer; }
-
-        /* 컨테이너 (여백 16px로 수정) */
-        .container { padding: 0 16px; width: 100%; margin-top: 20px; } /* 20px -> 16px 변경 */
-
-        /* 요약 카드 */
-        .summary-box {
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px;
-        }
-        .s-item {
-            border: 1px solid #e5e8eb; border-radius: 16px; padding: 16px 5px;
+            font-family: 'Pretendard', sans-serif;
+            background-color: #ffffff;
+            margin: 0; padding: 0;
             display: flex; flex-direction: column; align-items: center;
+            overflow-y: scroll; 
+            padding-top: var(--header-height); 
+            padding-bottom: 110px; 
+            color: var(--text-dark);
         }
-        .s-title { font-size: 13px; color: var(--secondary); margin-bottom: 4px; }
-        .s-val { font-size: 15px; font-weight: 700; letter-spacing: -0.5px; }
-        .c-inc { color: var(--blue); } .c-exp { color: var(--red); }
 
-        /* 월 이동 및 토글 */
-        .ctrl-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .month-nav { display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 8px 16px; border-radius: 20px; }
-        .month-txt { font-weight: 700; font-size: 16px; }
-        .nav-icon { font-size: 18px; cursor: pointer; }
-        .toggle-btn {
-            background: #f2f4f6; border: none; padding: 8px 14px; border-radius: 14px;
-            font-size: 12px; font-weight: 600; color: #666;
+        /* 메인 컨테이너 */
+        .container {
+            width: 95%;
+            max-width: 1024px; 
+            background-color: #ffffff;
+            padding: 0 24px 24px 24px; 
         }
-        .toggle-btn.active { background: var(--primary); color: white; }
 
-        /* 리스트 */
-        .list-group { margin-bottom: 24px; }
-        .day-label { font-size: 14px; font-weight: 600; color: var(--secondary); margin-bottom: 10px; border-bottom: 1px solid #f2f4f6; padding-bottom: 8px; }
-        .item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 14px 0; cursor: pointer;
+        /* 헤더 */
+        .header {
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 95%; max-width: 1024px; z-index: 1005;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            height: var(--header-height); 
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 24px;
         }
-        .item:active { opacity: 0.6; }
-        .i-left { display: flex; flex-direction: column; gap: 4px; }
-        .i-usage { font-size: 16px; font-weight: 600; }
-        .i-meta { font-size: 13px; color: var(--secondary); }
-        .i-amt { font-size: 17px; font-weight: 700; letter-spacing: -0.5px; }
+        .header h1 { font-size: 26px; font-weight: 800; color: var(--text-dark); margin: 0; }
+        .header-action { display: flex; gap: 8px; }
+        
+        .icon-button {
+            background: none; border: none; color: var(--text-dark); cursor: pointer;
+            padding: 8px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+            transition: background-color 0.2s;
+        }
+        .icon-button:hover { background-color: #f2f4f6; }
 
-        /* 하단 내비게이션 (고정형) */
+        /* [홈 전용 스타일] */
+        
+        /* 1. 히어로 섹션 (총 자산) */
+        .hero-section { margin-top: 10px; margin-bottom: 30px; }
+        .hero-greeting { font-size: 16px; color: var(--text-gray); font-weight: 500; margin-bottom: 8px; }
+        .hero-balance { font-size: 32px; font-weight: 800; color: var(--text-dark); letter-spacing: -0.5px; }
+
+        /* 2. 인사이트 카드 */
+        .insight-card {
+            background-color: #ffffff;
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+        .card-title { font-size: 18px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; }
+        .card-desc { font-size: 14px; color: var(--text-gray); font-weight: 400; line-height: 1.4; }
+        .card-icon { color: #b0b8c1; font-size: 24px; }
+
+        /* 그래프 (소비 리포트) */
+        .bar-chart-container { display: flex; flex-direction: column; gap: 12px; }
+        .bar-row { display: flex; align-items: center; gap: 10px; }
+        .bar-label { width: 50px; font-size: 13px; color: var(--text-gray); font-weight: 500; }
+        .bar-track { flex-grow: 1; height: 10px; background-color: #f2f4f6; border-radius: 5px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 5px; width: 0%; transition: width 1s cubic-bezier(0.22, 1, 0.36, 1); }
+        .fill-prev { background-color: #d1d6db; }
+        .fill-curr { background-color: var(--expense-color); }
+        .bar-value { width: 70px; text-align: right; font-size: 14px; font-weight: 600; color: var(--text-dark); }
+
+        .trend-message { margin-top: 16px; padding-top: 16px; border-top: 1px solid #f2f4f6; font-size: 15px; font-weight: 600; color: var(--text-dark); }
+        .highlight-bad { color: var(--expense-color); }
+        .highlight-good { color: var(--primary-blue); }
+
+        /* 도넛 차트 & 랭킹 */
+        .ranking-container { display: flex; align-items: center; gap: 20px; }
+        .donut-chart {
+            width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
+            background: conic-gradient(#f2f4f6 0% 100%);
+            position: relative; transition: background 1s ease;
+        }
+        .donut-chart::after {
+            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 50px; height: 50px; background-color: #fff; border-radius: 50%;
+        }
+
+        .rank-list { flex-grow: 1; display: flex; flex-direction: column; gap: 8px; }
+        .rank-item { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .rank-name { display: flex; align-items: center; gap: 6px; color: var(--text-dark); font-weight: 500; }
+        .rank-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .rank-amt { font-weight: 700; }
+
+        /* 하루 평균 */
+        .daily-val { font-size: 24px; font-weight: 800; color: var(--text-dark); }
+
+        /* 하단 내비게이션 */
         .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height);
-            background: var(--white); border-top: 1px solid #eee;
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 75%; max-width: 450px; height: 70px;
+            background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); 
             display: flex; justify-content: space-around; align-items: center;
-            padding-bottom: env(safe-area-inset-bottom); z-index: 999;
+            z-index: 1000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); 
+            border: 1px solid var(--border-light); border-radius: 50px; padding: 0 10px;
         }
         .nav-item {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-decoration: none; color: #ccc; flex: 1; height: 100%;
+            text-decoration: none; color: #b0b8c1; font-size: 11px; font-weight: 500;
+            flex-grow: 1; height: 60px; position: relative; border-radius: 25px; 
         }
-        .nav-item.active { color: var(--primary); }
-        .nav-item span.material-icons { font-size: 26px; margin-bottom: 4px; }
-        .nav-item span.label { font-size: 10px; font-weight: 500; }
-
-        /* 수정/삭제 바텀 시트 */
-        .sheet-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: flex-end;
+        .nav-item.active { color: var(--text-dark); font-weight: 600; }
+        .nav-item.active::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 100px; height: 55px; background-color: #f2f4f6; 
+            border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; 
         }
-        .sheet {
-            background: white; width: 100%; border-radius: 24px 24px 0 0; padding: 24px;
-            animation: slideUp 0.3s ease-out;
+        .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
+
+        /* 리플 효과 */
+        .ripple {
+            position: absolute; border-radius: 50%; transform: scale(0);
+            animation: ripple-anim 0.5s linear; background-color: var(--ripple-color); pointer-events: none; 
         }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        
-        .sheet-head { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .sheet-title { font-size: 18px; font-weight: 800; }
-        .inp-group { margin-bottom: 16px; }
-        .inp-label { font-size: 12px; color: #999; margin-bottom: 6px; }
-        .inp { width: 100%; border: none; border-bottom: 1px solid #eee; padding: 12px 0; font-size: 16px; outline: none; border-radius: 0; }
-        .btn-row { display: flex; gap: 10px; margin-top: 30px; }
-        .btn-act { flex: 1; padding: 16px; border-radius: 16px; border: none; font-weight: 700; font-size: 15px; cursor: pointer; }
-        .btn-del { background: #fee; color: var(--red); }
-        .btn-save { background: var(--primary); color: white; }
+        @keyframes ripple-anim { to { transform: scale(2.8); opacity: 0; } }
 
-        /* 기타 모달 */
-        .fs-modal { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:2100; transform:translateY(100%); transition:0.3s; display:flex; flex-direction:column; }
-        .fs-modal.open { transform:translateY(0); }
-
-        /* 알림 모달 */
-        .alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; display: none; justify-content: center; align-items: center; }
-        .alert-box { width: 85%; max-width: 320px; background-color: white; border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-        .alert-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; color: white; cursor: pointer; background-color: var(--primary); margin-top: 20px; }
+        /* [수정됨] 모바일 여백 16px 적용 */
+        @media (max-width: 600px) {
+            .header { width: 100%; padding: 0 16px; } /* 20px -> 16px */
+            .container { padding: 0 16px 20px 16px; } /* 20px -> 16px */
+            .bottom-nav { width: 85%; bottom: 20px; }
+        }
     </style>
 </head>
 <body>
-
+    
     <header class="header">
-        <div class="title">기록</div>
-        <div style="display:flex; gap:10px;">
-            <button class="icon-btn" onclick="openShare()"><span class="material-icons">ios_share</span></button>
-            <button class="icon-btn" onclick="openAdd()"><span class="material-icons">add</span></button>
+        <h1>POCKETBLY</h1>
+        <div class="header-action">
+            <button class="icon-button ripple-target">
+                <span class="material-icons">notifications</span>
+            </button>
+            <button class="icon-button ripple-target">
+                <span class="material-icons">settings</span>
+            </button>
         </div>
     </header>
 
     <div class="container">
-        <!-- 요약 -->
-        <div class="summary-box">
-            <div class="s-item"><div class="s-title">수입</div><div class="s-val c-inc" id="val-inc">0</div></div>
-            <div class="s-item"><div class="s-title">지출</div><div class="s-val c-exp" id="val-exp">0</div></div>
-            <div class="s-item"><div class="s-title">합계</div><div class="s-val" id="val-net">0</div></div>
-        </div>
+        <!-- 1. 히어로 섹션 -->
+        <section class="hero-section">
+            <div class="hero-greeting" id="greeting-text">안녕하세요</div>
+            <div class="hero-balance" id="total-asset">0원</div>
+        </section>
 
-        <!-- 컨트롤 -->
-        <div class="ctrl-bar">
-            <div class="month-nav">
-                <span class="material-icons nav-icon" onclick="moveMonth(-1)">chevron_left</span>
-                <span class="month-txt" id="date-display">2023.11</span>
-                <span class="material-icons nav-icon" onclick="moveMonth(1)">chevron_right</span>
+        <!-- 2. 소비 리포트 -->
+        <div class="insight-card ripple-target">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">소비 리포트</div>
+                    <div class="card-desc">지난달 이맘때와 비교했어요</div>
+                </div>
+                <span class="material-icons card-icon">analytics</span>
             </div>
-            <button class="toggle-btn" id="toggle-btn" onclick="toggleMode()">월별</button>
+            <div class="bar-chart-container">
+                <div class="bar-row">
+                    <span class="bar-label">지난달</span>
+                    <div class="bar-track"><div class="bar-fill fill-prev" id="bar-prev"></div></div>
+                    <span class="bar-value" id="prev-month-amt">0원</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">이번달</span>
+                    <div class="bar-track"><div class="bar-fill fill-curr" id="bar-curr"></div></div>
+                    <span class="bar-value" id="curr-month-amt">0원</span>
+                </div>
+            </div>
+            <div class="trend-message" id="trend-text">데이터 분석 중...</div>
         </div>
 
-        <!-- 리스트 -->
-        <div id="list-area">
-            <div style="text-align:center; padding:50px; color:#ccc;">로딩중...</div>
+        <!-- 3. 지출 랭킹 -->
+        <div class="insight-card ripple-target">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">지출 TOP 3</div>
+                    <div class="card-desc">어디에 가장 많이 썼을까요?</div>
+                </div>
+                <span class="material-icons card-icon">pie_chart</span>
+            </div>
+            <div class="ranking-container">
+                <div class="donut-chart" id="donut-chart"></div>
+                <div class="rank-list" id="rank-list">
+                    <div class="rank-item" style="color:#b0b8c1;">내역이 없습니다.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 하루 평균 -->
+        <div class="insight-card ripple-target" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <div class="card-title" style="margin-bottom:4px;">하루 평균 지출</div>
+                <div class="card-desc">이번 달 기준</div>
+            </div>
+            <div class="daily-val" id="daily-avg">0원</div>
         </div>
     </div>
-
-    <!-- 하단 내비게이션 -->
+    
     <nav class="bottom-nav">
-        <!-- 경로 home.html로 연결 -->
-        <a href="/home.html" class="nav-item">
-            <span class="material-icons">home</span><span class="label">홈</span>
-        </a>
         <a href="#" class="nav-item active">
-            <span class="material-icons">receipt_long</span><span class="label">기록</span>
+            <span class="material-icons">home</span><span>홈</span>
+        </a>
+        <a href="/index.html" class="nav-item">
+            <span class="material-icons">receipt_long</span><span>기록</span>
         </a>
         <a href="#" class="nav-item">
-            <span class="material-icons">track_changes</span><span class="label">목표</span>
+            <span class="material-icons">track_changes</span><span>목표</span>
         </a>
         <a href="#" class="nav-item">
-            <span class="material-icons">person</span><span class="label">MY</span>
+            <span class="material-icons">person</span><span>MY</span>
         </a>
     </nav>
-
-    <!-- 수정/삭제 시트 -->
-    <div class="sheet-overlay" id="edit-sheet" onclick="if(event.target===this) closeSheet()">
-        <div class="sheet">
-            <div class="sheet-head">
-                <div class="sheet-title">내역 상세</div>
-                <span class="material-icons" onclick="closeSheet()" style="cursor:pointer;">close</span>
-            </div>
-            <input type="hidden" id="e-id">
-            <div class="inp-group">
-                <div class="inp-label">사용처</div>
-                <input type="text" id="e-usage" class="inp">
-            </div>
-            <div class="inp-group">
-                <div class="inp-label">금액</div>
-                <input type="number" id="e-amt" class="inp">
-            </div>
-            <div class="inp-group">
-                <div class="inp-label">메모</div>
-                <input type="text" id="e-memo" class="inp">
-            </div>
-            <div class="btn-row">
-                <button class="btn-act btn-del" onclick="delTx()">삭제</button>
-                <button class="btn-act btn-save" onclick="saveTx()">저장</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 추가 모달 -->
-    <div id="add-modal" class="fs-modal">
-        <div style="padding:16px; display:flex; justify-content:space-between;">
-            <h2>추가</h2><span class="material-icons" onclick="closeAdd()" style="cursor:pointer;">close</span>
-        </div>
-        <iframe src="/plus" style="flex:1; border:none;"></iframe>
-    </div>
-
-    <!-- 공유 모달 -->
-    <div id="share-modal" class="fs-modal" style="justify-content:center; align-items:center;">
-        <span class="material-icons" onclick="closeShare()" style="position:absolute; top:20px; right:20px; padding:10px; cursor:pointer;">close</span>
-        <h3 style="margin-bottom:30px;">부모님께 전송</h3>
-        <p style="color:#888; margin-bottom:20px; font-size:14px;">현재 월 내역을 전송합니다.</p>
-        <input type="tel" id="share-ph" placeholder="010 1234 5678" style="font-size:24px; text-align:center; border:none; border-bottom:2px solid #e5e8eb; margin-bottom:30px; width:80%; outline:none; padding:10px 0;">
-        <button onclick="doShare()" style="background:#191f28; color:white; padding:16px 50px; border-radius:16px; border:none; font-weight:700; font-size:16px;">보내기</button>
-        <div id="link-box" style="margin-top:20px; background:#f9f9f9; padding:16px; border-radius:12px; font-size:13px; display:none; word-break:break-all; width:80%;"></div>
-    </div>
-
-    <!-- 알림 팝업 -->
-    <div id="alert-overlay" class="alert-overlay">
-        <div class="alert-box">
-            <span class="material-icons" id="alert-icon" style="font-size:48px; margin-bottom:10px;">check_circle</span>
-            <h3 id="alert-title" style="margin:0 0 10px 0; font-size:18px;">승인 완료</h3>
-            <p id="alert-msg" style="color:#666; margin:0; font-size:14px; line-height:1.4;">부모님이 확인하셨습니다.</p>
-            <div id="alert-comment" style="background:#f5f5f5; padding:12px; border-radius:10px; margin-top:15px; font-size:14px; text-align:left; color:#333;"></div>
-            <button class="alert-btn" onclick="confirmAlert()">확인 (내역 삭제)</button>
-        </div>
-    </div>
 
     <script>
         const firebaseConfig = { apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI", authDomain: "pocketbly.firebaseapp.com", projectId: "pocketbly", storageBucket: "pocketbly.firebasestorage.app", messagingSenderId: "535063683428", appId: "1:535063683428:web:4729815738bee4f8305a71", measurementId: "G-RE71JXSNR3" };
@@ -232,170 +258,116 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        let uid = null, allTx = [], curDate = new Date(), isTotal = false, pendingId = null;
+        const hours = new Date().getHours();
+        let timeGreeting = "안녕하세요";
+        if (hours >= 5 && hours < 12) timeGreeting = "좋은 아침이에요";
+        else if (hours >= 12 && hours < 18) timeGreeting = "점심은 드셨나요?";
+        else if (hours >= 18 && hours < 22) timeGreeting = "오늘 하루도 수고했어요";
+        else timeGreeting = "편안한 밤 되세요";
 
-        auth.onAuthStateChanged(user => {
-            if(user) { uid = user.uid; load(); listenAlerts(user.uid); }
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                const name = user.displayName || "사용자";
+                document.getElementById('greeting-text').innerText = `${timeGreeting}, ${name}님`;
+                loadHomeData(user.uid);
+            } else {
+                document.getElementById('greeting-text').innerText = "로그인이 필요합니다";
+            }
         });
 
-        function load() {
-            db.collection('users').doc(uid).collection('transaction_list').orderBy('createdAt', 'desc')
-            .onSnapshot(ss => {
-                allTx = [];
-                ss.forEach(d => { let o = d.data(); o.id = d.id; o.dateObj = o.createdAt?o.createdAt.toDate():new Date(); allTx.push(o); });
-                render();
-            });
-        }
-
-        function render() {
-            const y = curDate.getFullYear(), m = curDate.getMonth();
-            document.getElementById('date-display').innerText = `${y}.${String(m+1).padStart(2,'0')}`;
-            
-            let list = isTotal ? allTx : allTx.filter(t => t.dateObj.getFullYear()===y && t.dateObj.getMonth()===m);
-            
-            let inc=0, exp=0;
-            list.forEach(t => { let a=parseInt(t.amount); if(t.type==='수입'||a>0) inc+=Math.abs(a); else exp+=Math.abs(a); });
-            document.getElementById('val-inc').innerText = inc.toLocaleString();
-            document.getElementById('val-exp').innerText = exp.toLocaleString();
-            document.getElementById('val-net').innerText = (inc-exp).toLocaleString();
-
-            const area = document.getElementById('list-area');
-            area.innerHTML = '';
-            if(list.length===0) { area.innerHTML='<div style="text-align:center; padding:60px; color:#ccc">내역이 없습니다.</div>'; return; }
-
-            let grp = {};
-            list.forEach(t => {
-                let dStr = `${t.dateObj.getDate()}일 ${['일','월','화','수','목','금','토'][t.dateObj.getDay()]}`;
-                if(!grp[dStr]) grp[dStr]=[];
-                grp[dStr].push(t);
-            });
-
-            let keys = Object.keys(grp).sort((a,b) => grp[b][0].dateObj - grp[a][0].dateObj);
-
-            keys.forEach(k => {
-                let html = `<div class="list-group"><div class="day-label">${k}</div>`;
-                grp[k].forEach(t => {
-                    let isInc = t.type==='수입'||t.amount>0;
-                    let amt = Math.abs(t.amount).toLocaleString();
-                    html += `
-                    <div class="item" onclick="openSheet('${t.id}','${t.usage}',${t.amount},'${t.memo}')">
-                        <div class="i-left">
-                            <span class="i-usage">${t.usage}</span>
-                            <span class="i-meta">${t.category} | ${t.memo}</span>
-                        </div>
-                        <div class="i-amt" style="color:${isInc?'var(--blue)':'var(--primary)'}">${isInc?'':'-'}${amt}원</div>
-                    </div>`;
+        function loadHomeData(uid) {
+            db.collection('users').doc(uid).collection('transaction_list')
+                .onSnapshot((snapshot) => {
+                    let transactions = [];
+                    snapshot.forEach(doc => {
+                        const d = doc.data();
+                        if (d.createdAt) d.dateObj = d.createdAt.toDate();
+                        else d.dateObj = new Date();
+                        transactions.push(d);
+                    });
+                    calculateMetrics(transactions);
                 });
-                html += `</div>`;
-                area.innerHTML += html;
-            });
         }
 
-        function toggleMode() { isTotal=!isTotal; document.getElementById('toggle-btn').innerText = isTotal?'전체':'월별'; document.getElementById('toggle-btn').classList.toggle('active'); render(); }
-        function moveMonth(d) { curDate.setMonth(curDate.getMonth()+d); render(); }
+        function calculateMetrics(transactions) {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth(); 
+            const todayDate = now.getDate();
 
-        // 모달
-        function openAdd() { document.getElementById('add-modal').classList.add('open'); }
-        function closeAdd() { document.getElementById('add-modal').classList.remove('open'); }
-        function openShare() { 
-            document.getElementById('share-modal').classList.add('open'); 
-            document.getElementById('share-ph').value = '';
-            document.getElementById('link-box').style.display = 'none';
-        }
-        function closeShare() { document.getElementById('share-modal').classList.remove('open'); }
+            let totalIncome = 0, totalExpense = 0, thisMonthExpense = 0, lastMonthExpense = 0;
+            const lastMonthDate = new Date(currentYear, currentMonth - 1, 1);
+            const lastMonthYear = lastMonthDate.getFullYear();
+            const lastMonthIdx = lastMonthDate.getMonth();
+            const categoryMap = {};
 
-        // 수정 시트
-        function openSheet(id, u, a, m) {
-            document.getElementById('e-id').value = id;
-            document.getElementById('e-usage').value = u;
-            document.getElementById('e-amt').value = Math.abs(a);
-            document.getElementById('e-memo').value = m;
-            document.getElementById('edit-sheet').style.display='flex';
-        }
-        function closeSheet() { document.getElementById('edit-sheet').style.display='none'; }
-        
-        function delTx() {
-            if(!confirm('삭제하시겠습니까?')) return;
-            let id = document.getElementById('e-id').value;
-            db.collection('users').doc(uid).collection('transaction_list').doc(id).delete().then(()=>closeSheet());
-        }
-        function saveTx() {
-            let id = document.getElementById('e-id').value;
-            let u = document.getElementById('e-usage').value;
-            let a = parseInt(document.getElementById('e-amt').value);
-            let m = document.getElementById('e-memo').value;
-            db.collection('users').doc(uid).collection('transaction_list').doc(id).get().then(doc=>{
-                let old = doc.data();
-                let isInc = old.type==='수입' || old.amount>0;
-                return doc.ref.update({ usage:u, amount: isInc?a:-a, memo:m });
-            }).then(()=>closeSheet());
-        }
+            transactions.forEach(item => {
+                const amt = Math.abs(parseInt(item.amount));
+                const isExpense = item.type === '지출' || parseInt(item.amount) < 0;
+                const tDate = item.dateObj;
 
-        // 공유
-        async function doShare() {
-            let ph = document.getElementById('share-ph').value.replace(/[^0-9]/g,'');
-            if(ph.length<10) return alert('번호를 확인해주세요');
-            
-            const y = curDate.getFullYear();
-            const m = curDate.getMonth();
-            
-            // 이번달 데이터
-            let list = allTx.filter(t => t.dateObj.getFullYear()===y && t.dateObj.getMonth()===m);
-            
-            let inc=0, exp=0;
-            list.forEach(t => { let a=parseInt(t.amount); if(t.type==='수입'||a>0) inc+=Math.abs(a); else exp+=Math.abs(a); });
+                if (!isExpense) totalIncome += amt; else totalExpense += amt;
 
-            const reportData = {
-                uid: uid, year: y, month: m+1,
-                totalIncome: inc, totalExpense: exp, totalAsset: inc-exp,
-                transactions: list, status: 'pending',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-
-            try {
-                const docRef = await db.collection('shared_reports').add(reportData);
-                const url = `https://mo.nmate.kr/view?id=${docRef.id}`;
-                
-                document.getElementById('link-box').innerText = url;
-                document.getElementById('link-box').style.display = 'block';
-
-                const msg = `[용돈 기입장] ${m+1}월 내역입니다.\n확인: ${url}`;
-                const ua = navigator.userAgent.toLowerCase();
-                let scheme = `sms:${ph}?body=${encodeURIComponent(msg)}`;
-                if(ua.includes('iphone')||ua.includes('ipad')) scheme = `sms:${ph}&body=${encodeURIComponent(msg)}`;
-                
-                setTimeout(() => { window.location.href = scheme; closeShare(); }, 1000);
-            } catch(e) {
-                alert('오류 발생');
-            }
-        }
-
-        // 알림 리스너 (Home과 동일)
-        function listenAlerts(uid) {
-            db.collection('shared_reports').where('uid','==',uid).where('status','in',['승인','반려'])
-            .onSnapshot(ss => {
-                ss.docChanges().forEach(c => {
-                    if(c.type==='added' || c.type==='modified') {
-                        let d = c.doc.data(); pendingId = c.doc.id;
-                        document.getElementById('alert-title').innerText = `부모님 ${d.status}`;
-                        document.getElementById('alert-icon').innerText = d.status==='승인'?'check_circle':'cancel';
-                        document.getElementById('alert-icon').style.color = d.status==='승인'?'#3182f6':'#f04452';
-                        if(d.parentComment) {
-                            document.getElementById('alert-comment').innerText = d.parentComment;
-                            document.getElementById('alert-comment').style.display='block';
-                        } else {
-                            document.getElementById('alert-comment').style.display='none';
-                        }
-                        document.getElementById('alert-overlay').style.display='flex';
+                if (isExpense) {
+                    if (tDate.getFullYear() === currentYear && tDate.getMonth() === currentMonth) {
+                        thisMonthExpense += amt;
+                        if (categoryMap[item.category]) categoryMap[item.category] += amt; else categoryMap[item.category] = amt;
                     }
+                    if (tDate.getFullYear() === lastMonthYear && tDate.getMonth() === lastMonthIdx) {
+                        lastMonthExpense += amt;
+                    }
+                }
+            });
+
+            const netAsset = totalIncome - totalExpense;
+            document.getElementById('total-asset').innerText = `${netAsset.toLocaleString()}원`;
+            document.getElementById('prev-month-amt').innerText = `${lastMonthExpense.toLocaleString()}원`;
+            document.getElementById('curr-month-amt').innerText = `${thisMonthExpense.toLocaleString()}원`;
+
+            const maxVal = Math.max(thisMonthExpense, lastMonthExpense) || 1;
+            setTimeout(() => {
+                document.getElementById('bar-prev').style.width = `${(lastMonthExpense / maxVal) * 100}%`;
+                document.getElementById('bar-curr').style.width = `${(thisMonthExpense / maxVal) * 100}%`;
+            }, 100);
+
+            const trendEl = document.getElementById('trend-text');
+            const diff = thisMonthExpense - lastMonthExpense;
+            if (diff > 0) trendEl.innerHTML = `지난달보다 <span class="highlight-bad">${Math.abs(diff).toLocaleString()}원</span> 더 썼어요.`;
+            else if (diff < 0) trendEl.innerHTML = `지난달보다 <span class="highlight-good">${Math.abs(diff).toLocaleString()}원</span> 절약했어요!`;
+            else trendEl.innerText = "지난달과 지출이 비슷해요.";
+            if (thisMonthExpense === 0 && lastMonthExpense === 0) trendEl.innerText = "아직 지출 내역이 없어요.";
+
+            const sortedCats = Object.keys(categoryMap).map(key => ({ name: key, amount: categoryMap[key] })).sort((a, b) => b.amount - a.amount).slice(0, 3);
+            const rankListEl = document.getElementById('rank-list');
+            rankListEl.innerHTML = '';
+            
+            if (sortedCats.length > 0) {
+                const colors = ['#f04452', '#ff8c00', '#ffc107'];
+                let gradientStr = "", currentDeg = 0;
+                sortedCats.forEach((cat, idx) => {
+                    rankListEl.innerHTML += `<div class="rank-item"><div class="rank-name"><div class="rank-dot" style="background-color: ${colors[idx]}"></div>${cat.name}</div><div class="rank-amt">${cat.amount.toLocaleString()}원</div></div>`;
+                    const deg = (cat.amount / thisMonthExpense) * 360; 
+                    gradientStr += `${colors[idx]} ${currentDeg}deg ${currentDeg + deg}deg, `;
+                    currentDeg += deg;
                 });
-            });
+                gradientStr += `#f2f4f6 ${currentDeg}deg 360deg`;
+                document.getElementById('donut-chart').style.background = `conic-gradient(${gradientStr})`;
+            } else {
+                rankListEl.innerHTML = '<div class="rank-item" style="color:#b0b8c1;justify-content:center;">내역이 없습니다.</div>';
+                document.getElementById('donut-chart').style.background = '#f2f4f6';
+            }
+
+            const dayAvg = Math.round(thisMonthExpense / (todayDate || 1));
+            document.getElementById('daily-avg').innerText = `${dayAvg.toLocaleString()}원`;
         }
-        function confirmAlert() {
-            if(pendingId) db.collection('shared_reports').doc(pendingId).delete().then(()=>{
-                document.getElementById('alert-overlay').style.display='none';
-            });
+
+        function createRipple(event) {
+            const button = event.currentTarget; const oldRipple = button.querySelector('.ripple'); if(oldRipple) oldRipple.remove();
+            const circle = document.createElement('span'); const diameter = Math.max(button.clientWidth, button.clientHeight); const radius = diameter / 2; const rect = button.getBoundingClientRect();
+            circle.style.width = circle.style.height = `${diameter}px`; circle.style.left = `${event.clientX - rect.left - radius}px`; circle.style.top = `${event.clientY - rect.top - radius}px`; circle.classList.add('ripple');
+            button.appendChild(circle); setTimeout(() => circle.remove(), 500);
         }
+        document.querySelectorAll('.ripple-target').forEach(btn => btn.addEventListener('click', createRipple));
     </script>
 </body>
 </html>
