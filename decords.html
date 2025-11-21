@@ -4,19 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>거래 내역 기록</title>
-    <!-- Google Material Icons CDN (SVG 대체) -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
-    <!-- Pretendard 폰트 CDN 추가 -->
+    <!-- Google Material Icons CDN -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Pretendard 폰트 CDN -->
     <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
+
+    <!-- Firebase SDK (Compat 버전) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     
     <style>
-        /* [공통] 모든 요소에 대해 터치 하이라이트 색상(파란색)을 투명으로 설정하여 제거합니다. */
-        * {
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        /* CSS 변수를 사용하여 색상과 크기 관리의 효율성 높임 */
+        /* [공통] 기존 스타일 유지 */
+        * { -webkit-tap-highlight-color: transparent; }
         :root {
             --primary-blue: #3b82f6;
             --text-dark: #1f2937;
@@ -29,433 +30,142 @@
             --net-color: #3b82f6;
         }
 
-        /* 기본 스타일 리셋 및 폰트 설정 */
         body {
-            font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+            font-family: 'Pretendard Variable', Pretendard, sans-serif;
             background-color: #ffffff;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            /* 스크롤바 공간을 미리 확보하여 레이아웃 변동 방지 */
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column; align-items: center;
             overflow-y: scroll; 
-            /* 고정 헤더 높이만큼 상단 패딩 */
             padding-top: var(--header-height); 
-            /* 플로팅 내비게이션 바 높이와 하단 여백을 고려하여 충분한 공간 확보 */
             padding-bottom: 110px; 
         }
 
-        /* 메인 컨테이너 (PC/태블릿 환경에서 최대 너비 1024px) */
         .container {
-            width: 95%;
-            max-width: 1024px; 
+            width: 95%; max-width: 1024px; 
             background-color: #ffffff;
             padding: 0 24px 24px 24px; 
             box-sizing: border-box;
         }
 
-        /* [공통] 헤더 스타일 (고정) */
         .header {
-            position: fixed;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 95%; 
-            max-width: 1024px; 
-            z-index: 1005;
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 95%; max-width: 1024px; z-index: 1005;
             background-color: #ffffff; 
-            box-shadow: none; 
-            border-bottom: none; 
-            padding: 16px 24px;
-            box-sizing: border-box;
-            border-radius: 0; 
             height: var(--header-height); 
-            display: flex;
-            align-items: center;
-            justify-content: space-between; 
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 24px; box-sizing: border-box;
         }
-
-        .header h1 {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--text-dark);
-            margin: 0; 
-        }
-        .header-action {
-            display: flex;
-            gap: 12px;
-        }
-        /* 헤더 아이콘 버튼 */
+        .header h1 { font-size: 28px; font-weight: 800; color: var(--text-dark); margin: 0; }
+        .header-action { display: flex; gap: 12px; }
         .icon-button {
-            background: none;
-            border: none;
-            color: var(--text-dark);
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            transition: background-color 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
+            background: none; border: none; color: var(--text-dark); cursor: pointer;
+            padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
         }
-        .icon-button:hover {
-            background-color: #f3f4f6;
-        }
+        .icon-button:hover { background-color: #f3f4f6; }
         
-        /* [추가] 요약 카드 컨테이너 */
-        .summary-cards {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        /* [추가] 요약 카드 스타일 */
+        /* 요약 카드 */
+        .summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
         .summary-card {
-            background-color: #f9fafb;
-            padding: 16px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 90px;
-            transition: all 0.2s;
+            background-color: #f9fafb; padding: 16px; border-radius: 12px;
+            display: flex; flex-direction: column; justify-content: space-between; min-height: 90px;
         }
-        
-        .summary-card-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-gray);
-            display: flex;
-            align-items: center;
-            margin-bottom: 4px;
-        }
+        .summary-card-title { font-size: 13px; font-weight: 600; color: var(--text-gray); display: flex; align-items: center; margin-bottom: 4px; }
+        .summary-card-value { font-size: 18px; font-weight: 800; color: var(--text-dark); word-break: keep-all; }
 
-        .summary-card-value {
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--text-dark);
-        }
-
-        /* 금액 색상 */
         .text-income { color: var(--income-color); }
         .text-expense { color: var(--expense-color); }
         .text-net { color: var(--net-color); }
         
-        /* [날짜 탐색 바] 스타일 */
+        /* 날짜 탐색 */
         .date-navigation {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 24px; 
-            padding: 12px 0; 
-            border: none;
-            background-color: transparent;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 24px; padding: 12px 0; 
         }
-
-        .date-navigation .date-display {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-dark);
-            text-align: center;
-            flex-grow: 1; 
-        }
-
+        .date-navigation .date-display { font-size: 18px; font-weight: 700; color: var(--text-dark); flex-grow: 1; text-align: center; }
         .date-navigation .nav-arrow {
-            background: none;
-            border: none;
-            color: var(--text-dark);
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 50%;
-            transition: background-color 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden; 
-        }
-        .date-navigation .nav-arrow:hover {
-            background-color: #f3f4f6;
-        }
-        
-        /* 네비게이션 화살표 아이콘 크기 고정 */
-        .date-navigation .nav-arrow .material-icons {
-            font-size: 24px; 
+            background: none; border: none; color: var(--text-dark); cursor: pointer;
+            padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
         }
 
-        /* 거래 목록 영역 */
-        .transaction-list-section {
-            margin-top: 24px;
-        }
-        .transaction-list-section h2 {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 12px;
-        }
-        .transaction-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
+        /* 거래 목록 */
+        .transaction-list-section { margin-top: 24px; }
+        .transaction-list-section h2 { font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 12px; }
+        .transaction-list { list-style: none; padding: 0; margin: 0; }
         
-        /* 일별 구분선/헤더 스타일 */
         .daily-header {
-            list-style: none;
-            padding: 12px 0 8px 0;
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--text-dark);
-            margin-top: 16px;
+            padding: 20px 0 8px 0; font-size: 18px; font-weight: 800;
+            color: var(--text-dark); border-bottom: 1px solid #f3f4f6;
         }
-        .daily-header:first-child {
-            margin-top: 0;
-        }
-
-        /* 개별 거래 항목 */
         .transaction-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #eeeeee;
-            font-size: 14px;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            margin: 2px 0;
-            background-color: transparent; 
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 0; border-bottom: 1px solid #eeeeee; cursor: pointer; position: relative;
         }
-        .transaction-item:last-child {
-            border-bottom: none;
-        }
-        .transaction-item:hover {
-            background-color: transparent;
-        }
+        .transaction-item:last-child { border-bottom: none; }
         
-        .transaction-details {
-            display: flex;
-            flex-direction: column; 
-            flex-grow: 1;
-        }
-
-        /* 거래 종류와 카테고리를 수직으로 분리 */
-        .transaction-text {
-            display: flex;
-            flex-direction: column; 
-        }
-
-        .transaction-type {
-            font-weight: 500;
-            color: #374151;
-            font-size: 15px;
-            margin-bottom: 2px; /* 카테고리와의 간격 추가 */
-        }
-        .transaction-category {
-            font-size: 11px;
-            color: #9ca3af;
-        }
+        .transaction-details { display: flex; flex-direction: column; flex-grow: 1; }
+        .transaction-type { font-weight: 600; color: #374151; font-size: 15px; margin-bottom: 4px; }
+        .transaction-category { font-size: 12px; color: #9ca3af; }
         
-        .transaction-amount-info {
-            text-align: right;
-            margin-left: 10px;
-        }
-        .transaction-amount {
-            font-weight: 700;
-        }
+        .transaction-amount-info { text-align: right; margin-left: 10px; }
+        .transaction-amount { font-weight: 700; font-size: 16px; }
         
-        /* 금액 색상 클래스 */
         .text-green { color: var(--income-color); } 
         .text-red { color: var(--expense-color); } 
         
-        /* RIPPLE EFFECT CSS */
+        /* Ripple Effect */
         .ripple {
-            position: absolute;
-            border-radius: 50%;
-            transform: scale(0);
-            animation: ripple-animation 0.6s linear;
-            background-color: var(--ripple-color); 
-            pointer-events: none; 
-            z-index: 1;
+            position: absolute; border-radius: 50%; transform: scale(0);
+            animation: ripple-animation 0.6s linear; background-color: var(--ripple-color); pointer-events: none; 
         }
+        @keyframes ripple-animation { to { transform: scale(2.5); opacity: 0; } }
 
-        @keyframes ripple-animation {
-            to {
-                transform: scale(2.5);
-                opacity: 0;
-            }
-        }
-
-        /* --- 모달 (새 기록 추가) 스타일 --- */
+        /* 모달 */
         .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #ffffff;
-            z-index: 2000;
-            transform: translateY(100%); /* 시작 위치: 화면 아래 */
-            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* 슬라이드 애니메이션 */
-            display: flex;
-            flex-direction: column;
-            visibility: hidden; /* 초기에는 숨김 */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffffff; z-index: 2000; transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            display: flex; flex-direction: column; visibility: hidden;
         }
-
-        .modal.open {
-            transform: translateY(0); /* 끝 위치: 화면 전체 덮기 */
-            visibility: visible;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px 24px;
-            border-bottom: 1px solid var(--border-light);
-            flex-shrink: 0; /* 모달 크기 고정 */
-        }
-
-        .modal-header h2 {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin: 0;
-        }
-
-        .modal-content {
-            flex-grow: 1;
-        }
-
-        .modal-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+        .modal.open { transform: translateY(0); visibility: visible; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border-light); flex-shrink: 0; }
+        .modal-content { flex-grow: 1; }
+        .modal-iframe { width: 100%; height: 100%; border: none; }
         
-        /* --- 하단 내비게이션 바 --- */
+        /* 하단 내비게이션 */
         .bottom-nav {
-            position: fixed;
-            bottom: 20px; 
-            left: 50%;
-            transform: translateX(-50%);
-            width: 75%; 
-            max-width: 450px; 
-            height: 70px;
-            background-color: rgba(255, 255, 255, 0.85); 
-            backdrop-filter: blur(10px); 
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 1000;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); 
-            border: 1px solid var(--border-light); 
-            border-radius: 50px; 
-            padding: 0 10px;
-            box-sizing: border-box;
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 75%; max-width: 450px; height: 70px;
+            background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px);
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 1000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-light); border-radius: 50px;
         }
-
         .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            color: #9ca3af; 
-            font-size: 11px;
-            font-weight: 500;
-            transition: color 0.3s;
-            flex-grow: 1;
-            position: relative;
-            height: 60px;
-            border-radius: 25px; 
-            cursor: pointer;
-            z-index: 10;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-decoration: none; color: #9ca3af; font-size: 11px; flex-grow: 1; height: 60px;
         }
+        .nav-item.active { color: var(--text-dark); font-weight: 600; }
+        .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
 
-        /* 활성 상태 스타일 */
-        .nav-item.active {
-            color: var(--text-dark); 
-            font-weight: 600;
-            position: relative; 
-        }
-
-        /* 활성 상태의 부드러운 타원형 배경 */
-        .nav-item.active::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 100px; 
-            height: 55px;
-            background-color: #f0f0f0; 
-            border-radius: 30px; 
-            transform: translate(-50%, -50%);
-            z-index: -1; 
-            transition: all 0.3s ease-in-out; 
-        }
-        
-        /* 아이콘 색상 */
-        .material-icons {
-            font-size: 24px;
-            margin-bottom: 2px;
-            color: inherit; 
-            transition: color 0.3s;
-        }
-
-        /* 반응형 */
         @media (max-width: 600px) {
-            .header {
-                width: 100%; 
-                padding: 16px 16px; 
-            }
-            .container {
-                padding: 0 16px 16px 16px;
-            }
-            .date-navigation {
-                padding: 10px 0;
-            }
-            .summary-cards {
-                grid-template-columns: 1fr; /* 모바일에서 세로로 쌓기 */
-                gap: 8px;
-            }
-            .summary-card-value {
-                font-size: 22px;
-            }
-            .bottom-nav {
-                width: 85%; 
-                bottom: 20px; 
-            }
-        }
-        
-        /* 로딩 및 오류 메시지 스타일 */
-        .loading-message {
-            text-align: center;
-            padding: 30px;
-            color: var(--text-gray);
-            font-size: 16px;
-            font-weight: 500;
+            .header { width: 100%; padding: 16px; }
+            .container { padding: 0 16px 16px 16px; }
+            .summary-cards { grid-template-columns: 1fr; gap: 8px; }
+            .bottom-nav { width: 85%; }
         }
     </style>
 </head>
 <body>
     
-    <!-- 거래 기록 헤더 (고정됨) -->
+    <!-- 헤더 -->
     <header class="header">
         <div class="header-main-content">
             <h1>기록</h1>
         </div>
-        <!-- 우측 액션 아이콘 (필터, 추가) -->
         <div class="header-action">
             <button class="icon-button ripple-target" title="필터">
                 <span class="material-icons">filter_list</span>
             </button>
-            <!-- [수정] 모달 열기 함수 연결 -->
             <button class="icon-button ripple-target" title="새 기록 추가" onclick="openAddModal()">
                 <span class="material-icons">add</span>
             </button>
@@ -464,52 +174,42 @@
 
     <div class="container">
         
-        <!-- [수정] 요약 카드 섹션: 총 수입, 총 지출, 총 자산 순서로 변경 -->
+        <!-- 요약 카드 (ID 추가됨) -->
         <section class="summary-cards">
-            <!-- 1. 총 수입 -->
             <div class="summary-card">
                 <div class="summary-card-title">
                     <span class="material-icons" style="font-size:16px; margin-right: 4px; color: var(--income-color);">arrow_downward</span>
                     총 수입
                 </div>
-                <!-- [데이터] 수입 (Firebase 데이터로 업데이트됨) -->
-                <div class="summary-card-value text-income">₩ 0</div>
+                <div class="summary-card-value text-income" id="total-income">₩ 0</div>
             </div>
-            
-            <!-- 2. 총 지출 -->
             <div class="summary-card">
                 <div class="summary-card-title">
                     <span class="material-icons" style="font-size:16px; margin-right: 4px; color: var(--expense-color);">arrow_upward</span>
                     총 지출
                 </div>
-                <!-- [데이터] 지출 (Firebase 데이터로 업데이트됨) -->
-                <div class="summary-card-value text-expense">₩ 0</div>
+                <div class="summary-card-value text-expense" id="total-expense">₩ 0</div>
             </div>
-
-            <!-- 3. 총 자산 -->
             <div class="summary-card">
                 <div class="summary-card-title">
-                    <!-- [수정] 요청에 따라 아이콘을 savings로 변경 -->
-                    <span class="material-icons" style="font-size:16px; margin-right: 4px; color: var(--net-color);">savings</span>
+                    <span class="material-icons" style="font-size:16px; margin-right: 4px; color: var(--net-color);">account_balance_wallet</span>
                     총 자산
                 </div>
-                <!-- [데이터] 총 자산 (데이터 로드 전 플레이스홀더) -->
-                <div class="summary-card-value text-net">₩ --</div>
+                <div class="summary-card-value text-net" id="total-asset">₩ 0</div>
             </div>
         </section>
 
-
         <!-- 날짜 탐색 바 -->
         <section class="date-navigation">
-            <button class="nav-arrow ripple-target" title="이전 달">
+            <button class="nav-arrow ripple-target" title="이전 달" onclick="changeMonth(-1)">
                 <span class="material-icons">chevron_left</span>
             </button>
 
-            <div class="date-display">
-                2025년 11월
+            <div class="date-display" id="current-month-display">
+                <!-- JS로 설정됨 -->
             </div>
             
-            <button class="nav-arrow ripple-target" title="다음 달">
+            <button class="nav-arrow ripple-target" title="다음 달" onclick="changeMonth(1)">
                 <span class="material-icons">chevron_right</span>
             </button>
         </section>
@@ -517,327 +217,243 @@
         <!-- 상세 거래 목록 -->
         <section class="transaction-list-section">
             <h2>거래 내역</h2>
-            
-            <ul class="transaction-list">
-                <!-- 초기 로딩 메시지 -->
-                <p class="loading-message">거래 내역을 불러오는 중...</p>
+            <ul class="transaction-list" id="transaction-list-container">
+                <!-- JS로 동적 생성됨 (로딩 중 표시) -->
+                <li style="text-align: center; padding: 40px; color: #999;">데이터를 불러오는 중...</li>
             </ul>
         </section>
     </div>
     
-    <!-- 하단 플로팅 내비게이션 바 -->
+    <!-- 하단 내비게이션 -->
     <nav class="bottom-nav">
-        <!-- 1. 홈 -->
-        <a href="#" class="nav-item">
-            <span class="material-icons">home</span>
-            <span>홈</span>
-        </a>
-        <!-- 2. 기록 (활성) -->
-        <a href="#" class="nav-item active">
-            <span class="material-icons">receipt_long</span>
-            <span>기록</span>
-        </a>
-        <!-- 3. 목표 (track_changes) -->
-        <a href="#" class="nav-item">
-            <span class="material-icons">track_changes</span>
-            <span>목표</span>
-        </a>
-        <!-- 4. MY (person) -->
-        <a href="#" class="nav-item">
-            <span class="material-icons">person</span>
-            <span>MY</span>
-        </a>
+        <a href="#" class="nav-item"><span class="material-icons">home</span><span>홈</span></a>
+        <a href="#" class="nav-item active"><span class="material-icons">receipt_long</span><span>기록</span></a>
+        <a href="#" class="nav-item"><span class="material-icons">track_changes</span><span>목표</span></a>
+        <a href="#" class="nav-item"><span class="material-icons">person</span><span>MY</span></a>
     </nav>
     
-    <!-- [추가] 새 기록 추가 모달 (화면 전체 덮음) -->
+    <!-- 새 기록 추가 모달 (Iframe src="/plus") -->
     <div id="add-modal" class="modal">
         <div class="modal-header">
             <h2>새 기록 추가</h2>
-            <!-- [수정] 모달 닫기 함수 연결 -->
             <button class="icon-button ripple-target" title="닫기" onclick="closeAddModal()">
                 <span class="material-icons">close</span>
             </button>
         </div>
         <div class="modal-content">
-            <!-- 요청된 /plus 경로를 불러오는 iframe 시뮬레이션 -->
             <iframe class="modal-iframe" src="/plus" title="새 기록 추가 페이지"></iframe>
         </div>
     </div>
 
+    <!-- 스크립트 영역 -->
+    <script>
+        // 1. Firebase 설정 (이전 코드와 동일)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI",
+            authDomain: "pocketbly.firebaseapp.com",
+            projectId: "pocketbly",
+            storageBucket: "pocketbly.firebasestorage.app",
+            messagingSenderId: "535063683428",
+            appId: "1:535063683428:web:4729815738bee4f8305a71",
+            measurementId: "G-RE71JXSNR3"
+        };
 
-    <!-- JavaScript for Firebase, Ripple Effect, and Modal Controls -->
-    <script type="module">
-        // Firebase Imports
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, query, onSnapshot, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        // Global Firebase instances and variables
-        let app;
-        let db;
-        let auth;
-        let userId;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        // 2. 상태 관리 변수
+        let currentUserId = null;
+        let allTransactions = []; // 불러온 전체 데이터
+        let currentDate = new Date(); // 현재 보고 있는 월
 
-        // Helper function to format date to "일 요일" (e.g., "21일 금요일")
-        function formatDateToKorean(timestamp) {
-            if (!timestamp) return "";
-            let date;
-            
-            // Check if it's a Firestore Timestamp object or falls back to Date object
-            if (timestamp.toDate) {
-                date = timestamp.toDate();
-            } else if (typeof timestamp === 'string' || typeof timestamp === 'number') {
-                // Handle cases where timestamp might be a string (e.g., from mock data)
-                date = new Date(timestamp);
+        // 3. 초기 실행 및 인증 확인
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log("로그인 확인됨:", user.uid);
+                currentUserId = user.uid;
+                fetchTransactions(currentUserId);
             } else {
-                return "날짜 오류";
+                console.log("로그인 필요");
+                document.getElementById('transaction-list-container').innerHTML = 
+                    '<li style="text-align:center; padding:30px;">로그인이 필요합니다.</li>';
             }
-            
-            // JavaScript Date object's toLocaleDateString handles localization
-            const options = { day: 'numeric', weekday: 'short' };
-            const parts = date.toLocaleDateString('ko-KR', options).split(' ');
-            
-            // parts will be something like ["21일", "금"]
-            return `${parts[0]} ${parts[1]}요일`; // "21일 금요일"
+        });
+
+        // 4. 데이터 불러오기 (Firestore)
+        function fetchTransactions(uid) {
+            // 개인 데이터 경로: users/{uid}/transaction_list
+            // 시간 역순(최신순) 정렬
+            db.collection('users').doc(uid).collection('transaction_list')
+                .orderBy('createdAt', 'desc')
+                .onSnapshot((snapshot) => {
+                    allTransactions = [];
+                    snapshot.forEach((doc) => {
+                        const data = doc.data();
+                        // Firestore Timestamp를 JS Date 객체로 변환
+                        if (data.createdAt) {
+                            data.dateObj = data.createdAt.toDate();
+                        } else {
+                            data.dateObj = new Date(); // fallback
+                        }
+                        allTransactions.push(data);
+                    });
+                    
+                    renderUI(); // 데이터가 변경될 때마다 UI 갱신
+                });
         }
 
-        // Function to calculate and update summary cards
-        function calculateSummary(transactions) {
+        // 5. UI 렌더링 (핵심 로직)
+        function renderUI() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth(); // 0 ~ 11
+
+            // 5-1. 날짜 표시 업데이트
+            document.getElementById('current-month-display').textContent = `${year}년 ${month + 1}월`;
+
+            // 5-2. 현재 월에 해당하는 데이터 필터링
+            const filteredData = allTransactions.filter(item => {
+                return item.dateObj.getFullYear() === year && item.dateObj.getMonth() === month;
+            });
+
+            // 5-3. 요약 카드 계산 (수입, 지출 합계)
             let totalIncome = 0;
             let totalExpense = 0;
 
-            transactions.forEach(tx => {
-                // amount는 숫자 필드로 가정. (사용자 예시: -45)
-                const amount = Number(tx.amount) || 0; 
-                
-                if (tx.type === "수입") {
-                    // 수입은 양수로 더함
-                    totalIncome += Math.abs(amount);
-                } else if (tx.type === "지출") {
-                    // 지출은 양수로 더해 총 지출을 계산
-                    totalExpense += Math.abs(amount); 
+            filteredData.forEach(item => {
+                if (item.type === '수입') {
+                    totalIncome += item.amount; // amount는 이미 양수/음수 처리되어 있을 수 있으나 로직상 절대값 체크
+                } else {
+                    totalExpense += Math.abs(item.amount); // 지출은 절대값으로 더함
                 }
             });
+
+            // 전체 자산은 이번 달 수입-지출 (혹은 전체 누적으로 할 수도 있으나, 여기선 월별 요약으로 표시)
+            // 만약 "전체 누적 자산"을 원하면 filteredData 대신 allTransactions로 계산하면 됩니다.
+            // 여기서는 현재 보여지는 월의 수지타산(Net)으로 표시하겠습니다.
+            const netAsset = totalIncome - totalExpense;
+
+            document.getElementById('total-income').textContent = `₩ ${totalIncome.toLocaleString('ko-KR')}`;
+            document.getElementById('total-expense').textContent = `₩ ${totalExpense.toLocaleString('ko-KR')}`;
+            document.getElementById('total-asset').textContent = `₩ ${netAsset.toLocaleString('ko-KR')}`;
             
-            // NOTE: 총 자산(Total Assets)은 현재 잔고를 별도로 계산해야 하므로, 
-            // 여기서는 총 수입과 총 지출만 업데이트합니다.
-            
-            // DOM 업데이트
-            document.querySelector('.summary-card:nth-child(1) .summary-card-value').textContent = 
-                `₩ ${totalIncome.toLocaleString('ko-KR')}`;
-            document.querySelector('.summary-card:nth-child(2) .summary-card-value').textContent = 
-                `₩ ${totalExpense.toLocaleString('ko-KR')}`;
-        }
+            // 색상 처리 (자산이 마이너스면 빨간색)
+            const assetEl = document.getElementById('total-asset');
+            assetEl.className = netAsset >= 0 ? 'summary-card-value text-net' : 'summary-card-value text-expense';
 
 
-        // Function to render transactions dynamically
-        function renderTransactions(transactions) {
-            const listElement = document.querySelector('.transaction-list');
-            listElement.innerHTML = ''; 
-            
-            if (transactions.length === 0) {
-                 listElement.innerHTML = `<p class="loading-message" style="color: var(--text-gray);">아직 기록된 거래 내역이 없습니다.</p>`;
-                 return;
-            }
+            // 5-4. 리스트 렌더링 (날짜별 그룹화)
+            const listContainer = document.getElementById('transaction-list-container');
+            listContainer.innerHTML = '';
 
-            // 1. Sort by creation date descending (newest first)
-            transactions.sort((a, b) => {
-                // Firestore Timestamp 객체 비교 (toDate()를 사용하여 JS Date로 변환)
-                const dateA = a.createdAt?.toDate() || new Date(0);
-                const dateB = b.createdAt?.toDate() || new Date(0);
-                return dateB - dateA; // 내림차순 정렬
-            });
-
-            // 2. Group by localized date string (e.g., "21일 금요일")
-            const grouped = transactions.reduce((acc, tx) => {
-                const dateKey = tx.createdAt ? formatDateToKorean(tx.createdAt) : '날짜 없음';
-                if (!acc[dateKey]) {
-                    acc[dateKey] = [];
-                }
-                acc[dateKey].push(tx);
-                return acc;
-            }, {});
-
-            // 3. Render the grouped list
-            for (const dateKey in grouped) {
-                // Add Daily Header
-                const headerLi = document.createElement('li');
-                headerLi.classList.add('daily-header');
-                headerLi.textContent = dateKey;
-                listElement.appendChild(headerLi);
-
-                // Add Transactions for the day
-                grouped[dateKey].forEach(tx => {
-                    const isExpense = tx.type === "지출";
-                    const sign = isExpense ? '-' : '+';
-                    // amount가 음수일 수 있으므로 절대값을 사용
-                    const amountAbs = Math.abs(Number(tx.amount) || 0); 
-                    const amountFormatted = amountAbs.toLocaleString('ko-KR');
-                    const amountColorClass = isExpense ? 'text-red' : 'text-green';
-
-                    const listItem = document.createElement('li');
-                    listItem.classList.add('transaction-item', 'ripple-target');
-                    // 동적으로 리플 리스너 추가
-                    listItem.addEventListener('click', createRipple); 
-
-                    listItem.innerHTML = `
-                        <div class="transaction-details">
-                            <div class="transaction-text">
-                                <!-- 메모를 주 거래 내용으로, category를 부가 설명으로 사용 -->
-                                <span class="transaction-type">${tx.memo || '메모 없음'}</span>
-                                <span class="transaction-category">${tx.category || '분류 없음'} (${tx.usage || '용도 없음'})</span>
-                            </div>
-                        </div>
-                        <div class="transaction-amount-info">
-                            <span class="transaction-amount ${amountColorClass}">${sign} ₩ ${amountFormatted}</span>
-                        </div>
-                    `;
-                    listElement.appendChild(listItem);
-                });
-            }
-        }
-
-        // Function to load real-time transactions from Firestore
-        function loadTransactions() {
-            if (!db || !userId) {
-                console.error("Firebase DB or User ID not ready.");
-                document.querySelector('.transaction-list').innerHTML = 
-                    `<p class="loading-message" style="color: var(--expense-color);">인증 오류: 사용자 데이터 로드 불가.</p>`;
+            if (filteredData.length === 0) {
+                listContainer.innerHTML = '<li style="text-align:center; padding:40px; color:#999;">이번 달 거래 내역이 없습니다.</li>';
                 return;
             }
 
-            // Path: /artifacts/{appId}/users/{userId}/transaction_list (Private data)
-            const path = `artifacts/${appId}/users/${userId}/transaction_list`;
-            const transactionsCollectionRef = collection(db, path);
-            
-            // 쿼리 설정 (정렬은 클라이언트에서 처리)
-            const q = query(transactionsCollectionRef); 
-            
-            // 실시간 리스너 설정
-            onSnapshot(q, (snapshot) => {
-                const transactions = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
+            // 날짜별 그룹화 로직
+            const grouped = {};
+            filteredData.forEach(item => {
+                const dateKey = getDateString(item.dateObj); // YYYY-MM-DD
+                if (!grouped[dateKey]) {
+                    grouped[dateKey] = [];
+                }
+                grouped[dateKey].push(item);
+            });
+
+            // 그룹화된 데이터를 날짜 내림차순으로 정렬하여 출력
+            Object.keys(grouped).sort().reverse().forEach(dateKey => {
+                const dayItems = grouped[dateKey];
+                const dateObj = dayItems[0].dateObj;
                 
-                // 1. 요약 정보 계산 및 업데이트
-                calculateSummary(transactions);
+                // 헤더 생성 (예: 27일 목요일)
+                const dayHeader = document.createElement('li');
+                dayHeader.className = 'daily-header';
+                dayHeader.textContent = formatDateHeader(dateObj);
+                listContainer.appendChild(dayHeader);
 
-                // 2. 상세 거래 목록 렌더링
-                renderTransactions(transactions);
-
-            }, (error) => {
-                console.error("Error fetching transactions: ", error);
-                document.querySelector('.transaction-list').innerHTML = 
-                    `<p class="loading-message" style="color: var(--expense-color);">거래 내역을 불러오는 중 오류가 발생했습니다: ${error.message}</p>`;
+                // 항목 생성
+                dayItems.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'transaction-item ripple-target';
+                    
+                    const isIncome = item.type === '수입';
+                    const colorClass = isIncome ? 'text-green' : 'text-red';
+                    const sign = isIncome ? '+' : ''; // 지출은 이미 음수로 저장되어 있거나 포맷팅 필요
+                    
+                    // 금액 포맷팅 (지출은 -부호 붙이기)
+                    let displayAmount = item.amount;
+                    if (!isIncome && displayAmount > 0) displayAmount = -displayAmount;
+                    
+                    li.innerHTML = `
+                        <div class="transaction-details">
+                            <div class="transaction-text">
+                                <span class="transaction-type">${item.usage || '사용처 없음'}</span>
+                                <span class="transaction-category">${item.category} | ${item.memo}</span>
+                            </div>
+                        </div>
+                        <div class="transaction-amount-info">
+                            <span class="transaction-amount ${colorClass}">${sign} ₩ ${Math.abs(displayAmount).toLocaleString('ko-KR')}</span>
+                        </div>
+                    `;
+                    
+                    // 리스트 클릭 시 리플 효과 추가를 위해 이벤트 리스너 부착
+                    li.addEventListener('click', createRipple);
+                    listContainer.appendChild(li);
+                });
             });
         }
 
-
-        // Main initialization function
-        async function initFirebaseAndLoadData() {
-            try {
-                // Firebase Config
-                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-
-                if (Object.keys(firebaseConfig).length === 0) {
-                    console.error("Firebase config is missing.");
-                    document.querySelector('.transaction-list').innerHTML = 
-                        `<p class="loading-message" style="color: var(--expense-color);">Firebase 설정 오류: 데이터 로드가 불가능합니다.</p>`;
-                    return;
-                }
-
-                // Initialize Firebase
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                
-                setLogLevel('debug');
-
-                // Authentication Logic
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-                
-                // Get the userId
-                userId = auth.currentUser?.uid || crypto.randomUUID();
-
-                // Display user ID (MANDATORY RULE for multi-user apps)
-                const userIdDisplay = document.createElement('p');
-                userIdDisplay.id = 'user-id-display';
-                userIdDisplay.style.fontSize = '10px';
-                userIdDisplay.style.color = '#9ca3af';
-                userIdDisplay.style.marginTop = '10px';
-                userIdDisplay.textContent = `User ID: ${userId}`;
-                // 컨테이너 최상단에 추가
-                document.querySelector('.container').prepend(userIdDisplay);
-
-                // Start loading data
-                loadTransactions();
-
-            } catch (error) {
-                console.error("Firebase initialization failed:", error);
-                document.querySelector('.transaction-list').innerHTML = 
-                    `<p class="loading-message" style="color: var(--expense-color);">초기화 실패: ${error.message}</p>`;
-            }
+        // 6. 유틸리티 함수들
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderUI();
         }
-        
-        // 리플 효과 함수 (기존 유지)
+
+        // "YYYY-MM-DD" 문자열 반환
+        function getDateString(date) {
+            return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+        }
+
+        // "27일 목요일" 형식 반환
+        function formatDateHeader(date) {
+            const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+            return `${date.getDate()}일 ${days[date.getDay()]}`;
+        }
+
+        // 모달 컨트롤
+        function openAddModal() {
+            const modal = document.getElementById('add-modal');
+            modal.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAddModal() {
+            const modal = document.getElementById('add-modal');
+            modal.classList.remove('open');
+            document.body.style.overflow = '';
+            // 모달 닫을 때 데이터가 변경되었을 수 있으므로(iframe 내부 저장) 자동 갱신됨 (onSnapshot 덕분)
+        }
+
+        // Ripple Effect
         function createRipple(event) {
             const button = event.currentTarget;
-            const oldRipple = button.querySelector('.ripple');
-            if (oldRipple) {
-                oldRipple.remove();
-            }
-
             const circle = document.createElement('span');
             const diameter = Math.max(button.clientWidth, button.clientHeight);
             const radius = diameter / 2;
-
             circle.style.width = circle.style.height = `${diameter}px`;
             circle.style.left = `${event.clientX - button.getBoundingClientRect().left - radius}px`;
             circle.style.top = `${event.clientY - button.getBoundingClientRect().top - radius}px`;
             circle.classList.add('ripple');
-
             button.appendChild(circle);
-            
-            setTimeout(() => {
-                if (circle.parentNode === button) {
-                    circle.remove();
-                }
-            }, 600);
+            setTimeout(() => circle.remove(), 600);
         }
+        
+        // 초기 리플 이벤트 바인딩 (정적 요소들)
+        document.querySelectorAll('.ripple-target').forEach(target => {
+            if (!target.onclick) target.addEventListener('click', createRipple);
+        });
 
-        // 모달 열기 함수
-        function openAddModal() {
-            const modal = document.getElementById('add-modal');
-            modal.classList.add('open');
-            document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
-        }
-
-        // 모달 닫기 함수
-        function closeAddModal() {
-            const modal = document.getElementById('add-modal');
-            modal.classList.remove('open');
-            document.body.style.overflow = ''; // 배경 스크롤 허용
-        }
-
-        // DOM 로드 후 클릭 리스너 적용 및 초기화 시작
-        window.onload = function () {
-            // Initialize Firebase and load data
-            initFirebaseAndLoadData();
-
-            // Attach Ripple Effect to static targets
-            const rippleTargets = document.querySelectorAll('.ripple-target');
-            rippleTargets.forEach(target => {
-                if (target.getAttribute('onclick') !== 'openAddModal()') {
-                    target.addEventListener('click', createRipple);
-                }
-            });
-        };
     </script>
 </body>
 </html>
