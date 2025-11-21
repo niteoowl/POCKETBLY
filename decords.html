@@ -38,7 +38,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* [수정] 스크롤바 공간을 미리 확보하여 레이아웃 변동 방지 */
+            /* 스크롤바 공간을 미리 확보하여 레이아웃 변동 방지 */
             overflow-y: scroll; 
             /* 고정 헤더 높이만큼 상단 패딩 */
             padding-top: var(--header-height); 
@@ -229,12 +229,11 @@
             position: relative;
             overflow: hidden;
             margin: 2px 0;
-            background-color: transparent; /* 호버 효과 제거 유지 */
+            background-color: transparent; 
         }
         .transaction-item:last-child {
             border-bottom: none;
         }
-        /* [유지] 호버 효과 완전히 제거 */
         .transaction-item:hover {
             background-color: transparent;
         }
@@ -433,6 +432,15 @@
                 bottom: 20px; 
             }
         }
+        
+        /* 로딩 및 오류 메시지 스타일 */
+        .loading-message {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-gray);
+            font-size: 16px;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -456,36 +464,37 @@
 
     <div class="container">
         
-        <!-- [추가] 요약 카드 섹션 -->
+        <!-- [수정] 요약 카드 섹션: 총 수입, 총 지출, 총 자산 순서로 변경 -->
         <section class="summary-cards">
-            <!-- 1. 순자산 변동 -->
-            <div class="summary-card">
-                <div class="summary-card-title">
-                    <span class="material-icons" style="font-size:16px; margin-right: 4px; color: var(--net-color);">trending_up</span>
-                    순자산 변동
-                </div>
-                <!-- [데이터] 양수 -->
-                <div class="summary-card-value text-net">+ ₩ 5,230,000</div>
-            </div>
-            
-            <!-- 2. 총 수입 -->
+            <!-- 1. 총 수입 -->
             <div class="summary-card">
                 <div class="summary-card-title">
                     <span class="material-icons" style="font-size:16px; margin-right: 4px; color: var(--income-color);">arrow_downward</span>
                     총 수입
                 </div>
-                <!-- [데이터] 수입 -->
-                <div class="summary-card-value text-income">₩ 8,500,000</div>
+                <!-- [데이터] 수입 (Firebase 데이터로 업데이트됨) -->
+                <div class="summary-card-value text-income">₩ 0</div>
             </div>
             
-            <!-- 3. 총 지출 -->
+            <!-- 2. 총 지출 -->
             <div class="summary-card">
                 <div class="summary-card-title">
                     <span class="material-icons" style="font-size:16px; margin-right: 4px; color: var(--expense-color);">arrow_upward</span>
                     총 지출
                 </div>
-                <!-- [데이터] 지출 -->
-                <div class="summary-card-value text-expense">₩ 3,270,000</div>
+                <!-- [데이터] 지출 (Firebase 데이터로 업데이트됨) -->
+                <div class="summary-card-value text-expense">₩ 0</div>
+            </div>
+
+            <!-- 3. 총 자산 -->
+            <div class="summary-card">
+                <div class="summary-card-title">
+                    <!-- [수정] 요청에 따라 아이콘을 savings로 변경 -->
+                    <span class="material-icons" style="font-size:16px; margin-right: 4px; color: var(--net-color);">savings</span>
+                    총 자산
+                </div>
+                <!-- [데이터] 총 자산 (데이터 로드 전 플레이스홀더) -->
+                <div class="summary-card-value text-net">₩ --</div>
             </div>
         </section>
 
@@ -510,83 +519,8 @@
             <h2>거래 내역</h2>
             
             <ul class="transaction-list">
-                
-                <!-- 11월 27일 그룹 -->
-                <li class="daily-header">27</li>
-                
-                <!-- 항목 1: 지출 (식비) -->
-                <li class="transaction-item ripple-target">
-                    <div class="transaction-details">
-                        <!-- [수정] 거래 종류와 카테고리를 분리하고, 지출 텍스트 제거 -->
-                        <div class="transaction-text">
-                            <span class="transaction-type">점심 식사 (카페)</span>
-                            <span class="transaction-category">식비</span>
-                        </div>
-                    </div>
-                    <div class="transaction-amount-info">
-                        <span class="transaction-amount text-red">- ₩ 15,500</span>
-                    </div>
-                </li>
-                <!-- 항목 2: 지출 (교통) -->
-                <li class="transaction-item ripple-target">
-                    <div class="transaction-details">
-                        <!-- [수정] 거래 종류와 카테고리를 분리하고, 지출 텍스트 제거 -->
-                        <div class="transaction-text">
-                            <span class="transaction-type">대중교통 이용</span>
-                            <span class="transaction-category">교통</span>
-                        </div>
-                    </div>
-                    <div class="transaction-amount-info">
-                        <span class="transaction-amount text-red">- ₩ 1,250</span>
-                    </div>
-                </li>
-                
-                <!-- 11월 26일 그룹 -->
-                <li class="daily-header">26</li>
-
-                 <!-- 항목 3: 지출 (레저) -->
-                <li class="transaction-item ripple-target">
-                    <div class="transaction-details">
-                        <!-- [수정] 거래 종류와 카테고리를 분리하고, 지출 텍스트 제거 -->
-                        <div class="transaction-text">
-                            <span class="transaction-type">영화 관람</span>
-                            <span class="transaction-category">문화/여가</span>
-                        </div>
-                    </div>
-                    <div class="transaction-amount-info">
-                        <span class="transaction-amount text-red">- ₩ 15,000</span>
-                    </div>
-                </li>
-                <!-- 항목 4: 수입 (기타) -->
-                <li class="transaction-item ripple-target">
-                    <div class="transaction-details">
-                        <!-- [수정] 거래 종류와 카테고리를 분리하고, 수입 텍스트 제거 -->
-                        <div class="transaction-text">
-                            <span class="transaction-type">중고 물품 판매</span>
-                            <span class="transaction-category">기타</span>
-                        </div>
-                    </div>
-                    <div class="transaction-amount-info">
-                        <span class="transaction-amount text-green">+ ₩ 50,000</span>
-                    </div>
-                </li>
-                
-                <!-- 11월 25일 그룹 -->
-                <li class="daily-header">25</li>
-                
-                <!-- 항목 5: 수입 (월급) -->
-                <li class="transaction-item ripple-target">
-                    <div class="transaction-details">
-                        <!-- [수정] 거래 종류와 카테고리를 분리하고, 수입 텍스트 제거 -->
-                        <div class="transaction-text">
-                            <span class="transaction-type">월급 입금</span>
-                            <span class="transaction-category">급여</span>
-                        </div>
-                    </div>
-                    <div class="transaction-amount-info">
-                        <span class="transaction-amount text-green">+ ₩ 4,500,000</span>
-                    </div>
-                </li>
+                <!-- 초기 로딩 메시지 -->
+                <p class="loading-message">거래 내역을 불러오는 중...</p>
             </ul>
         </section>
     </div>
@@ -631,8 +565,226 @@
     </div>
 
 
-    <!-- JavaScript for Ripple Effect and Modal Controls -->
-    <script>
+    <!-- JavaScript for Firebase, Ripple Effect, and Modal Controls -->
+    <script type="module">
+        // Firebase Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, onSnapshot, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase instances and variables
+        let app;
+        let db;
+        let auth;
+        let userId;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Helper function to format date to "일 요일" (e.g., "21일 금요일")
+        function formatDateToKorean(timestamp) {
+            if (!timestamp) return "";
+            let date;
+            
+            // Check if it's a Firestore Timestamp object or falls back to Date object
+            if (timestamp.toDate) {
+                date = timestamp.toDate();
+            } else if (typeof timestamp === 'string' || typeof timestamp === 'number') {
+                // Handle cases where timestamp might be a string (e.g., from mock data)
+                date = new Date(timestamp);
+            } else {
+                return "날짜 오류";
+            }
+            
+            // JavaScript Date object's toLocaleDateString handles localization
+            const options = { day: 'numeric', weekday: 'short' };
+            const parts = date.toLocaleDateString('ko-KR', options).split(' ');
+            
+            // parts will be something like ["21일", "금"]
+            return `${parts[0]} ${parts[1]}요일`; // "21일 금요일"
+        }
+
+        // Function to calculate and update summary cards
+        function calculateSummary(transactions) {
+            let totalIncome = 0;
+            let totalExpense = 0;
+
+            transactions.forEach(tx => {
+                // amount는 숫자 필드로 가정. (사용자 예시: -45)
+                const amount = Number(tx.amount) || 0; 
+                
+                if (tx.type === "수입") {
+                    // 수입은 양수로 더함
+                    totalIncome += Math.abs(amount);
+                } else if (tx.type === "지출") {
+                    // 지출은 양수로 더해 총 지출을 계산
+                    totalExpense += Math.abs(amount); 
+                }
+            });
+            
+            // NOTE: 총 자산(Total Assets)은 현재 잔고를 별도로 계산해야 하므로, 
+            // 여기서는 총 수입과 총 지출만 업데이트합니다.
+            
+            // DOM 업데이트
+            document.querySelector('.summary-card:nth-child(1) .summary-card-value').textContent = 
+                `₩ ${totalIncome.toLocaleString('ko-KR')}`;
+            document.querySelector('.summary-card:nth-child(2) .summary-card-value').textContent = 
+                `₩ ${totalExpense.toLocaleString('ko-KR')}`;
+        }
+
+
+        // Function to render transactions dynamically
+        function renderTransactions(transactions) {
+            const listElement = document.querySelector('.transaction-list');
+            listElement.innerHTML = ''; 
+            
+            if (transactions.length === 0) {
+                 listElement.innerHTML = `<p class="loading-message" style="color: var(--text-gray);">아직 기록된 거래 내역이 없습니다.</p>`;
+                 return;
+            }
+
+            // 1. Sort by creation date descending (newest first)
+            transactions.sort((a, b) => {
+                // Firestore Timestamp 객체 비교 (toDate()를 사용하여 JS Date로 변환)
+                const dateA = a.createdAt?.toDate() || new Date(0);
+                const dateB = b.createdAt?.toDate() || new Date(0);
+                return dateB - dateA; // 내림차순 정렬
+            });
+
+            // 2. Group by localized date string (e.g., "21일 금요일")
+            const grouped = transactions.reduce((acc, tx) => {
+                const dateKey = tx.createdAt ? formatDateToKorean(tx.createdAt) : '날짜 없음';
+                if (!acc[dateKey]) {
+                    acc[dateKey] = [];
+                }
+                acc[dateKey].push(tx);
+                return acc;
+            }, {});
+
+            // 3. Render the grouped list
+            for (const dateKey in grouped) {
+                // Add Daily Header
+                const headerLi = document.createElement('li');
+                headerLi.classList.add('daily-header');
+                headerLi.textContent = dateKey;
+                listElement.appendChild(headerLi);
+
+                // Add Transactions for the day
+                grouped[dateKey].forEach(tx => {
+                    const isExpense = tx.type === "지출";
+                    const sign = isExpense ? '-' : '+';
+                    // amount가 음수일 수 있으므로 절대값을 사용
+                    const amountAbs = Math.abs(Number(tx.amount) || 0); 
+                    const amountFormatted = amountAbs.toLocaleString('ko-KR');
+                    const amountColorClass = isExpense ? 'text-red' : 'text-green';
+
+                    const listItem = document.createElement('li');
+                    listItem.classList.add('transaction-item', 'ripple-target');
+                    // 동적으로 리플 리스너 추가
+                    listItem.addEventListener('click', createRipple); 
+
+                    listItem.innerHTML = `
+                        <div class="transaction-details">
+                            <div class="transaction-text">
+                                <!-- 메모를 주 거래 내용으로, category를 부가 설명으로 사용 -->
+                                <span class="transaction-type">${tx.memo || '메모 없음'}</span>
+                                <span class="transaction-category">${tx.category || '분류 없음'} (${tx.usage || '용도 없음'})</span>
+                            </div>
+                        </div>
+                        <div class="transaction-amount-info">
+                            <span class="transaction-amount ${amountColorClass}">${sign} ₩ ${amountFormatted}</span>
+                        </div>
+                    `;
+                    listElement.appendChild(listItem);
+                });
+            }
+        }
+
+        // Function to load real-time transactions from Firestore
+        function loadTransactions() {
+            if (!db || !userId) {
+                console.error("Firebase DB or User ID not ready.");
+                document.querySelector('.transaction-list').innerHTML = 
+                    `<p class="loading-message" style="color: var(--expense-color);">인증 오류: 사용자 데이터 로드 불가.</p>`;
+                return;
+            }
+
+            // Path: /artifacts/{appId}/users/{userId}/transaction_list (Private data)
+            const path = `artifacts/${appId}/users/${userId}/transaction_list`;
+            const transactionsCollectionRef = collection(db, path);
+            
+            // 쿼리 설정 (정렬은 클라이언트에서 처리)
+            const q = query(transactionsCollectionRef); 
+            
+            // 실시간 리스너 설정
+            onSnapshot(q, (snapshot) => {
+                const transactions = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                // 1. 요약 정보 계산 및 업데이트
+                calculateSummary(transactions);
+
+                // 2. 상세 거래 목록 렌더링
+                renderTransactions(transactions);
+
+            }, (error) => {
+                console.error("Error fetching transactions: ", error);
+                document.querySelector('.transaction-list').innerHTML = 
+                    `<p class="loading-message" style="color: var(--expense-color);">거래 내역을 불러오는 중 오류가 발생했습니다: ${error.message}</p>`;
+            });
+        }
+
+
+        // Main initialization function
+        async function initFirebaseAndLoadData() {
+            try {
+                // Firebase Config
+                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+
+                if (Object.keys(firebaseConfig).length === 0) {
+                    console.error("Firebase config is missing.");
+                    document.querySelector('.transaction-list').innerHTML = 
+                        `<p class="loading-message" style="color: var(--expense-color);">Firebase 설정 오류: 데이터 로드가 불가능합니다.</p>`;
+                    return;
+                }
+
+                // Initialize Firebase
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                setLogLevel('debug');
+
+                // Authentication Logic
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                
+                // Get the userId
+                userId = auth.currentUser?.uid || crypto.randomUUID();
+
+                // Display user ID (MANDATORY RULE for multi-user apps)
+                const userIdDisplay = document.createElement('p');
+                userIdDisplay.id = 'user-id-display';
+                userIdDisplay.style.fontSize = '10px';
+                userIdDisplay.style.color = '#9ca3af';
+                userIdDisplay.style.marginTop = '10px';
+                userIdDisplay.textContent = `User ID: ${userId}`;
+                // 컨테이너 최상단에 추가
+                document.querySelector('.container').prepend(userIdDisplay);
+
+                // Start loading data
+                loadTransactions();
+
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+                document.querySelector('.transaction-list').innerHTML = 
+                    `<p class="loading-message" style="color: var(--expense-color);">초기화 실패: ${error.message}</p>`;
+            }
+        }
+        
         // 리플 효과 함수 (기존 유지)
         function createRipple(event) {
             const button = event.currentTarget;
@@ -673,11 +825,14 @@
             document.body.style.overflow = ''; // 배경 스크롤 허용
         }
 
-        // DOM 로드 후 클릭 리스너 적용
+        // DOM 로드 후 클릭 리스너 적용 및 초기화 시작
         window.onload = function () {
+            // Initialize Firebase and load data
+            initFirebaseAndLoadData();
+
+            // Attach Ripple Effect to static targets
             const rippleTargets = document.querySelectorAll('.ripple-target');
             rippleTargets.forEach(target => {
-                // 모달 열기 버튼을 제외한 모든 요소에 리플 효과 적용
                 if (target.getAttribute('onclick') !== 'openAddModal()') {
                     target.addEventListener('click', createRipple);
                 }
