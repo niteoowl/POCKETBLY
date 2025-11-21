@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>POCKETBLY - 홈</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
@@ -14,173 +14,141 @@
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         :root {
-            --primary-blue: #3182f6; --text-dark: #191f28; --text-gray: #8b95a1;
-            --bg-gray: #f2f4f6; --border-light: #e5e8eb;
-            --income-color: #2c92ff; --expense-color: #f04452;
-            --header-height: 60px;
+            --primary: #191f28; --secondary: #8b95a1;
+            --bg: #f2f4f6; --white: #ffffff;
+            --blue: #3182f6; --red: #f04452;
+            --nav-height: 60px;
         }
         body {
-            font-family: 'Pretendard', sans-serif; background-color: #ffffff;
-            margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center;
-            padding-top: var(--header-height); padding-bottom: 90px; color: var(--text-dark);
+            font-family: 'Pretendard', sans-serif; background-color: var(--white);
+            margin: 0; padding: 0; color: var(--primary);
+            padding-bottom: calc(var(--nav-height) + 20px); /* 하단 탭 공간 확보 */
         }
-        .container { width: 100%; max-width: 600px; padding: 10px 20px; display: flex; flex-direction: column; gap: 20px; }
 
         /* 헤더 */
         .header {
-            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 600px; height: var(--header-height);
-            background-color: rgba(255,255,255,0.9); backdrop-filter: blur(10px); z-index: 100;
-            display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px; position: sticky; top: 0; background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(5px); z-index: 100;
         }
-        .logo { font-size: 20px; font-weight: 800; color: var(--text-dark); }
-        .header-icon { font-size: 26px; color: var(--text-dark); cursor: pointer; }
+        .logo { font-size: 22px; font-weight: 800; }
+        .icon-btn { border: none; background: none; padding: 8px; cursor: pointer; }
+
+        /* 컨테이너 (화면 꽉 채우기) */
+        .container { padding: 0 20px; width: 100%; }
 
         /* 히어로 (자산) */
-        .hero-section { margin-top: 10px; margin-bottom: 10px; }
-        .greeting { font-size: 15px; color: var(--text-gray); margin-bottom: 6px; }
-        .balance { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
+        .hero { margin: 20px 0 30px 0; }
+        .greeting { color: var(--secondary); font-size: 16px; margin-bottom: 8px; }
+        .balance { font-size: 34px; font-weight: 800; letter-spacing: -1px; }
 
         /* 카드 공통 */
         .card {
-            background: white; border: 1px solid var(--border-light); border-radius: 20px;
-            padding: 20px; position: relative; overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            background: var(--white); border: 1px solid #e5e8eb; border-radius: 20px;
+            padding: 24px 20px; margin-bottom: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
         }
         .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .card-title { font-size: 17px; font-weight: 700; }
-        .card-icon { color: #b0b8c1; font-size: 20px; }
+        .card-title { font-size: 18px; font-weight: 700; }
 
-        /* 1. 수입/지출 비율 바 */
-        .ratio-bar-container { height: 12px; background: #f2f4f6; border-radius: 6px; overflow: hidden; display: flex; margin-bottom: 8px; }
-        .ratio-income { background: var(--income-color); height: 100%; }
-        .ratio-expense { background: var(--expense-color); height: 100%; }
-        .ratio-labels { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; }
-        .l-inc { color: var(--income-color); } .l-exp { color: var(--expense-color); }
-
-        /* 2. 주간 추이 (막대) */
-        .week-chart { display: flex; justify-content: space-between; align-items: flex-end; height: 100px; padding-top: 10px; }
-        .week-col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; }
-        .week-bar-bg { width: 8px; height: 100%; background: #f2f4f6; border-radius: 4px; position: relative; }
-        .week-bar-fill {
-            position: absolute; bottom: 0; left: 0; width: 100%; background: var(--primary-blue);
-            border-radius: 4px; transition: height 0.5s ease;
+        /* 주간 차트 */
+        .week-chart {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            height: 120px; padding-top: 20px;
         }
-        .week-day { font-size: 11px; color: var(--text-gray); }
-        .current-day .week-bar-fill { background: var(--text-dark); }
-        .current-day .week-day { font-weight: 700; color: var(--text-dark); }
+        .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 8px; }
+        .bar-bg { width: 8px; height: 100%; background: #f2f4f6; border-radius: 4px; position: relative; }
+        .bar-fill {
+            position: absolute; bottom: 0; width: 100%; background: var(--blue);
+            border-radius: 4px; transition: height 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .bar-label { font-size: 12px; color: var(--secondary); }
+        .today .bar-fill { background: var(--primary); }
+        .today .bar-label { font-weight: 700; color: var(--primary); }
 
-        /* 3. 카테고리 랭킹 (심플) */
-        .rank-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f9f9f9; }
-        .rank-row:last-child { border-bottom: none; }
-        .rank-info { display: flex; align-items: center; gap: 10px; }
-        .rank-badge { width: 32px; height: 32px; background: #f2f4f6; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #666; }
-        .rank-1 { background: #fff5e6; color: #ff8c00; }
-        .rank-name { font-size: 14px; font-weight: 500; }
-        .rank-val { font-size: 14px; font-weight: 700; }
+        /* 소비 리포트 바 */
+        .flow-bar { height: 10px; background: #f2f4f6; border-radius: 5px; overflow: hidden; display: flex; margin-bottom: 10px; }
+        .fb-inc { background: var(--blue); height: 100%; }
+        .fb-exp { background: var(--red); height: 100%; }
+        .flow-txt { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
 
-        /* 하단 내비게이션 (심플 & 슬림) */
+        /* 하단 내비게이션 (일반적인 고정형) */
         .bottom-nav {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 92%; max-width: 450px; height: 60px;
-            background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
-            border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            display: flex; justify-content: space-between; align-items: center; padding: 0 20px;
-            border: 1px solid rgba(0,0,0,0.05); z-index: 900;
+            position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height);
+            background: var(--white); border-top: 1px solid #eee;
+            display: flex; justify-content: space-around; align-items: center;
+            padding-bottom: env(safe-area-inset-bottom); /* 아이폰 하단 바 대응 */
+            z-index: 999;
         }
         .nav-item {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-decoration: none; color: #d1d6db; transition: all 0.2s;
+            text-decoration: none; color: #ccc; flex: 1; height: 100%;
         }
-        .nav-item span.material-icons { font-size: 26px; margin-bottom: 2px; }
+        .nav-item span.material-icons { font-size: 26px; margin-bottom: 4px; }
         .nav-item span.label { font-size: 10px; font-weight: 500; }
-        
-        .nav-item.active { color: var(--text-dark); transform: translateY(-2px); }
-        .nav-item.active span.material-icons { text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .nav-item.active { color: var(--primary); }
 
         /* 알림 모달 */
         .alert-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5); z-index: 3000;
+            background: rgba(0,0,0,0.5); z-index: 2000;
             display: none; justify-content: center; align-items: center;
         }
         .alert-box {
-            width: 85%; max-width: 320px; background-color: white;
-            border-radius: 20px; padding: 24px; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        .alert-icon { font-size: 48px; margin-bottom: 16px; }
-        .alert-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
-        .alert-text { font-size: 15px; color: #6b7684; margin-bottom: 20px; }
-        .alert-comment {
-            background: #f9fafb; padding: 12px; border-radius: 10px;
-            font-size: 14px; text-align: left; margin-bottom: 20px;
+            background: white; width: 80%; max-width: 300px; padding: 24px;
+            border-radius: 20px; text-align: center;
         }
         .alert-btn {
-            width: 100%; padding: 14px; border-radius: 12px; border: none;
-            background: var(--text-dark); color: white; font-weight: 700; cursor: pointer;
+            background: var(--primary); color: white; border: none;
+            width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    
+
     <header class="header">
         <div class="logo">POCKETBLY</div>
-        <span class="material-icons header-icon">notifications</span>
+        <button class="icon-btn"><span class="material-icons">notifications</span></button>
     </header>
 
     <div class="container">
         <!-- 히어로 -->
-        <section class="hero-section">
-            <div class="greeting" id="greeting-text">안녕하세요</div>
+        <section class="hero">
+            <div class="greeting" id="greeting">안녕하세요</div>
             <div class="balance" id="total-asset">0원</div>
         </section>
 
-        <!-- 1. 머니 플로우 (수입 vs 지출) -->
+        <!-- 1. 주간 지출 차트 (가장 유의미한 데이터) -->
         <div class="card">
             <div class="card-head">
-                <div class="card-title">이번 달 흐름</div>
-                <span class="material-icons card-icon">swap_horiz</span>
-            </div>
-            <div class="ratio-bar-container">
-                <div class="ratio-income" id="bar-income" style="width: 50%"></div>
-                <div class="ratio-expense" id="bar-expense" style="width: 50%"></div>
-            </div>
-            <div class="ratio-labels">
-                <span class="l-inc" id="txt-income">수입 0</span>
-                <span class="l-exp" id="txt-expense">지출 0</span>
-            </div>
-        </div>
-
-        <!-- 2. 주간 지출 추이 -->
-        <div class="card">
-            <div class="card-head">
-                <div class="card-title">주간 지출</div>
-                <span class="material-icons card-icon">bar_chart</span>
+                <div class="card-title">이번 주 지출</div>
+                <span style="font-size:13px; color:#888;">일 ~ 토</span>
             </div>
             <div class="week-chart" id="week-chart">
                 <!-- JS 생성 -->
             </div>
         </div>
 
-        <!-- 3. 지출 랭킹 -->
+        <!-- 2. 월간 흐름 -->
         <div class="card">
-            <div class="card-head">
-                <div class="card-title">지출 카테고리 Top 3</div>
-                <span class="material-icons card-icon">format_list_numbered</span>
+            <div class="card-head"><div class="card-title">이번 달 흐름</div></div>
+            <div class="flow-bar">
+                <div class="fb-inc" id="bar-inc" style="width:50%"></div>
+                <div class="fb-exp" id="bar-exp" style="width:50%"></div>
             </div>
-            <div id="rank-list">
-                <div style="text-align:center; color:#ccc; padding:10px;">데이터 없음</div>
+            <div class="flow-txt">
+                <span style="color:var(--blue)" id="txt-inc">수입 0</span>
+                <span style="color:var(--red)" id="txt-exp">지출 0</span>
             </div>
         </div>
-
-        <!-- 4. 하루 평균 -->
-        <div class="card" style="flex-direction: row; justify-content: space-between; align-items: center;">
+        
+        <!-- 3. 평균 지출 -->
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
             <div>
-                <div class="card-title" style="font-size:15px; margin-bottom:2px;">하루 평균 지출</div>
-                <div style="font-size:12px; color:#999;">이번 달 기준</div>
+                <div style="font-size:14px; color:#888;">하루 평균</div>
+                <div style="font-size:20px; font-weight:700; margin-top:4px;" id="daily-avg">0원</div>
             </div>
-            <div style="font-size:20px; font-weight:800;" id="daily-avg">0원</div>
+            <span class="material-icons" style="color:#eee; font-size:40px;">calendar_today</span>
         </div>
     </div>
 
@@ -190,14 +158,13 @@
             <span class="material-icons">home</span>
             <span class="label">홈</span>
         </a>
-        <!-- 기록 탭 연결 -->
         <a href="/records.html" class="nav-item">
             <span class="material-icons">receipt_long</span>
             <span class="label">기록</span>
         </a>
         <a href="#" class="nav-item">
-            <span class="material-icons">track_changes</span>
-            <span class="label">목표</span>
+            <span class="material-icons">pie_chart</span>
+            <span class="label">분석</span>
         </a>
         <a href="#" class="nav-item">
             <span class="material-icons">person</span>
@@ -208,176 +175,119 @@
     <!-- 알림 팝업 -->
     <div id="alert-overlay" class="alert-overlay">
         <div class="alert-box">
-            <div class="material-icons alert-icon" id="alert-icon">check_circle</div>
-            <div class="alert-title" id="alert-title">승인 완료</div>
-            <div class="alert-text">부모님이 내역을 확인하셨습니다.</div>
-            <div class="alert-comment" id="alert-comment-box" style="display:none;">
-                <span id="alert-comment-text"></span>
-            </div>
-            <button class="alert-btn" onclick="confirmAndRemove()">확인</button>
+            <span class="material-icons" id="alert-icon" style="font-size:48px; margin-bottom:10px;">check_circle</span>
+            <h3 id="alert-title" style="margin:0 0 10px 0;">승인 완료</h3>
+            <p id="alert-msg" style="color:#666; margin:0; line-height:1.4;">부모님이 확인하셨습니다.</p>
+            <div id="alert-comment" style="background:#f5f5f5; padding:10px; border-radius:8px; margin-top:10px; font-size:13px; text-align:left;"></div>
+            <button class="alert-btn" onclick="confirmAlert()">확인 (내역 삭제)</button>
         </div>
     </div>
 
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI",
-            authDomain: "pocketbly.firebaseapp.com",
-            projectId: "pocketbly",
-            storageBucket: "pocketbly.firebasestorage.app",
-            messagingSenderId: "535063683428",
-            appId: "1:535063683428:web:4729815738bee4f8305a71",
-            measurementId: "G-RE71JXSNR3"
-        };
+        const firebaseConfig = { apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI", authDomain: "pocketbly.firebaseapp.com", projectId: "pocketbly", storageBucket: "pocketbly.firebasestorage.app", messagingSenderId: "535063683428", appId: "1:535063683428:web:4729815738bee4f8305a71", measurementId: "G-RE71JXSNR3" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
+        let pendingId = null;
 
-        let pendingReportDocId = null;
-
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                const name = user.displayName || "사용자";
-                document.getElementById('greeting-text').innerText = `안녕하세요, ${name}님`;
-                loadData(user.uid);
-                listenForParentDecision(user.uid);
+        auth.onAuthStateChanged(user => {
+            if(user) {
+                document.getElementById('greeting').innerText = `안녕하세요, ${user.displayName || '사용자'}님`;
+                loadHome(user.uid);
+                listenAlerts(user.uid);
             }
         });
 
-        function loadData(uid) {
-            db.collection('users').doc(uid).collection('transaction_list')
-                .onSnapshot(snapshot => {
-                    let transactions = [];
-                    snapshot.forEach(doc => {
-                        let d = doc.data();
-                        d.dateObj = d.createdAt ? d.createdAt.toDate() : new Date();
-                        transactions.push(d);
-                    });
-                    processStats(transactions);
-                });
+        function loadHome(uid) {
+            db.collection('users').doc(uid).collection('transaction_list').onSnapshot(ss => {
+                let txs = [];
+                ss.forEach(d => { let data = d.data(); data.dateObj = data.createdAt ? data.createdAt.toDate() : new Date(); txs.push(data); });
+                calcStats(txs);
+            });
         }
 
-        function processStats(data) {
+        function calcStats(txs) {
             const now = new Date();
-            const curMonth = now.getMonth();
-            const curYear = now.getFullYear();
+            let total = 0, mInc = 0, mExp = 0;
+            // 주간 데이터 (일~토)
+            let weekData = [0,0,0,0,0,0,0];
+            
+            // 이번 주 범위 구하기 (일요일 ~ 토요일)
+            const today = now.getDay(); // 0~6
+            const diffToSun = now.getDate() - today;
+            const sunday = new Date(now); sunday.setDate(diffToSun); sunday.setHours(0,0,0,0);
+            const saturday = new Date(sunday); saturday.setDate(sunday.getDate()+6); saturday.setHours(23,59,59,999);
 
-            // 1. 총 자산 & 이번달 데이터
-            let totalAsset = 0;
-            let monthInc = 0;
-            let monthExp = 0;
-            let catMap = {};
-            let weekData = new Array(7).fill(0); // 일~토
+            txs.forEach(t => {
+                let amt = parseInt(t.amount);
+                total += amt;
+                let isExp = t.type === '지출' || amt < 0;
+                let abs = Math.abs(amt);
 
-            data.forEach(item => {
-                const amt = parseInt(item.amount);
-                const isExp = item.type === '지출' || amt < 0;
-                const absAmt = Math.abs(amt);
+                // 이번 달
+                if(t.dateObj.getMonth() === now.getMonth()) {
+                    if(isExp) mExp += abs; else mInc += abs;
+                }
 
-                // 총 자산
-                totalAsset += amt; // 수입(+), 지출(-) 합산
-
-                // 이번 달 필터
-                if (item.dateObj.getMonth() === curMonth && item.dateObj.getFullYear() === curYear) {
-                    if (isExp) {
-                        monthExp += absAmt;
-                        catMap[item.category] = (catMap[item.category] || 0) + absAmt;
-                        
-                        // 주간 차트 (이번 주 데이터만? 아니면 요일별 평균? -> 여기선 요일별 합계로 단순화)
-                        // 더 정확히 하려면 '이번 주' 날짜 범위 체크 필요. 여기선 간략히 '이번 달의 요일별 지출'
-                        weekData[item.dateObj.getDay()] += absAmt;
-                    } else {
-                        monthInc += absAmt;
-                    }
+                // 이번 주 (지출만)
+                if(isExp && t.dateObj >= sunday && t.dateObj <= saturday) {
+                    weekData[t.dateObj.getDay()] += abs;
                 }
             });
 
-            // UI 적용
-            document.getElementById('total-asset').innerText = `${totalAsset.toLocaleString()}원`;
+            // 1. 자산
+            document.getElementById('total-asset').innerText = `${total.toLocaleString()}원`;
 
-            // 흐름 바
-            const totalFlow = monthInc + monthExp || 1;
-            document.getElementById('bar-income').style.width = `${(monthInc/totalFlow)*100}%`;
-            document.getElementById('bar-expense').style.width = `${(monthExp/totalFlow)*100}%`;
-            document.getElementById('txt-income').innerText = `수입 ${monthInc.toLocaleString()}`;
-            document.getElementById('txt-expense').innerText = `지출 ${monthExp.toLocaleString()}`;
-
-            // 랭킹
-            const sortedCat = Object.keys(catMap).map(k=>({name:k, val:catMap[k]})).sort((a,b)=>b.val-a.val).slice(0,3);
-            const rankEl = document.getElementById('rank-list');
-            rankEl.innerHTML = '';
-            if(sortedCat.length > 0) {
-                sortedCat.forEach((c, i) => {
-                    rankEl.innerHTML += `
-                        <div class="rank-row">
-                            <div class="rank-info">
-                                <div class="rank-badge ${i===0?'rank-1':''}">${i+1}</div>
-                                <span class="rank-name">${c.name}</span>
-                            </div>
-                            <span class="rank-val">${c.val.toLocaleString()}원</span>
-                        </div>
-                    `;
-                });
-            } else {
-                rankEl.innerHTML = '<div style="text-align:center; color:#ccc; padding:10px;">내역 없음</div>';
-            }
-
-            // 주간 차트
+            // 2. 주간 차트
             const days = ['일','월','화','수','목','금','토'];
-            const maxDay = Math.max(...weekData) || 1;
-            const todayIdx = now.getDay();
-            const chartEl = document.getElementById('week-chart');
-            chartEl.innerHTML = '';
+            const maxVal = Math.max(...weekData) || 1;
+            let chartHtml = '';
             weekData.forEach((val, i) => {
-                const h = (val / maxDay) * 80; // max height 80%
-                chartEl.innerHTML += `
-                    <div class="week-col ${i===todayIdx?'current-day':''}">
-                        <div class="week-bar-bg"><div class="week-bar-fill" style="height:${h}%"></div></div>
-                        <span class="week-day">${days[i]}</span>
-                    </div>
-                `;
+                let h = (val / maxVal) * 80; 
+                chartHtml += `
+                    <div class="bar-col ${i===today?'today':''}">
+                        <div class="bar-bg"><div class="bar-fill" style="height:${h}%"></div></div>
+                        <span class="bar-label">${days[i]}</span>
+                    </div>`;
             });
+            document.getElementById('week-chart').innerHTML = chartHtml;
 
-            // 하루 평균
-            const avg = Math.round(monthExp / (now.getDate()||1));
-            document.getElementById('daily-avg').innerText = `${avg.toLocaleString()}원`;
+            // 3. 월간 흐름
+            const sum = mInc + mExp || 1;
+            document.getElementById('bar-inc').style.width = `${(mInc/sum)*100}%`;
+            document.getElementById('bar-exp').style.width = `${(mExp/sum)*100}%`;
+            document.getElementById('txt-inc').innerText = `수입 ${mInc.toLocaleString()}`;
+            document.getElementById('txt-exp').innerText = `지출 ${mExp.toLocaleString()}`;
+
+            // 4. 평균
+            document.getElementById('daily-avg').innerText = `${Math.round(mExp/now.getDate()).toLocaleString()}원`;
         }
 
-        // 알림 기능
-        function listenForParentDecision(uid) {
-            db.collection('shared_reports')
-                .where('uid', '==', uid).where('status', 'in', ['승인', '반려'])
-                .onSnapshot(snapshot => {
-                    snapshot.docChanges().forEach(change => {
-                        if (change.type === 'added' || change.type === 'modified') {
-                            const data = change.doc.data();
-                            pendingReportDocId = change.doc.id;
-                            showAlert(data.status, data.parentComment);
+        // 알림 리스너
+        function listenAlerts(uid) {
+            db.collection('shared_reports').where('uid','==',uid).where('status','in',['승인','반려'])
+            .onSnapshot(ss => {
+                ss.docChanges().forEach(c => {
+                    if(c.type==='added' || c.type==='modified') {
+                        let d = c.doc.data(); pendingId = c.doc.id;
+                        document.getElementById('alert-title').innerText = `부모님 ${d.status}`;
+                        document.getElementById('alert-icon').innerText = d.status==='승인'?'check_circle':'cancel';
+                        document.getElementById('alert-icon').style.color = d.status==='승인'?'#3182f6':'#f04452';
+                        if(d.parentComment) {
+                            document.getElementById('alert-comment').innerText = d.parentComment;
+                            document.getElementById('alert-comment').style.display='block';
+                        } else {
+                            document.getElementById('alert-comment').style.display='none';
                         }
-                    });
+                        document.getElementById('alert-overlay').style.display='flex';
+                    }
                 });
+            });
         }
-
-        function showAlert(status, comment) {
-            const el = document.getElementById('alert-overlay');
-            const icon = document.getElementById('alert-icon');
-            const title = document.getElementById('alert-title');
-            
-            if(status === '승인') {
-                icon.innerText = 'check_circle'; icon.style.color = '#2c92ff'; title.innerText = '부모님 승인 완료!';
-            } else {
-                icon.innerText = 'cancel'; icon.style.color = '#f04452'; title.innerText = '반려되었습니다';
-            }
-            if(comment) {
-                document.getElementById('alert-comment-box').style.display = 'block';
-                document.getElementById('alert-comment-text').innerText = comment;
-            }
-            el.style.display = 'flex';
-        }
-
-        function confirmAndRemove() {
-            if(!pendingReportDocId) return;
-            db.collection('shared_reports').doc(pendingReportDocId).delete()
-                .then(() => document.getElementById('alert-overlay').style.display = 'none');
+        function confirmAlert() {
+            if(pendingId) db.collection('shared_reports').doc(pendingId).delete().then(()=>{
+                document.getElementById('alert-overlay').style.display='none';
+            });
         }
     </script>
 </body>
