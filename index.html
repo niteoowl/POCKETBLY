@@ -127,7 +127,9 @@
         /* 하단 내비게이션 */
         .bottom-nav {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 75%; max-width: 450px; height: 70px;
+            width: 75%; max-width: 450px; 
+            /* [수정됨] 높이 70px -> 75px로 아주 조금 증가 */
+            height: 75px;
             background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); 
             display: flex; justify-content: space-around; align-items: center;
             z-index: 1000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); 
@@ -158,8 +160,8 @@
             .header { width: 100%; padding: 0 16px; } 
             .container { padding: 0 5px 20px 5px; } 
             
-            /* [수정됨] 모바일에서 내비게이션 바 너비 96%로 확장 */
-            .bottom-nav { width: 96%; bottom: 20px; }
+            /* [수정됨] 모바일에서 내비게이션 바 너비 93%로 변경 */
+            .bottom-nav { width: 93%; bottom: 20px; }
             .nav-item.active::before { width: 75px; }
         }
     </style>
