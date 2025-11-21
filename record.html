@@ -99,6 +99,24 @@
         .trans-meta { font-size: 13px; color: var(--text-gray); font-weight: 400; }
         .transaction-amount { font-weight: 700; font-size: 17px; text-align: right; letter-spacing: -0.5px;}
         
+        /* [스켈레톤 UI] */
+        .skeleton {
+            background: #f2f4f6;
+            color: transparent !important;
+            border-radius: 4px;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .skeleton::after {
+            content: "";
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            transform: translateX(-100%);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        
         /* 하단 내비게이션 */
         .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 75%; max-width: 450px; height: 75px; background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; z-index: 1000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); border: 1px solid var(--border-light); border-radius: 50px; padding: 0 10px; }
         .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #b0b8c1; font-size: 11px; font-weight: 500; flex-grow: 1; height: 60px; position: relative; border-radius: 25px; }
@@ -106,14 +124,13 @@
         .nav-item.active::before { content: ''; position: absolute; top: 50%; left: 50%; width: 100px; height: 55px; background-color: #f2f4f6; border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; }
         .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
 
-        /* 모달 */
+        /* 모달 및 기타 스타일 생략 (기존 유지) */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; z-index: 2000; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); display: flex; flex-direction: column; visibility: hidden; }
         .modal.open { transform: translateY(0); visibility: visible; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border-light); flex-shrink: 0; }
         .modal-content { flex-grow: 1; }
         .modal-iframe { width: 100%; height: 100%; border: none; }
 
-        /* 송금 스타일 입력창 */
         .transfer-input-container { width: 100%; text-align: center; margin-bottom: 30px; margin-top: 10px; }
         .transfer-label { font-size: 14px; color: var(--text-gray); margin-bottom: 12px; display: block; }
         .transfer-input { width: 100%; border: none; border-bottom: 2px solid #e5e8eb; font-size: 28px; font-weight: 700; text-align: center; padding: 10px 0; background-color: transparent; color: var(--text-dark); outline: none; border-radius: 0; transition: border-color 0.3s; }
@@ -131,24 +148,15 @@
             .container { padding: 0 5px 20px 5px; } 
             .summary-card { padding: 14px 10px; min-height: auto; } 
             
-            /* [수정됨] 모바일에서 내비게이션 바 너비 93%로 변경 */
             .bottom-nav { width: 93%; bottom: 20px; }
-            .nav-item.active::before { width: 75px; }
+            /* [수정됨] 활성화 표시: 더 길고(가로), 조금 더 높게(세로) */
+            .nav-item.active::before { width: 110px; height: 60px; border-radius: 30px; }
         }
 
-        /* 수정/삭제용 바텀 시트 모달 스타일 */
-        .edit-modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5); z-index: 2500;
-            display: none; align-items: flex-end; justify-content: center;
-        }
-        .edit-modal-sheet {
-            width: 100%; max-width: 600px; background-color: #fff;
-            border-radius: 24px 24px 0 0; padding: 24px;
-            animation: slideUp 0.3s ease-out;
-        }
+        /* 수정/삭제/알림 팝업 스타일 (기존 유지) */
+        .edit-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 2500; display: none; align-items: flex-end; justify-content: center; }
+        .edit-modal-sheet { width: 100%; max-width: 600px; background-color: #fff; border-radius: 24px 24px 0 0; padding: 24px; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        
         .edit-field { margin-bottom: 16px; }
         .edit-label { display: block; font-size: 12px; color: #999; margin-bottom: 6px; }
         .edit-input { width: 100%; border: none; border-bottom: 1px solid #eee; padding: 10px 0; font-size: 16px; outline: none; }
@@ -156,32 +164,16 @@
         .btn-edit { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: 700; font-size: 15px; cursor: pointer; }
         .btn-delete { background-color: #ffebeb; color: #f04452; }
         .btn-save { background-color: #191f28; color: #fff; }
-
-        /* 알림 팝업 스타일 */
         .alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; display: none; justify-content: center; align-items: center; }
         .alert-box { width: 85%; max-width: 320px; background-color: white; border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
         .alert-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; color: white; cursor: pointer; background-color: var(--text-dark); margin-top: 20px; }
-
-        /* [추가] 커스텀 Dialog 스타일 (Alert/Confirm 대체) */
-        .global-dialog-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 4000;
-            display: none; align-items: center; justify-content: center;
-        }
-        .global-dialog-box {
-            width: 80%; max-width: 300px; background: #fff;
-            border-radius: 20px; padding: 24px; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            animation: popIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
+        .global-dialog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 4000; display: none; align-items: center; justify-content: center; }
+        .global-dialog-box { width: 80%; max-width: 300px; background: #fff; border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
         @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         .global-dialog-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: #191f28; }
         .global-dialog-msg { font-size: 14px; color: #6b7684; margin-bottom: 20px; line-height: 1.4; }
         .global-dialog-actions { display: flex; gap: 10px; }
-        .global-dialog-btn { 
-            flex: 1; padding: 12px; border-radius: 12px; border: none; 
-            font-size: 14px; font-weight: 600; cursor: pointer; 
-        }
+        .global-dialog-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
         .btn-cancel { background-color: #f2f4f6; color: #8b95a1; }
         .btn-confirm { background-color: #191f28; color: #fff; }
     </style>
@@ -209,9 +201,10 @@
             <button class="toggle-btn ripple-target" id="summary-toggle-btn" onclick="toggleSummaryMode()">월별 보기</button>
         </div>
         <section class="summary-cards">
-            <div class="summary-card"><div class="summary-card-title">수입</div><div class="summary-card-value val-income" id="total-income">0원</div></div>
-            <div class="summary-card"><div class="summary-card-title">지출</div><div class="summary-card-value val-expense" id="total-expense">0원</div></div>
-            <div class="summary-card"><div class="summary-card-title">합계</div><div class="summary-card-value val-net" id="total-asset">0원</div></div>
+            <!-- 스켈레톤 적용 -->
+            <div class="summary-card"><div class="summary-card-title">수입</div><div class="summary-card-value val-income skeleton" id="total-income" style="border-radius:4px;">0원</div></div>
+            <div class="summary-card"><div class="summary-card-title">지출</div><div class="summary-card-value val-expense skeleton" id="total-expense" style="border-radius:4px;">0원</div></div>
+            <div class="summary-card"><div class="summary-card-title">합계</div><div class="summary-card-value val-net skeleton" id="total-asset" style="border-radius:4px;">0원</div></div>
         </section>
         <section class="date-navigation">
             <button class="nav-arrow ripple-target" onclick="changeMonth(-1)"><span class="material-icons">chevron_left</span></button>
@@ -220,7 +213,25 @@
         </section>
         <section class="transaction-list-section">
             <ul class="transaction-list" id="transaction-list-container">
-                <li style="text-align: center; padding: 60px; color: #b0b8c1; font-size: 14px;">불러오는 중...</li>
+                <!-- 초기 스켈레톤 로딩 UI -->
+                <li style="padding: 14px 0; border-bottom: 1px solid #f2f4f6;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="width: 100px; height: 20px;" class="skeleton"></div>
+                        <div style="width: 60px; height: 20px;" class="skeleton"></div>
+                    </div>
+                </li>
+                <li style="padding: 14px 0; border-bottom: 1px solid #f2f4f6;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="width: 120px; height: 20px;" class="skeleton"></div>
+                        <div style="width: 50px; height: 20px;" class="skeleton"></div>
+                    </div>
+                </li>
+                <li style="padding: 14px 0; border-bottom: 1px solid #f2f4f6;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="width: 90px; height: 20px;" class="skeleton"></div>
+                        <div style="width: 70px; height: 20px;" class="skeleton"></div>
+                    </div>
+                </li>
             </ul>
         </section>
     </div>
@@ -374,6 +385,7 @@
         });
 
         function fetchTransactions(uid) {
+            // 로딩 시 이미 HTML에 스켈레톤이 존재함
             db.collection('users').doc(uid).collection('transaction_list')
                 .orderBy('createdAt', 'desc')
                 .onSnapshot((snapshot) => {
@@ -415,6 +427,11 @@
                 if (item.type === '수입' || amt > 0) totalIncome += Math.abs(amt); else totalExpense += Math.abs(amt);
             });
             const netAsset = totalIncome - totalExpense;
+            
+            // 스켈레톤 제거
+            const removeSkeleton = (id) => { const el=document.getElementById(id); if(el){ el.classList.remove('skeleton'); el.style.width='auto'; } };
+            removeSkeleton('total-income'); removeSkeleton('total-expense'); removeSkeleton('total-asset');
+
             document.getElementById('total-income').innerText = `${totalIncome.toLocaleString()}원`;
             document.getElementById('total-expense').innerText = `${totalExpense.toLocaleString()}원`;
             document.getElementById('total-asset').innerText = `${netAsset.toLocaleString()}원`;
