@@ -20,9 +20,9 @@
         
         :root {
             --primary-blue: #3b82f6;
-            --text-dark: #191f28;      /* 진한 검정 */
-            --text-gray: #8b95a1;      /* 연한 회색 */
-            --border-light: #e5e8eb;   /* 연한 테두리 */
+            --text-dark: #191f28;
+            --text-gray: #8b95a1;
+            --border-light: #e5e8eb;
             --header-height: 80px; 
             --ripple-color: rgba(0, 0, 0, 0.08);
             --income-color: #2c92ff;   
@@ -40,7 +40,7 @@
             color: var(--text-dark);
         }
 
-        /* [메인 컨테이너] - 기존 유지 */
+        /* 메인 컨테이너 */
         .container {
             width: 95%;
             max-width: 1024px; 
@@ -48,29 +48,53 @@
             padding: 0 24px 24px 24px; 
         }
 
-        /* [헤더] - 기존 유지 */
+        /* 헤더 */
         .header {
             position: fixed; top: 0; left: 50%; transform: translateX(-50%);
             width: 95%; max-width: 1024px; z-index: 1005;
-            background-color: rgba(255, 255, 255, 0.95); /* 살짝 투명 */
+            background-color: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(5px);
             height: var(--header-height); 
             display: flex; align-items: center; justify-content: space-between;
             padding: 16px 24px;
         }
-        .header h1 { font-size: 28px; font-weight: 800; color: var(--text-dark); margin: 0; }
+        .header h1 { font-size: 26px; font-weight: 800; color: var(--text-dark); margin: 0; }
         .header-action { display: flex; gap: 12px; }
         
         .icon-button {
             background: none; border: none; color: var(--text-dark); cursor: pointer;
             padding: 8px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center;
-            position: relative; overflow: hidden; /* 리플 튀어나감 방지 */
+            position: relative; overflow: hidden;
             transition: background-color 0.2s;
         }
         .icon-button:hover { background-color: #f2f4f6; }
         
-        /* [요약 카드] - 토스 스타일로 변경 (배경 제거, 테두리 적용) */
+        /* [요약 카드 섹션 헤더] - 토글 버튼 포함 */
+        .summary-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px; margin-top: 10px;
+        }
+        .summary-label {
+            font-size: 15px; font-weight: 700; color: var(--text-dark);
+        }
+        .toggle-btn {
+            background-color: #f2f4f6;
+            border: none;
+            border-radius: 12px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .toggle-btn.active {
+            background-color: var(--text-dark);
+            color: #fff;
+        }
+
+        /* [요약 카드] */
         .summary-cards {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -79,30 +103,23 @@
         }
 
         .summary-card {
-            background-color: #ffffff; /* 흰색 배경 */
-            border: 1px solid var(--border-light); /* 깔끔한 테두리 */
+            background-color: #ffffff;
+            border: 1px solid var(--border-light);
             padding: 16px 12px;
             border-radius: 16px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            min-height: 80px; /* 높이 최소화 */
+            min-height: 80px;
         }
         
         .summary-card-title {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-gray);
-            display: flex;
-            align-items: center;
-            margin-bottom: 6px;
+            font-size: 13px; font-weight: 500; color: var(--text-gray);
+            display: flex; align-items: center; margin-bottom: 6px;
         }
-
         .summary-card-value {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-dark);
-            word-break: keep-all;
+            font-size: 17px; font-weight: 700; color: var(--text-dark);
+            word-break: keep-all; letter-spacing: -0.5px;
         }
 
         /* 금액 색상 */
@@ -110,7 +127,7 @@
         .val-expense { color: var(--expense-color); }
         .val-net { color: var(--text-dark); }
 
-        /* [날짜 탐색 바] - 기존 유지 */
+        /* 날짜 탐색 바 */
         .date-navigation {
             display: flex; justify-content: space-between; align-items: center;
             margin-top: 10px; margin-bottom: 20px; padding: 12px 0;
@@ -123,117 +140,59 @@
         }
         .nav-arrow:hover { background-color: #f2f4f6; }
 
-        /* [거래 목록] */
+        /* 거래 목록 */
         .transaction-list-section h2 { 
             font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 12px; 
         }
         .transaction-list { list-style: none; padding: 0; margin: 0; }
         
-        /* 일별 헤더 */
         .daily-header {
             padding: 24px 0 10px 0;
-            font-size: 16px;
-            font-weight: 700;
-            color: #4e5968; /* 부드러운 진회색 */
+            font-size: 15px; font-weight: 700;
+            color: #6b7684;
             border-bottom: 1px solid transparent;
         }
 
-        /* 개별 아이템 - 디자인 변경 */
+        /* 거래 아이템 */
         .transaction-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: flex; justify-content: space-between; align-items: center;
             padding: 14px 0;
-            border-bottom: 1px solid #f2f4f6; /* 아주 연한 구분선 */
+            border-bottom: 1px solid #f2f4f6;
             cursor: pointer;
             position: relative;
-            overflow: hidden; /* 리플 효과 가두기 */
+            overflow: hidden;
         }
         
-        /* 왼쪽 텍스트 영역 */
-        .transaction-text-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px; /* 사용처와 메모 사이 간격 */
-        }
-
-        /* 사용처 (크고 진하게) */
-        .trans-usage {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-
-        /* 카테고리 | 메모 (작고 연하게) */
-        .trans-meta {
-            font-size: 13px;
-            color: var(--text-gray);
-            font-weight: 400;
-        }
+        .transaction-text-group { display: flex; flex-direction: column; gap: 4px; }
+        .trans-usage { font-size: 16px; font-weight: 600; color: var(--text-dark); }
+        .trans-meta { font-size: 13px; color: var(--text-gray); font-weight: 400; }
         
-        /* 오른쪽 금액 */
-        .transaction-amount {
-            font-weight: 700;
-            font-size: 17px;
-            text-align: right;
-        }
+        .transaction-amount { font-weight: 700; font-size: 17px; text-align: right; letter-spacing: -0.5px;}
         
-        /* [하단 내비게이션] - 기존 디자인 복구 */
+        /* 하단 내비게이션 */
         .bottom-nav {
-            position: fixed;
-            bottom: 20px; 
-            left: 50%;
-            transform: translateX(-50%);
-            width: 75%; 
-            max-width: 450px; 
-            height: 70px;
-            background-color: rgba(255, 255, 255, 0.85); 
-            backdrop-filter: blur(10px); 
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 1000;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); 
-            border: 1px solid var(--border-light); 
-            border-radius: 50px; 
-            padding: 0 10px;
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 75%; max-width: 450px; height: 70px;
+            background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); 
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 1000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); 
+            border: 1px solid var(--border-light); border-radius: 50px; padding: 0 10px;
         }
 
         .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            color: #b0b8c1; 
-            font-size: 11px;
-            font-weight: 500;
-            flex-grow: 1;
-            height: 60px;
-            position: relative;
-            border-radius: 25px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-decoration: none; color: #b0b8c1; font-size: 11px; font-weight: 500;
+            flex-grow: 1; height: 60px; position: relative; border-radius: 25px; 
         }
-
-        .nav-item.active {
-            color: var(--text-dark); 
-            font-weight: 600;
-        }
-
-        /* 활성 상태 타원형 배경 */
+        .nav-item.active { color: var(--text-dark); font-weight: 600; }
         .nav-item.active::before {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 100px; height: 55px;
-            background-color: #f2f4f6; 
-            border-radius: 30px; 
-            transform: translate(-50%, -50%);
-            z-index: -1; 
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 100px; height: 55px; background-color: #f2f4f6; 
+            border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; 
         }
-        
         .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
 
-        /* [모달] */
+        /* 모달 */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #ffffff; z-index: 2000;
@@ -243,27 +202,25 @@
         .modal.open { transform: translateY(0); visibility: visible; }
         .modal-header { 
             display: flex; justify-content: space-between; align-items: center; 
-            padding: 16px 24px; border-bottom: 1px solid var(--border-light); 
-            flex-shrink: 0; 
+            padding: 16px 24px; border-bottom: 1px solid var(--border-light); flex-shrink: 0; 
         }
         .modal-content { flex-grow: 1; }
         .modal-iframe { width: 100%; height: 100%; border: none; }
 
-        /* [리플 효과] */
+        /* 리플 효과 */
         .ripple {
             position: absolute; border-radius: 50%; transform: scale(0);
             animation: ripple-anim 0.5s linear; background-color: var(--ripple-color); pointer-events: none; 
         }
         @keyframes ripple-anim { to { transform: scale(2.8); opacity: 0; } }
 
-        /* 반응형 미세 조정 */
         @media (max-width: 600px) {
             .header { width: 100%; padding: 0 20px; }
             .container { padding: 0 20px 20px 20px; }
             .bottom-nav { width: 85%; bottom: 20px; }
-            /* 모바일에서 요약 카드 높이 줄임 */
-            .summary-card { padding: 14px 12px; min-height: auto; } 
-            .summary-card-value { font-size: 17px; }
+            .summary-card { padding: 14px 10px; min-height: auto; } 
+            .summary-card-value { font-size: 16px; }
+            .summary-label { font-size: 14px; }
         }
     </style>
 </head>
@@ -284,19 +241,27 @@
 
     <div class="container">
         
-        <!-- 요약 카드 (깔끔한 테두리 스타일) -->
+        <!-- 요약 카드 헤더 및 토글 -->
+        <div class="summary-header">
+            <span class="summary-label" id="summary-status-text">이번 달 현황</span>
+            <button class="toggle-btn ripple-target" id="summary-toggle-btn" onclick="toggleSummaryMode()">
+                월별 보기
+            </button>
+        </div>
+
+        <!-- 요약 카드 -->
         <section class="summary-cards">
             <div class="summary-card">
                 <div class="summary-card-title">수입</div>
-                <div class="summary-card-value val-income" id="total-income">0</div>
+                <div class="summary-card-value val-income" id="total-income">0원</div>
             </div>
             <div class="summary-card">
                 <div class="summary-card-title">지출</div>
-                <div class="summary-card-value val-expense" id="total-expense">0</div>
+                <div class="summary-card-value val-expense" id="total-expense">0원</div>
             </div>
             <div class="summary-card">
                 <div class="summary-card-title">합계</div>
-                <div class="summary-card-value val-net" id="total-asset">0</div>
+                <div class="summary-card-value val-net" id="total-asset">0원</div>
             </div>
         </section>
 
@@ -319,13 +284,12 @@
         </section>
     </div>
     
-    <!-- 하단 내비게이션 (기존 스타일 복구) -->
+    <!-- 하단 내비게이션 -->
     <nav class="bottom-nav">
         <a href="/" class="nav-item">
             <span class="material-icons">home</span>
             <span>홈</span>
         </a>
-        <!-- 활성화 상태 -->
         <a href="#" class="nav-item active">
             <span class="material-icons">receipt_long</span>
             <span>기록</span>
@@ -372,6 +336,9 @@
         let currentUserId = null;
         let allTransactions = [];
         let currentDate = new Date();
+        
+        // 요약 카드 모드: false = 월별(기본), true = 전체 누적
+        let isSummaryTotalMode = false; 
 
         auth.onAuthStateChanged((user) => {
             if (user) {
@@ -401,23 +368,54 @@
                 });
         }
 
+        // 모드 전환 토글 함수
+        function toggleSummaryMode() {
+            isSummaryTotalMode = !isSummaryTotalMode;
+            renderSummary(); // 요약 영역만 다시 렌더링
+            updateToggleUI();
+        }
+
+        function updateToggleUI() {
+            const btn = document.getElementById('summary-toggle-btn');
+            const label = document.getElementById('summary-status-text');
+            
+            if (isSummaryTotalMode) {
+                btn.textContent = '월별 보기'; // 버튼을 누르면 돌아갈 모드 이름
+                btn.classList.add('active');
+                label.textContent = '전체 누적 현황';
+            } else {
+                btn.textContent = '전체 보기'; // 버튼을 누르면 갈 모드 이름
+                btn.classList.remove('active');
+                label.textContent = '이번 달 현황';
+            }
+        }
+
         function renderUI() {
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth();
+            renderList();
+            renderSummary();
+            updateToggleUI();
+        }
 
-            // 날짜 표시
-            document.getElementById('current-month-display').textContent = `${year}년 ${month + 1}월`;
+        // 요약 카드 렌더링 로직 분리
+        function renderSummary() {
+            let dataToCalculate = [];
 
-            // 이번 달 필터링
-            const filteredData = allTransactions.filter(item => {
-                return item.dateObj.getFullYear() === year && item.dateObj.getMonth() === month;
-            });
+            if (isSummaryTotalMode) {
+                // 전체 모드면 모든 데이터 사용
+                dataToCalculate = allTransactions;
+            } else {
+                // 월별 모드면 현재 달 데이터만 필터링
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                dataToCalculate = allTransactions.filter(item => {
+                    return item.dateObj.getFullYear() === year && item.dateObj.getMonth() === month;
+                });
+            }
 
-            // 합계 계산
             let totalIncome = 0;
             let totalExpense = 0;
 
-            filteredData.forEach(item => {
+            dataToCalculate.forEach(item => {
                 const amt = parseInt(item.amount);
                 if (item.type === '수입' || amt > 0) {
                     totalIncome += Math.abs(amt);
@@ -425,13 +423,28 @@
                     totalExpense += Math.abs(amt);
                 }
             });
+            
             const netAsset = totalIncome - totalExpense;
 
-            document.getElementById('total-income').innerText = `₩ ${totalIncome.toLocaleString()}`;
-            document.getElementById('total-expense').innerText = `₩ ${totalExpense.toLocaleString()}`;
-            document.getElementById('total-asset').innerText = `₩ ${netAsset.toLocaleString()}`;
+            // [요청사항 반영] ₩ 제거, 원 추가
+            document.getElementById('total-income').innerText = `${totalIncome.toLocaleString()}원`;
+            document.getElementById('total-expense').innerText = `${totalExpense.toLocaleString()}원`;
+            document.getElementById('total-asset').innerText = `${netAsset.toLocaleString()}원`;
+        }
 
-            // 리스트 렌더링
+        // 리스트 렌더링 로직
+        function renderList() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            // 날짜 표시 업데이트
+            document.getElementById('current-month-display').textContent = `${year}년 ${month + 1}월`;
+
+            // 리스트는 항상 "선택된 월" 기준
+            const filteredData = allTransactions.filter(item => {
+                return item.dateObj.getFullYear() === year && item.dateObj.getMonth() === month;
+            });
+
             const listContainer = document.getElementById('transaction-list-container');
             listContainer.innerHTML = '';
 
@@ -447,7 +460,6 @@
                 grouped[dateKey].push(item);
             });
 
-            // 날짜 내림차순 정렬
             const sortedKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
 
             sortedKeys.forEach(key => {
@@ -455,31 +467,30 @@
                 const dateObj = dayItems[0].dateObj;
                 const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
 
-                // 날짜 헤더
                 const dayHeader = document.createElement('li');
                 dayHeader.className = 'daily-header';
                 dayHeader.textContent = `${dateObj.getDate()}일 ${days[dateObj.getDay()]}`;
                 listContainer.appendChild(dayHeader);
 
-                // 아이템들
                 dayItems.forEach(item => {
                     const li = document.createElement('li');
                     li.className = 'transaction-item ripple-target';
-                    li.onclick = createRipple; // 리플 이벤트 바로 연결
+                    li.onclick = createRipple;
 
                     const isIncome = item.type === '수입' || item.amount > 0;
                     const colorClass = isIncome ? 'val-income' : 'val-expense';
-                    const sign = isIncome ? '' : ''; // 필요시 '+' 등 추가
-                    const amtStr = Math.abs(item.amount).toLocaleString();
+                    
+                    // [요청사항 반영] ₩ 제거, 음수는 - 부호 유지, '원' 추가
+                    const amtAbs = Math.abs(item.amount).toLocaleString();
+                    const displayAmount = isIncome ? `${amtAbs}원` : `- ${amtAbs}원`;
 
-                    // HTML 구조: 위쪽 사용처 / 아래쪽 카테고리|메모
                     li.innerHTML = `
                         <div class="transaction-text-group">
                             <span class="trans-usage">${item.usage || '사용처 없음'}</span>
                             <span class="trans-meta">${item.category} | ${item.memo}</span>
                         </div>
                         <div class="transaction-amount ${colorClass}">
-                            ${isIncome ? '' : '-'} ${amtStr}
+                            ${displayAmount}
                         </div>
                     `;
                     listContainer.appendChild(li);
@@ -489,7 +500,7 @@
 
         function changeMonth(delta) {
             currentDate.setMonth(currentDate.getMonth() + delta);
-            renderUI();
+            renderUI(); // 달이 바뀌면 리스트와 (월별 모드일 경우) 요약도 갱신
         }
 
         function openAddModal() {
@@ -503,11 +514,8 @@
             document.body.style.overflow = '';
         }
 
-        // 리플 효과 (부모 기준 좌표, overflow:hidden으로 튀어나감 방지)
         function createRipple(event) {
             const button = event.currentTarget;
-            
-            // 기존 리플 제거
             const oldRipple = button.querySelector('.ripple');
             if(oldRipple) oldRipple.remove();
 
@@ -525,7 +533,6 @@
             setTimeout(() => circle.remove(), 500);
         }
         
-        // 초기 정적 버튼에 리플 달기
         document.querySelectorAll('.ripple-target').forEach(btn => {
             if(!btn.onclick) btn.addEventListener('click', createRipple);
         });
