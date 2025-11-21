@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>용돈 내역 보고서</title>
+    <!-- Pretendard & Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        :root {
+            --text-dark: #191f28;
+            --text-gray: #8b95a1;
+            --border-light: #e5e8eb;
+            --income-color: #2c92ff;
+            --expense-color: #f04452;
+        }
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f2f4f6; /* 배경을 약간 회색으로 */
+            margin: 0; padding: 0;
+            color: var(--text-dark);
+            display: flex; justify-content: center;
+        }
+        .report-container {
+            width: 100%; max-width: 600px;
+            background-color: white;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        }
+        
+        /* 헤더 영역 */
+        .report-header {
+            padding: 40px 24px 20px 24px;
+            background-color: #fff;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .report-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+        .report-date { font-size: 14px; color: var(--text-gray); }
+
+        /* 요약 카드 영역 */
+        .summary-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+            padding: 24px;
+        }
+        .s-card {
+            background-color: #f9fafb; border-radius: 16px; padding: 16px;
+            display: flex; flex-direction: column;
+        }
+        .s-label { font-size: 13px; color: var(--text-gray); margin-bottom: 6px; }
+        .s-val { font-size: 18px; font-weight: 700; }
+        .val-income { color: var(--income-color); }
+        .val-expense { color: var(--expense-color); }
+        
+        .total-row {
+            margin: 0 24px 24px 24px;
+            padding: 20px;
+            background-color: #191f28; /* 검정 배경 */
+            color: white;
+            border-radius: 16px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .t-label { font-size: 15px; font-weight: 600; }
+        .t-val { font-size: 20px; font-weight: 700; }
+
+        /* 리스트 영역 */
+        .list-area { padding: 0 24px 50px 24px; }
+        .list-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+        
+        .day-header {
+            font-size: 14px; font-weight: 600; color: var(--text-gray);
+            margin-top: 24px; margin-bottom: 10px;
+        }
+        
+        .item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 0; border-bottom: 1px solid #f2f4f6;
+        }
+        .item-left { display: flex; flex-direction: column; gap: 4px; }
+        .i-usage { font-size: 16px; font-weight: 500; color: var(--text-dark); }
+        .i-meta { font-size: 13px; color: var(--text-gray); }
+        .i-amount { font-size: 16px; font-weight: 700; }
+
+        /* 로딩 */
+        .loading { text-align: center; padding: 100px 0; color: var(--text-gray); }
+    </style>
+</head>
+<body>
+
+    <div class="report-container">
+        <!-- 헤더 -->
+        <div class="report-header">
+            <div class="report-title" id="r-title">용돈 내역서</div>
+            <div class="report-date" id="r-date">데이터를 불러오는 중...</div>
+        </div>
+
+        <div id="content-area" style="display: none;">
+            <!-- 요약 -->
+            <div class="summary-grid">
+                <div class="s-card">
+                    <div class="s-label">총 수입</div>
+                    <div class="s-val val-income" id="v-income">0원</div>
+                </div>
+                <div class="s-card">
+                    <div class="s-label">총 지출</div>
+                    <div class="s-val val-expense" id="v-expense">0원</div>
+                </div>
+            </div>
+            
+            <div class="total-row">
+                <span class="t-label">남은 금액</span>
+                <span class="t-val" id="v-asset">0원</span>
+            </div>
+
+            <!-- 리스트 -->
+            <div class="list-area">
+                <div class="list-title">상세 내역</div>
+                <div id="list-container"></div>
+            </div>
+        </div>
+
+        <div id="loading-msg" class="loading">
+            문서를 찾고 있습니다...
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI",
+            authDomain: "pocketbly.firebaseapp.com",
+            projectId: "pocketbly",
+            storageBucket: "pocketbly.firebasestorage.app",
+            messagingSenderId: "535063683428",
+            appId: "1:535063683428:web:4729815738bee4f8305a71",
+            measurementId: "G-RE71JXSNR3"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // URL에서 ID 파싱
+        const urlParams = new URLSearchParams(window.location.search);
+        const reportId = urlParams.get('id');
+
+        if (!reportId) {
+            document.getElementById('loading-msg').innerText = "유효하지 않은 링크입니다.";
+        } else {
+            loadReport(reportId);
+        }
+
+        async function loadReport(id) {
+            try {
+                const doc = await db.collection('shared_reports').doc(id).get();
+                
+                if (!doc.exists) {
+                    document.getElementById('loading-msg').innerText = "삭제되었거나 존재하지 않는 문서입니다.";
+                    return;
+                }
+
+                const data = doc.data();
+                renderReport(data);
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loading-msg').innerText = "문서를 불러올 수 없습니다.";
+            }
+        }
+
+        function renderReport(data) {
+            document.getElementById('loading-msg').style.display = 'none';
+            document.getElementById('content-area').style.display = 'block';
+
+            // 1. 제목 및 날짜
+            document.getElementById('r-title').innerText = `${data.month}월 용돈 사용 내역`;
+            
+            const createdDate = data.createdAt ? data.createdAt.toDate() : new Date();
+            document.getElementById('r-date').innerText = `발행일: ${createdDate.toLocaleDateString()} | 작성자 확인필`;
+
+            // 2. 요약
+            document.getElementById('v-income').innerText = `+${data.totalIncome.toLocaleString()}원`;
+            document.getElementById('v-expense').innerText = `-${data.totalExpense.toLocaleString()}원`;
+            document.getElementById('v-asset').innerText = `${data.totalAsset.toLocaleString()}원`;
+
+            // 3. 리스트
+            const listContainer = document.getElementById('list-container');
+            const transactions = data.transactions || [];
+
+            if (transactions.length === 0) {
+                listContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#ccc;">내역이 없습니다.</div>';
+                return;
+            }
+
+            // 날짜별 그룹화 (Firestore Timestamp 변환 필요)
+            const grouped = {};
+            transactions.forEach(item => {
+                // 저장된 데이터의 dateObj는 객체가 아니라 Firestore Timestamp 객체일 수 있음
+                let date;
+                if (item.createdAt && item.createdAt.seconds) {
+                    date = new Date(item.createdAt.seconds * 1000);
+                } else if (item.dateObj && item.dateObj.seconds) {
+                    date = new Date(item.dateObj.seconds * 1000);
+                } else {
+                    date = new Date(); // Fallback
+                }
+
+                const dateKey = date.toDateString();
+                if (!grouped[dateKey]) grouped[dateKey] = { date: date, items: [] };
+                grouped[dateKey].items.push(item);
+            });
+
+            // 최신순 정렬
+            const sortedKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
+
+            sortedKeys.forEach(key => {
+                const group = grouped[key];
+                const d = group.date;
+                
+                // 날짜 헤더
+                const header = document.createElement('div');
+                header.className = 'day-header';
+                header.innerText = `${d.getDate()}일 ${days[d.getDay()]}요일`;
+                listContainer.appendChild(header);
+
+                // 아이템
+                group.items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'item';
+                    
+                    const isIncome = item.type === '수입' || item.amount > 0;
+                    const colorClass = isIncome ? 'val-income' : 'val-expense';
+                    const sign = isIncome ? '+' : '-';
+                    const amt = Math.abs(item.amount).toLocaleString();
+
+                    div.innerHTML = `
+                        <div class="item-left">
+                            <span class="i-usage">${item.usage}</span>
+                            <span class="i-meta">${item.category} | ${item.memo}</span>
+                        </div>
+                        <div class="i-amount ${colorClass}">
+                            ${sign} ${amt}원
+                        </div>
+                    `;
+                    listContainer.appendChild(div);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
