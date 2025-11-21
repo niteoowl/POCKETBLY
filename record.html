@@ -69,6 +69,26 @@
             transition: background-color 0.2s;
         }
         .icon-button:hover { background-color: #f2f4f6; }
+
+        /* 검색바 스타일 */
+        .search-bar-container {
+            width: 100%;
+            padding: 0 10px 15px 10px;
+            display: none; /* 기본 숨김 */
+            animation: slideDown 0.3s ease-out;
+        }
+        @keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            font-size: 15px;
+            background-color: #f9fafb;
+            outline: none;
+            color: var(--text-dark);
+        }
+        .search-input::placeholder { color: #b0b8c1; }
         
         /* [요약 카드] */
         .summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 10px; }
@@ -83,7 +103,8 @@
         .val-income { color: var(--income-color); } .val-expense { color: var(--expense-color); } .val-net { color: var(--text-dark); }
 
         /* 날짜 탐색 */
-        .date-navigation { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 20px; padding: 12px 0; }
+        .date-navigation { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 20px; padding: 12px 0; transition: opacity 0.3s; }
+        .date-navigation.hidden { display: none; } /* 전체 보기 시 숨김 */
         .date-display { font-size: 18px; font-weight: 700; color: var(--text-dark); flex-grow: 1; text-align: center; }
         .nav-arrow { background: none; border: none; color: var(--text-dark); cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
         .nav-arrow:hover { background-color: #f2f4f6; }
@@ -124,7 +145,7 @@
         .nav-item.active::before { content: ''; position: absolute; top: 50%; left: 50%; width: 100px; height: 55px; background-color: #f2f4f6; border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; }
         .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
 
-        /* 모달 및 기타 스타일 생략 (기존 유지) */
+        /* 모달 및 기타 스타일 */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; z-index: 2000; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); display: flex; flex-direction: column; visibility: hidden; }
         .modal.open { transform: translateY(0); visibility: visible; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border-light); flex-shrink: 0; }
@@ -149,11 +170,11 @@
             .summary-card { padding: 14px 10px; min-height: auto; } 
             
             .bottom-nav { width: 93%; bottom: 20px; }
-            /* [수정됨] 활성화 표시: 더 길고(가로), 조금 더 높게(세로) */
-            .nav-item.active::before { width: 110px; height: 60px; border-radius: 30px; }
+            /* [수정됨] 활성화 표시: 너비 90px로 축소 */
+            .nav-item.active::before { width: 90px; height: 60px; border-radius: 30px; }
         }
 
-        /* 수정/삭제/알림 팝업 스타일 (기존 유지) */
+        /* 기타 팝업 스타일 (생략 가능하나 유지) */
         .edit-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 2500; display: none; align-items: flex-end; justify-content: center; }
         .edit-modal-sheet { width: 100%; max-width: 600px; background-color: #fff; border-radius: 24px 24px 0 0; padding: 24px; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
@@ -186,14 +207,20 @@
             <button class="icon-button ripple-target" title="부모님께 전송" onclick="openShareModal()">
                 <span class="material-icons">ios_share</span>
             </button>
-            <button class="icon-button ripple-target" title="필터">
-                <span class="material-icons">filter_list</span>
+            <!-- [수정] 필터 버튼 -> 검색 버튼으로 변경 -->
+            <button class="icon-button ripple-target" title="검색" onclick="toggleSearchBar()">
+                <span class="material-icons">search</span>
             </button>
             <button class="icon-button ripple-target" title="새 기록 추가" onclick="openAddModal()">
                 <span class="material-icons">add</span>
             </button>
         </div>
     </header>
+
+    <!-- 검색창 컨테이너 -->
+    <div id="search-bar-container" class="search-bar-container">
+        <input type="text" id="search-input" class="search-input" placeholder="사용처 또는 내용을 검색하세요..." onkeyup="handleSearch()">
+    </div>
 
     <div class="container">
         <div class="summary-header">
@@ -206,11 +233,14 @@
             <div class="summary-card"><div class="summary-card-title">지출</div><div class="summary-card-value val-expense skeleton" id="total-expense" style="border-radius:4px;">0원</div></div>
             <div class="summary-card"><div class="summary-card-title">합계</div><div class="summary-card-value val-net skeleton" id="total-asset" style="border-radius:4px;">0원</div></div>
         </section>
-        <section class="date-navigation">
+        
+        <!-- 날짜 탐색 (전체 보기 시 숨겨짐) -->
+        <section class="date-navigation" id="date-nav-section">
             <button class="nav-arrow ripple-target" onclick="changeMonth(-1)"><span class="material-icons">chevron_left</span></button>
             <div class="date-display" id="current-month-display">2025년 11월</div>
             <button class="nav-arrow ripple-target" onclick="changeMonth(1)"><span class="material-icons">chevron_right</span></button>
         </section>
+
         <section class="transaction-list-section">
             <ul class="transaction-list" id="transaction-list-container">
                 <!-- 초기 스켈레톤 로딩 UI -->
@@ -337,8 +367,9 @@
         let currentUserId = null;
         let allTransactions = [];
         let currentDate = new Date();
-        let isSummaryTotalMode = false; 
+        let isSummaryTotalMode = false; // false: 월별 보기, true: 전체 보기
         let pendingReportDocId = null;
+        let currentSearchTerm = ""; // 검색어
 
         // [추가] 커스텀 다이얼로그 함수
         function showGlobalDialog(type, msg, onConfirm) {
@@ -385,7 +416,6 @@
         });
 
         function fetchTransactions(uid) {
-            // 로딩 시 이미 HTML에 스켈레톤이 존재함
             db.collection('users').doc(uid).collection('transaction_list')
                 .orderBy('createdAt', 'desc')
                 .onSnapshot((snapshot) => {
@@ -404,23 +434,76 @@
                 });
         }
 
-        function toggleSummaryMode() { isSummaryTotalMode = !isSummaryTotalMode; renderSummary(); updateToggleUI(); }
+        function toggleSummaryMode() { 
+            isSummaryTotalMode = !isSummaryTotalMode; 
+            updateToggleUI(); 
+            renderUI(); // UI 갱신
+        }
+
         function updateToggleUI() {
             const btn = document.getElementById('summary-toggle-btn');
             const label = document.getElementById('summary-status-text');
-            if (isSummaryTotalMode) { btn.textContent = '월별 보기'; btn.classList.add('active'); label.textContent = '전체 누적 현황'; } 
-            else { btn.textContent = '전체 보기'; btn.classList.remove('active'); label.textContent = '이번 달 현황'; }
+            const dateNav = document.getElementById('date-nav-section');
+
+            if (isSummaryTotalMode) { 
+                // 전체 보기 모드
+                btn.textContent = '월별 보기'; 
+                btn.classList.add('active'); 
+                label.textContent = '전체 누적 현황'; 
+                dateNav.classList.add('hidden'); // 날짜 탐색 숨김
+            } else { 
+                // 월별 보기 모드
+                btn.textContent = '전체 보기'; 
+                btn.classList.remove('active'); 
+                label.textContent = '이번 달 현황';
+                dateNav.classList.remove('hidden'); // 날짜 탐색 표시
+            }
         }
-        function renderUI() { renderList(); renderSummary(); updateToggleUI(); }
+
+        // [수정됨] 검색 기능 관련
+        function toggleSearchBar() {
+            const bar = document.getElementById('search-bar-container');
+            if(bar.style.display === 'block') {
+                bar.style.display = 'none';
+                currentSearchTerm = "";
+                document.getElementById('search-input').value = "";
+                renderUI();
+            } else {
+                bar.style.display = 'block';
+                document.getElementById('search-input').focus();
+            }
+        }
+        
+        function handleSearch() {
+            currentSearchTerm = document.getElementById('search-input').value.trim();
+            renderUI();
+        }
+
+        function renderUI() { 
+            renderList(); 
+            renderSummary(); 
+        }
 
         function renderSummary() {
             let dataToCalculate = [];
-            if (isSummaryTotalMode) { dataToCalculate = allTransactions; } 
-            else {
+            
+            // 1. 전체보기 모드 or 월별 필터링
+            if (isSummaryTotalMode) { 
+                dataToCalculate = allTransactions; 
+            } else {
                 const year = currentDate.getFullYear();
                 const month = currentDate.getMonth();
                 dataToCalculate = allTransactions.filter(item => item.dateObj.getFullYear() === year && item.dateObj.getMonth() === month);
             }
+
+            // 2. 검색어가 있다면 검색 결과 내에서만 합계 계산 (선택 사항, 여기선 적용)
+            if(currentSearchTerm) {
+                dataToCalculate = dataToCalculate.filter(item => 
+                    (item.usage && item.usage.includes(currentSearchTerm)) || 
+                    (item.memo && item.memo.includes(currentSearchTerm))
+                );
+            }
+
             let totalIncome = 0; let totalExpense = 0;
             dataToCalculate.forEach(item => {
                 const amt = parseInt(item.amount);
@@ -428,7 +511,6 @@
             });
             const netAsset = totalIncome - totalExpense;
             
-            // 스켈레톤 제거
             const removeSkeleton = (id) => { const el=document.getElementById(id); if(el){ el.classList.remove('skeleton'); el.style.width='auto'; } };
             removeSkeleton('total-income'); removeSkeleton('total-expense'); removeSkeleton('total-asset');
 
@@ -438,28 +520,63 @@
         }
 
         function renderList() {
+            let filteredData = [];
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
-            document.getElementById('current-month-display').textContent = `${year}년 ${month + 1}월`;
-            const filteredData = allTransactions.filter(item => item.dateObj.getFullYear() === year && item.dateObj.getMonth() === month);
+
+            // 1. 데이터 필터링 (전체 vs 월별)
+            if (isSummaryTotalMode) {
+                // 전체 보기: 모든 데이터 사용
+                filteredData = [...allTransactions];
+            } else {
+                // 월별 보기: 해당 월 데이터만
+                document.getElementById('current-month-display').textContent = `${year}년 ${month + 1}월`;
+                filteredData = allTransactions.filter(item => item.dateObj.getFullYear() === year && item.dateObj.getMonth() === month);
+            }
+
+            // 2. 검색 필터링
+            if (currentSearchTerm) {
+                filteredData = filteredData.filter(item => 
+                    (item.usage && item.usage.includes(currentSearchTerm)) || 
+                    (item.memo && item.memo.includes(currentSearchTerm))
+                );
+            }
+
             const listContainer = document.getElementById('transaction-list-container');
             listContainer.innerHTML = '';
-            if (filteredData.length === 0) { listContainer.innerHTML = '<li style="text-align:center; padding:60px 0; color:#b0b8c1; font-size:14px;">거래 내역이 없습니다.</li>'; return; }
+            
+            if (filteredData.length === 0) { 
+                listContainer.innerHTML = '<li style="text-align:center; padding:60px 0; color:#b0b8c1; font-size:14px;">거래 내역이 없습니다.</li>'; 
+                return; 
+            }
+
+            // 3. 날짜별 그룹화 및 렌더링
             const grouped = {};
             filteredData.forEach(item => {
                 const dateKey = item.dateObj.toDateString();
                 if (!grouped[dateKey]) grouped[dateKey] = [];
                 grouped[dateKey].push(item);
             });
+            
+            // 최신 날짜순 정렬
             const sortedKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+            
             sortedKeys.forEach(key => {
                 const dayItems = grouped[key];
                 const dateObj = dayItems[0].dateObj;
                 const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+                
+                // 날짜 헤더
                 const dayHeader = document.createElement('li');
                 dayHeader.className = 'daily-header';
-                dayHeader.textContent = `${dateObj.getDate()}일 ${days[dateObj.getDay()]}`;
+                // 전체 보기일 때는 연도도 표시해주면 좋음, 여기선 간단히 월/일 표시 유지 혹은 필요시 수정
+                const displayDateStr = isSummaryTotalMode ? 
+                    `${dateObj.getFullYear()}년 ${dateObj.getMonth()+1}월 ${dateObj.getDate()}일 ${days[dateObj.getDay()]}` : 
+                    `${dateObj.getDate()}일 ${days[dateObj.getDay()]}`;
+
+                dayHeader.textContent = displayDateStr;
                 listContainer.appendChild(dayHeader);
+                
                 dayItems.forEach(item => {
                     const li = document.createElement('li');
                     li.className = 'transaction-item ripple-target';
