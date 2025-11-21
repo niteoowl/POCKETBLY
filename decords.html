@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>거래 내역 기록</title>
+    <!-- Google Material Icons CDN (SVG 대체) -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Pretendard 폰트 CDN 추가 -->
+    <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
+    
+    <style>
+        /* [공통] 모든 요소에 대해 터치 하이라이트 색상(파란색)을 투명으로 설정하여 제거합니다. */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* CSS 변수를 사용하여 색상과 크기 관리의 효율성 높임 */
+        :root {
+            --primary-blue: #3b82f6;
+            --text-dark: #1f2937;
+            --text-gray: #6b7280;
+            --border-light: #e5e7eb;
+            --ripple-color: rgba(0, 0, 0, 0.1);
+            --header-height: 80px; 
+            --income-color: #10b981;
+            --expense-color: #ef4444;
+            --net-color: #3b82f6;
+        }
+
+        /* 기본 스타일 리셋 및 폰트 설정 */
+        body {
+            font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* [수정] 스크롤바 공간을 미리 확보하여 레이아웃 변동 방지 */
+            overflow-y: scroll; 
+            /* 고정 헤더 높이만큼 상단 패딩 */
+            padding-top: var(--header-height); 
+            /* 플로팅 내비게이션 바 높이와 하단 여백을 고려하여 충분한 공간 확보 */
+            padding-bottom: 110px; 
+        }
+
+        /* 메인 컨테이너 (PC/태블릿 환경에서 최대 너비 1024px) */
+        .container {
+            width: 95%;
+            max-width: 1024px; 
+            background-color: #ffffff;
+            padding: 0 24px 24px 24px; 
+            box-sizing: border-box;
+        }
+
+        /* [공통] 헤더 스타일 (고정) */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%; 
+            max-width: 1024px; 
+            z-index: 1005;
+            background-color: #ffffff; 
+            box-shadow: none; 
+            border-bottom: none; 
+            padding: 16px 24px;
+            box-sizing: border-box;
+            border-radius: 0; 
+            height: var(--header-height); 
+            display: flex;
+            align-items: center;
+            justify-content: space-between; 
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin: 0; 
+        }
+        .header-action {
+            display: flex;
+            gap: 12px;
+        }
+        /* 헤더 아이콘 버튼 */
+        .icon-button {
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .icon-button:hover {
+            background-color: #f3f4f6;
+        }
+        
+        /* [추가] 요약 카드 컨테이너 */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        /* [추가] 요약 카드 스타일 */
+        .summary-card {
+            background-color: #f9fafb;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 90px;
+            transition: all 0.2s;
+        }
+        
+        .summary-card-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-gray);
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .summary-card-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        /* 금액 색상 */
+        .text-income { color: var(--income-color); }
+        .text-expense { color: var(--expense-color); }
+        .text-net { color: var(--net-color); }
+        
+        /* [날짜 탐색 바] 스타일 */
+        .date-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 24px; 
+            padding: 12px 0; 
+            border: none;
+            background-color: transparent;
+        }
+
+        .date-navigation .date-display {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+            text-align: center;
+            flex-grow: 1; 
+        }
+
+        .date-navigation .nav-arrow {
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden; 
+        }
+        .date-navigation .nav-arrow:hover {
+            background-color: #f3f4f6;
+        }
+        
+        /* 네비게이션 화살표 아이콘 크기 고정 */
+        .date-navigation .nav-arrow .material-icons {
+            font-size: 24px; 
+        }
+
+        /* 거래 목록 영역 */
+        .transaction-list-section {
+            margin-top: 24px;
+        }
+        .transaction-list-section h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+        }
+        .transaction-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        /* 일별 구분선/헤더 스타일 */
+        .daily-header {
+            list-style: none;
+            padding: 12px 0 8px 0;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-top: 16px;
+        }
+        .daily-header:first-child {
+            margin-top: 0;
+        }
+
+        /* 개별 거래 항목 */
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eeeeee;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            margin: 2px 0;
+            background-color: transparent; /* 호버 효과 제거 유지 */
+        }
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        /* [유지] 호버 효과 완전히 제거 */
+        .transaction-item:hover {
+            background-color: transparent;
+        }
+        
+        .transaction-details {
+            display: flex;
+            flex-direction: column; 
+            flex-grow: 1;
+        }
+
+        /* 거래 종류와 카테고리를 수직으로 분리 */
+        .transaction-text {
+            display: flex;
+            flex-direction: column; 
+        }
+
+        .transaction-type {
+            font-weight: 500;
+            color: #374151;
+            font-size: 15px;
+            margin-bottom: 2px; /* 카테고리와의 간격 추가 */
+        }
+        .transaction-category {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+        
+        .transaction-amount-info {
+            text-align: right;
+            margin-left: 10px;
+        }
+        .transaction-amount {
+            font-weight: 700;
+        }
+        
+        /* 금액 색상 클래스 */
+        .text-green { color: var(--income-color); } 
+        .text-red { color: var(--expense-color); } 
+        
+        /* RIPPLE EFFECT CSS */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple-animation 0.6s linear;
+            background-color: var(--ripple-color); 
+            pointer-events: none; 
+            z-index: 1;
+        }
+
+        @keyframes ripple-animation {
+            to {
+                transform: scale(2.5);
+                opacity: 0;
+            }
+        }
+
+        /* --- 모달 (새 기록 추가) 스타일 --- */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            z-index: 2000;
+            transform: translateY(100%); /* 시작 위치: 화면 아래 */
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* 슬라이드 애니메이션 */
+            display: flex;
+            flex-direction: column;
+            visibility: hidden; /* 초기에는 숨김 */
+        }
+
+        .modal.open {
+            transform: translateY(0); /* 끝 위치: 화면 전체 덮기 */
+            visibility: visible;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-light);
+            flex-shrink: 0; /* 모달 크기 고정 */
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .modal-content {
+            flex-grow: 1;
+        }
+
+        .modal-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* --- 하단 내비게이션 바 --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 20px; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 75%; 
+            max-width: 450px; 
+            height: 70px;
+            background-color: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(10px); 
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); 
+            border: 1px solid var(--border-light); 
+            border-radius: 50px; 
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #9ca3af; 
+            font-size: 11px;
+            font-weight: 500;
+            transition: color 0.3s;
+            flex-grow: 1;
+            position: relative;
+            height: 60px;
+            border-radius: 25px; 
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        /* 활성 상태 스타일 */
+        .nav-item.active {
+            color: var(--text-dark); 
+            font-weight: 600;
+            position: relative; 
+        }
+
+        /* 활성 상태의 부드러운 타원형 배경 */
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100px; 
+            height: 55px;
+            background-color: #f0f0f0; 
+            border-radius: 30px; 
+            transform: translate(-50%, -50%);
+            z-index: -1; 
+            transition: all 0.3s ease-in-out; 
+        }
+        
+        /* 아이콘 색상 */
+        .material-icons {
+            font-size: 24px;
+            margin-bottom: 2px;
+            color: inherit; 
+            transition: color 0.3s;
+        }
+
+        /* 반응형 */
+        @media (max-width: 600px) {
+            .header {
+                width: 100%; 
+                padding: 16px 16px; 
+            }
+            .container {
+                padding: 0 16px 16px 16px;
+            }
+            .date-navigation {
+                padding: 10px 0;
+            }
+            .summary-cards {
+                grid-template-columns: 1fr; /* 모바일에서 세로로 쌓기 */
+                gap: 8px;
+            }
+            .summary-card-value {
+                font-size: 22px;
+            }
+            .bottom-nav {
+                width: 85%; 
+                bottom: 20px; 
+            }
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- 거래 기록 헤더 (고정됨) -->
+    <header class="header">
+        <div class="header-main-content">
+            <h1>기록</h1>
+        </div>
+        <!-- 우측 액션 아이콘 (필터, 추가) -->
+        <div class="header-action">
+            <button class="icon-button ripple-target" title="필터">
+                <span class="material-icons">filter_list</span>
+            </button>
+            <!-- [수정] 모달 열기 함수 연결 -->
+            <button class="icon-button ripple-target" title="새 기록 추가" onclick="openAddModal()">
+                <span class="material-icons">add</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- [추가] 요약 카드 섹션 -->
+        <section class="summary-cards">
+            <!-- 1. 순자산 변동 -->
+            <div class="summary-card">
+                <div class="summary-card-title">
+                    <span class="material-icons" style="font-size:16px; margin-right: 4px; color: var(--net-color);">trending_up</span>
+                    순자산 변동
+                </div>
+                <!-- [데이터] 양수 -->
+                <div class="summary-card-value text-net">+ ₩ 5,230,000</div>
+            </div>
+            
+            <!-- 2. 총 수입 -->
+            <div class="summary-card">
+                <div class="summary-card-title">
+                    <span class="material-icons" style="font-size:16px; margin-right: 4px; color: var(--income-color);">arrow_downward</span>
+                    총 수입
+                </div>
+                <!-- [데이터] 수입 -->
+                <div class="summary-card-value text-income">₩ 8,500,000</div>
+            </div>
+            
+            <!-- 3. 총 지출 -->
+            <div class="summary-card">
+                <div class="summary-card-title">
+                    <span class="material-icons" style="font-size:16px; margin-right: 4px; color: var(--expense-color);">arrow_upward</span>
+                    총 지출
+                </div>
+                <!-- [데이터] 지출 -->
+                <div class="summary-card-value text-expense">₩ 3,270,000</div>
+            </div>
+        </section>
+
+
+        <!-- 날짜 탐색 바 -->
+        <section class="date-navigation">
+            <button class="nav-arrow ripple-target" title="이전 달">
+                <span class="material-icons">chevron_left</span>
+            </button>
+
+            <div class="date-display">
+                2025년 11월
+            </div>
+            
+            <button class="nav-arrow ripple-target" title="다음 달">
+                <span class="material-icons">chevron_right</span>
+            </button>
+        </section>
+
+        <!-- 상세 거래 목록 -->
+        <section class="transaction-list-section">
+            <h2>거래 내역</h2>
+            
+            <ul class="transaction-list">
+                
+                <!-- 11월 27일 그룹 -->
+                <li class="daily-header">27</li>
+                
+                <!-- 항목 1: 지출 (식비) -->
+                <li class="transaction-item ripple-target">
+                    <div class="transaction-details">
+                        <!-- [수정] 거래 종류와 카테고리를 분리하고, 지출 텍스트 제거 -->
+                        <div class="transaction-text">
+                            <span class="transaction-type">점심 식사 (카페)</span>
+                            <span class="transaction-category">식비</span>
+                        </div>
+                    </div>
+                    <div class="transaction-amount-info">
+                        <span class="transaction-amount text-red">- ₩ 15,500</span>
+                    </div>
+                </li>
+                <!-- 항목 2: 지출 (교통) -->
+                <li class="transaction-item ripple-target">
+                    <div class="transaction-details">
+                        <!-- [수정] 거래 종류와 카테고리를 분리하고, 지출 텍스트 제거 -->
+                        <div class="transaction-text">
+                            <span class="transaction-type">대중교통 이용</span>
+                            <span class="transaction-category">교통</span>
+                        </div>
+                    </div>
+                    <div class="transaction-amount-info">
+                        <span class="transaction-amount text-red">- ₩ 1,250</span>
+                    </div>
+                </li>
+                
+                <!-- 11월 26일 그룹 -->
+                <li class="daily-header">26</li>
+
+                 <!-- 항목 3: 지출 (레저) -->
+                <li class="transaction-item ripple-target">
+                    <div class="transaction-details">
+                        <!-- [수정] 거래 종류와 카테고리를 분리하고, 지출 텍스트 제거 -->
+                        <div class="transaction-text">
+                            <span class="transaction-type">영화 관람</span>
+                            <span class="transaction-category">문화/여가</span>
+                        </div>
+                    </div>
+                    <div class="transaction-amount-info">
+                        <span class="transaction-amount text-red">- ₩ 15,000</span>
+                    </div>
+                </li>
+                <!-- 항목 4: 수입 (기타) -->
+                <li class="transaction-item ripple-target">
+                    <div class="transaction-details">
+                        <!-- [수정] 거래 종류와 카테고리를 분리하고, 수입 텍스트 제거 -->
+                        <div class="transaction-text">
+                            <span class="transaction-type">중고 물품 판매</span>
+                            <span class="transaction-category">기타</span>
+                        </div>
+                    </div>
+                    <div class="transaction-amount-info">
+                        <span class="transaction-amount text-green">+ ₩ 50,000</span>
+                    </div>
+                </li>
+                
+                <!-- 11월 25일 그룹 -->
+                <li class="daily-header">25</li>
+                
+                <!-- 항목 5: 수입 (월급) -->
+                <li class="transaction-item ripple-target">
+                    <div class="transaction-details">
+                        <!-- [수정] 거래 종류와 카테고리를 분리하고, 수입 텍스트 제거 -->
+                        <div class="transaction-text">
+                            <span class="transaction-type">월급 입금</span>
+                            <span class="transaction-category">급여</span>
+                        </div>
+                    </div>
+                    <div class="transaction-amount-info">
+                        <span class="transaction-amount text-green">+ ₩ 4,500,000</span>
+                    </div>
+                </li>
+            </ul>
+        </section>
+    </div>
+    
+    <!-- 하단 플로팅 내비게이션 바 -->
+    <nav class="bottom-nav">
+        <!-- 1. 홈 -->
+        <a href="#" class="nav-item">
+            <span class="material-icons">home</span>
+            <span>홈</span>
+        </a>
+        <!-- 2. 기록 (활성) -->
+        <a href="#" class="nav-item active">
+            <span class="material-icons">receipt_long</span>
+            <span>기록</span>
+        </a>
+        <!-- 3. 목표 (track_changes) -->
+        <a href="#" class="nav-item">
+            <span class="material-icons">track_changes</span>
+            <span>목표</span>
+        </a>
+        <!-- 4. MY (person) -->
+        <a href="#" class="nav-item">
+            <span class="material-icons">person</span>
+            <span>MY</span>
+        </a>
+    </nav>
+    
+    <!-- [추가] 새 기록 추가 모달 (화면 전체 덮음) -->
+    <div id="add-modal" class="modal">
+        <div class="modal-header">
+            <h2>새 기록 추가</h2>
+            <!-- [수정] 모달 닫기 함수 연결 -->
+            <button class="icon-button ripple-target" title="닫기" onclick="closeAddModal()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div class="modal-content">
+            <!-- 요청된 /plus 경로를 불러오는 iframe 시뮬레이션 -->
+            <iframe class="modal-iframe" src="/plus" title="새 기록 추가 페이지"></iframe>
+        </div>
+    </div>
+
+
+    <!-- JavaScript for Ripple Effect and Modal Controls -->
+    <script>
+        // 리플 효과 함수 (기존 유지)
+        function createRipple(event) {
+            const button = event.currentTarget;
+            const oldRipple = button.querySelector('.ripple');
+            if (oldRipple) {
+                oldRipple.remove();
+            }
+
+            const circle = document.createElement('span');
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${event.clientX - button.getBoundingClientRect().left - radius}px`;
+            circle.style.top = `${event.clientY - button.getBoundingClientRect().top - radius}px`;
+            circle.classList.add('ripple');
+
+            button.appendChild(circle);
+            
+            setTimeout(() => {
+                if (circle.parentNode === button) {
+                    circle.remove();
+                }
+            }, 600);
+        }
+
+        // 모달 열기 함수
+        function openAddModal() {
+            const modal = document.getElementById('add-modal');
+            modal.classList.add('open');
+            document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
+        }
+
+        // 모달 닫기 함수
+        function closeAddModal() {
+            const modal = document.getElementById('add-modal');
+            modal.classList.remove('open');
+            document.body.style.overflow = ''; // 배경 스크롤 허용
+        }
+
+        // DOM 로드 후 클릭 리스너 적용
+        window.onload = function () {
+            const rippleTargets = document.querySelectorAll('.ripple-target');
+            rippleTargets.forEach(target => {
+                // 모달 열기 버튼을 제외한 모든 요소에 리플 효과 적용
+                if (target.getAttribute('onclick') !== 'openAddModal()') {
+                    target.addEventListener('click', createRipple);
+                }
+            });
+        };
+    </script>
+</body>
+</html>
