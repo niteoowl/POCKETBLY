@@ -2,13 +2,11 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>용돈 내역 보고서</title>
-    <!-- Pretendard & Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
     
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
@@ -23,10 +21,11 @@
         }
         body {
             font-family: 'Pretendard', sans-serif;
-            background-color: #f2f4f6; /* 배경을 약간 회색으로 */
+            background-color: #f2f4f6;
             margin: 0; padding: 0;
             color: var(--text-dark);
             display: flex; justify-content: center;
+            padding-bottom: 100px; /* 하단 액션바 공간 */
         }
         .report-container {
             width: 100%; max-width: 600px;
@@ -35,73 +34,70 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.05);
         }
         
-        /* 헤더 영역 */
-        .report-header {
-            padding: 40px 24px 20px 24px;
-            background-color: #fff;
-            border-bottom: 1px solid var(--border-light);
-        }
+        .report-header { padding: 40px 24px 20px 24px; background-color: #fff; border-bottom: 1px solid var(--border-light); }
         .report-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
         .report-date { font-size: 14px; color: var(--text-gray); }
 
-        /* 요약 카드 영역 */
-        .summary-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-            padding: 24px;
-        }
-        .s-card {
-            background-color: #f9fafb; border-radius: 16px; padding: 16px;
-            display: flex; flex-direction: column;
-        }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 24px; }
+        .s-card { background-color: #f9fafb; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; }
         .s-label { font-size: 13px; color: var(--text-gray); margin-bottom: 6px; }
         .s-val { font-size: 18px; font-weight: 700; }
         .val-income { color: var(--income-color); }
         .val-expense { color: var(--expense-color); }
         
-        .total-row {
-            margin: 0 24px 24px 24px;
-            padding: 20px;
-            background-color: #191f28; /* 검정 배경 */
-            color: white;
-            border-radius: 16px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        .total-row { margin: 0 24px 24px 24px; padding: 20px; background-color: #191f28; color: white; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; }
         .t-label { font-size: 15px; font-weight: 600; }
         .t-val { font-size: 20px; font-weight: 700; }
 
-        /* 리스트 영역 */
         .list-area { padding: 0 24px 50px 24px; }
         .list-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+        .day-header { font-size: 14px; font-weight: 600; color: var(--text-gray); margin-top: 24px; margin-bottom: 10px; }
         
-        .day-header {
-            font-size: 14px; font-weight: 600; color: var(--text-gray);
-            margin-top: 24px; margin-bottom: 10px;
-        }
-        
-        .item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 14px 0; border-bottom: 1px solid #f2f4f6;
-        }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #f2f4f6; }
         .item-left { display: flex; flex-direction: column; gap: 4px; }
         .i-usage { font-size: 16px; font-weight: 500; color: var(--text-dark); }
         .i-meta { font-size: 13px; color: var(--text-gray); }
         .i-amount { font-size: 16px; font-weight: 700; }
 
-        /* 로딩 */
+        /* [추가] 하단 부모님 액션 바 */
+        .parent-action-bar {
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 600px;
+            background-color: white;
+            border-top: 1px solid var(--border-light);
+            padding: 16px 24px;
+            display: none; /* 로딩 전 숨김 */
+            flex-direction: column; gap: 12px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+        .comment-input {
+            width: 100%; padding: 12px; border: 1px solid #e5e8eb; border-radius: 12px;
+            font-size: 15px; outline: none; resize: none; height: 50px;
+        }
+        .btn-group { display: flex; gap: 10px; }
+        .btn-action {
+            flex: 1; padding: 16px; border-radius: 14px; border: none; font-size: 16px; font-weight: 700; cursor: pointer;
+        }
+        .btn-approve { background-color: var(--income-color); color: white; }
+        .btn-reject { background-color: var(--expense-color); color: white; }
+
+        /* 완료 메시지 */
+        .complete-msg {
+            text-align: center; padding: 40px 20px; color: var(--text-dark); font-weight: 700; font-size: 18px;
+        }
         .loading { text-align: center; padding: 100px 0; color: var(--text-gray); }
     </style>
 </head>
 <body>
 
     <div class="report-container">
-        <!-- 헤더 -->
         <div class="report-header">
             <div class="report-title" id="r-title">용돈 내역서</div>
             <div class="report-date" id="r-date">데이터를 불러오는 중...</div>
         </div>
 
         <div id="content-area" style="display: none;">
-            <!-- 요약 -->
             <div class="summary-grid">
                 <div class="s-card">
                     <div class="s-label">총 수입</div>
@@ -118,15 +114,27 @@
                 <span class="t-val" id="v-asset">0원</span>
             </div>
 
-            <!-- 리스트 -->
             <div class="list-area">
                 <div class="list-title">상세 내역</div>
                 <div id="list-container"></div>
             </div>
         </div>
 
-        <div id="loading-msg" class="loading">
-            문서를 찾고 있습니다...
+        <div id="loading-msg" class="loading">문서를 찾고 있습니다...</div>
+
+        <!-- 이미 처리된 경우 표시 -->
+        <div id="completed-view" style="display:none;" class="complete-msg">
+            <span class="material-icons" style="font-size:48px; color:#8b95a1; margin-bottom:10px;">check_circle</span><br>
+            이미 확인(승인/반려)이 완료된 문서입니다.
+        </div>
+    </div>
+
+    <!-- 하단 액션 바 -->
+    <div class="parent-action-bar" id="action-bar">
+        <textarea class="comment-input" id="p-comment" placeholder="아이에게 한마디 (선택사항)"></textarea>
+        <div class="btn-group">
+            <button class="btn-action btn-reject" onclick="submitDecision('반려')">반려</button>
+            <button class="btn-action btn-approve" onclick="submitDecision('승인')">승인</button>
         </div>
     </div>
 
@@ -144,50 +152,57 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // URL에서 ID 파싱
         const urlParams = new URLSearchParams(window.location.search);
         const reportId = urlParams.get('id');
+        let currentDocData = null;
 
-        if (!reportId) {
-            document.getElementById('loading-msg').innerText = "유효하지 않은 링크입니다.";
-        } else {
-            loadReport(reportId);
-        }
-
-        async function loadReport(id) {
-            try {
-                const doc = await db.collection('shared_reports').doc(id).get();
-                
+        if (reportId) {
+            // 실시간 리스너로 변경 (상태 변화 감지)
+            db.collection('shared_reports').doc(reportId).onSnapshot((doc) => {
                 if (!doc.exists) {
                     document.getElementById('loading-msg').innerText = "삭제되었거나 존재하지 않는 문서입니다.";
+                    document.getElementById('content-area').style.display = 'none';
+                    document.getElementById('action-bar').style.display = 'none';
                     return;
                 }
 
                 const data = doc.data();
+                currentDocData = data;
                 renderReport(data);
-            } catch (error) {
-                console.error(error);
-                document.getElementById('loading-msg').innerText = "문서를 불러올 수 없습니다.";
-            }
+
+                // 이미 승인/반려 상태라면 입력창 숨김
+                if (data.status && data.status !== 'pending') {
+                    document.getElementById('action-bar').style.display = 'none';
+                    document.getElementById('completed-view').style.display = 'block';
+                    document.getElementById('completed-view').innerHTML = `
+                        <span class="material-icons" style="font-size:48px; color:${data.status === '승인' ? '#2c92ff' : '#f04452'}; margin-bottom:10px;">
+                            ${data.status === '승인' ? 'check_circle' : 'cancel'}
+                        </span><br>
+                        부모님이 <strong>${data.status}</strong> 하셨습니다.
+                    `;
+                } else {
+                    // 대기 상태면 액션 바 표시
+                    document.getElementById('action-bar').style.display = 'flex';
+                }
+            });
+        } else {
+            document.getElementById('loading-msg').innerText = "잘못된 접근입니다.";
         }
 
         function renderReport(data) {
             document.getElementById('loading-msg').style.display = 'none';
             document.getElementById('content-area').style.display = 'block';
 
-            // 1. 제목 및 날짜
-            document.getElementById('r-title').innerText = `${data.month}월 용돈 사용 내역`;
-            
+            document.getElementById('r-title').innerText = `${data.month}월 용돈 내역서`;
             const createdDate = data.createdAt ? data.createdAt.toDate() : new Date();
-            document.getElementById('r-date').innerText = `발행일: ${createdDate.toLocaleDateString()} | 작성자 확인필`;
+            document.getElementById('r-date').innerText = `전송일: ${createdDate.toLocaleDateString()}`;
 
-            // 2. 요약
             document.getElementById('v-income').innerText = `+${data.totalIncome.toLocaleString()}원`;
             document.getElementById('v-expense').innerText = `-${data.totalExpense.toLocaleString()}원`;
             document.getElementById('v-asset').innerText = `${data.totalAsset.toLocaleString()}원`;
 
-            // 3. 리스트
             const listContainer = document.getElementById('list-container');
+            listContainer.innerHTML = '';
             const transactions = data.transactions || [];
 
             if (transactions.length === 0) {
@@ -195,43 +210,32 @@
                 return;
             }
 
-            // 날짜별 그룹화 (Firestore Timestamp 변환 필요)
             const grouped = {};
             transactions.forEach(item => {
-                // 저장된 데이터의 dateObj는 객체가 아니라 Firestore Timestamp 객체일 수 있음
                 let date;
-                if (item.createdAt && item.createdAt.seconds) {
-                    date = new Date(item.createdAt.seconds * 1000);
-                } else if (item.dateObj && item.dateObj.seconds) {
-                    date = new Date(item.dateObj.seconds * 1000);
-                } else {
-                    date = new Date(); // Fallback
-                }
+                if (item.createdAt && item.createdAt.seconds) date = new Date(item.createdAt.seconds * 1000);
+                else if (item.dateObj && item.dateObj.seconds) date = new Date(item.dateObj.seconds * 1000);
+                else date = new Date();
 
                 const dateKey = date.toDateString();
                 if (!grouped[dateKey]) grouped[dateKey] = { date: date, items: [] };
                 grouped[dateKey].items.push(item);
             });
 
-            // 최신순 정렬
             const sortedKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
             const days = ['일', '월', '화', '수', '목', '금', '토'];
 
             sortedKeys.forEach(key => {
                 const group = grouped[key];
                 const d = group.date;
-                
-                // 날짜 헤더
                 const header = document.createElement('div');
                 header.className = 'day-header';
                 header.innerText = `${d.getDate()}일 ${days[d.getDay()]}요일`;
                 listContainer.appendChild(header);
 
-                // 아이템
                 group.items.forEach(item => {
                     const div = document.createElement('div');
                     div.className = 'item';
-                    
                     const isIncome = item.type === '수입' || item.amount > 0;
                     const colorClass = isIncome ? 'val-income' : 'val-expense';
                     const sign = isIncome ? '+' : '-';
@@ -242,12 +246,30 @@
                             <span class="i-usage">${item.usage}</span>
                             <span class="i-meta">${item.category} | ${item.memo}</span>
                         </div>
-                        <div class="i-amount ${colorClass}">
-                            ${sign} ${amt}원
-                        </div>
+                        <div class="i-amount ${colorClass}">${sign} ${amt}원</div>
                     `;
                     listContainer.appendChild(div);
                 });
+            });
+        }
+
+        // [핵심] 부모님의 결정 전송
+        function submitDecision(status) {
+            const comment = document.getElementById('p-comment').value;
+            
+            if (!confirm(`${status} 처리 하시겠습니까?`)) return;
+
+            // 문서 업데이트 (규칙 덕분에 인증 없이 가능)
+            db.collection('shared_reports').doc(reportId).update({
+                status: status,           // '승인' or '반려'
+                parentComment: comment,   // 코멘트
+                decidedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                alert('전송되었습니다!');
+                // UI는 onSnapshot에 의해 자동으로 업데이트됨
+            }).catch((error) => {
+                console.error(error);
+                alert('오류가 발생했습니다: ' + error.message);
             });
         }
     </script>
