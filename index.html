@@ -22,22 +22,23 @@
         body {
             font-family: 'Pretendard', sans-serif; background-color: var(--white);
             margin: 0; padding: 0; color: var(--primary);
-            padding-bottom: calc(var(--nav-height) + 20px); /* 하단 탭 공간 확보 */
+            padding-bottom: calc(var(--nav-height) + 20px);
         }
 
-        /* 헤더 */
+        /* 헤더 (여백 16px로 수정) */
         .header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 16px; position: sticky; top: 0; background: rgba(255,255,255,0.95);
+            padding: 16px; /* 20px -> 16px 변경 */
+            position: sticky; top: 0; background: rgba(255,255,255,0.95);
             backdrop-filter: blur(5px); z-index: 100;
         }
         .logo { font-size: 22px; font-weight: 800; }
         .icon-btn { border: none; background: none; padding: 8px; cursor: pointer; }
 
-        /* 컨테이너 (여백 16px) */
-        .container { padding: 0 16px; width: 100%; }
+        /* 컨테이너 (여백 16px로 수정) */
+        .container { padding: 0 16px; width: 100%; } /* 20px -> 16px 변경 */
 
-        /* 히어로 (자산) */
+        /* 히어로 */
         .hero { margin: 20px 0 30px 0; }
         .greeting { color: var(--secondary); font-size: 16px; margin-bottom: 8px; }
         .balance { font-size: 34px; font-weight: 800; letter-spacing: -1px; }
@@ -48,13 +49,13 @@
             padding: 24px 20px; margin-bottom: 16px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.02);
         }
-        .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .card-title { font-size: 18px; font-weight: 700; }
 
         /* 주간 차트 */
         .week-chart {
             display: flex; justify-content: space-between; align-items: flex-end;
-            height: 120px; padding-top: 10px;
+            height: 120px; padding-top: 20px;
         }
         .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 8px; }
         .bar-bg { width: 8px; height: 100%; background: #f2f4f6; border-radius: 4px; position: relative; }
@@ -72,12 +73,12 @@
         .fb-exp { background: var(--red); height: 100%; }
         .flow-txt { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; }
 
-        /* 하단 내비게이션 (일반적인 고정형) */
+        /* 하단 내비게이션 */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height);
             background: var(--white); border-top: 1px solid #eee;
             display: flex; justify-content: space-around; align-items: center;
-            padding-bottom: env(safe-area-inset-bottom); /* 아이폰 하단 바 대응 */
+            padding-bottom: env(safe-area-inset-bottom);
             z-index: 999;
         }
         .nav-item {
@@ -95,9 +96,8 @@
             display: none; justify-content: center; align-items: center;
         }
         .alert-box {
-            background: white; width: 85%; max-width: 320px; padding: 24px;
+            background: white; width: 80%; max-width: 300px; padding: 24px;
             border-radius: 20px; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
         }
         .alert-btn {
             background: var(--primary); color: white; border: none;
@@ -159,13 +159,14 @@
             <span class="material-icons">home</span>
             <span class="label">홈</span>
         </a>
+        <!-- 경로 index.html로 연결 -->
         <a href="/index.html" class="nav-item">
             <span class="material-icons">receipt_long</span>
             <span class="label">기록</span>
         </a>
         <a href="#" class="nav-item">
-            <span class="material-icons">track_changes</span>
-            <span class="label">목표</span>
+            <span class="material-icons">pie_chart</span>
+            <span class="label">분석</span>
         </a>
         <a href="#" class="nav-item">
             <span class="material-icons">person</span>
@@ -177,9 +178,9 @@
     <div id="alert-overlay" class="alert-overlay">
         <div class="alert-box">
             <span class="material-icons" id="alert-icon" style="font-size:48px; margin-bottom:10px;">check_circle</span>
-            <h3 id="alert-title" style="margin:0 0 10px 0; font-size:18px;">승인 완료</h3>
-            <p id="alert-msg" style="color:#666; margin:0; font-size:14px; line-height:1.4;">부모님이 확인하셨습니다.</p>
-            <div id="alert-comment" style="background:#f5f5f5; padding:12px; border-radius:10px; margin-top:15px; font-size:14px; text-align:left; color:#333;"></div>
+            <h3 id="alert-title" style="margin:0 0 10px 0;">승인 완료</h3>
+            <p id="alert-msg" style="color:#666; margin:0; line-height:1.4;">부모님이 확인하셨습니다.</p>
+            <div id="alert-comment" style="background:#f5f5f5; padding:10px; border-radius:8px; margin-top:10px; font-size:13px; text-align:left;"></div>
             <button class="alert-btn" onclick="confirmAlert()">확인 (내역 삭제)</button>
         </div>
     </div>
