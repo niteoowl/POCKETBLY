@@ -12,7 +12,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     
     <style>
+        /* [공통] 스타일 리셋 */
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        
         :root {
             --primary: #191f28; --secondary: #8b95a1;
             --bg: #f2f4f6; --white: #ffffff;
@@ -28,8 +30,7 @@
         /* 헤더 */
         .header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 16px; /* 패딩 축소 */
-            position: sticky; top: 0; background: rgba(255,255,255,0.95);
+            padding: 16px; position: sticky; top: 0; background: rgba(255,255,255,0.95);
             backdrop-filter: blur(5px); z-index: 100;
         }
         .logo { font-size: 22px; font-weight: 800; }
@@ -46,18 +47,24 @@
         /* 카드 공통 */
         .card {
             background: var(--white); border: 1px solid #e5e8eb; border-radius: 20px;
-            padding: 20px 16px; margin-bottom: 16px;
+            padding: 24px 20px; margin-bottom: 16px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.02);
         }
-        .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .card-title { font-size: 18px; font-weight: 700; }
 
         /* 주간 차트 */
-        .week-chart { display: flex; justify-content: space-between; align-items: flex-end; height: 120px; padding-top: 10px; }
+        .week-chart {
+            display: flex; justify-content: space-between; align-items: flex-end;
+            height: 120px; padding-top: 10px;
+        }
         .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1; gap: 8px; }
         .bar-bg { width: 8px; height: 100%; background: #f2f4f6; border-radius: 4px; position: relative; }
-        .bar-fill { position: absolute; bottom: 0; width: 100%; background: var(--blue); border-radius: 4px; transition: height 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
-        .bar-label { font-size: 11px; color: var(--secondary); }
+        .bar-fill {
+            position: absolute; bottom: 0; width: 100%; background: var(--blue);
+            border-radius: 4px; transition: height 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .bar-label { font-size: 12px; color: var(--secondary); }
         .today .bar-fill { background: var(--primary); }
         .today .bar-label { font-weight: 700; color: var(--primary); }
 
@@ -84,28 +91,38 @@
         .nav-item span.label { font-size: 10px; font-weight: 500; z-index: 2; }
         
         .nav-item.active { color: var(--primary); }
-        /* 활성화 배경 수정: 튀어나가지 않게 크기 고정 및 위치 정렬 */
+        
+        /* [수정] 활성화 배경 크기 축소 및 고정 */
         .nav-item.active::before {
             content: ''; position: absolute; 
-            width: 50px; height: 40px; /* 크기 축소 */
+            width: 50px; height: 40px; /* 크기 줄임 */
             background-color: #f2f4f6; border-radius: 20px; 
             top: 50%; left: 50%; transform: translate(-50%, -50%);
             z-index: 1;
         }
 
         /* 알림 모달 */
-        .alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: none; justify-content: center; align-items: center; }
-        .alert-box { background: white; width: 85%; max-width: 320px; padding: 24px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-        .alert-btn { background: var(--primary); color: white; border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; margin-top: 20px; }
+        .alert-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 2000;
+            display: none; justify-content: center; align-items: center;
+        }
+        .alert-box {
+            background: white; width: 85%; max-width: 320px; padding: 24px;
+            border-radius: 20px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .alert-btn {
+            background: var(--primary); color: white; border: none;
+            width: 100%; padding: 14px; border-radius: 12px; font-weight: 700; margin-top: 20px;
+        }
 
-        /* 리플 효과 */
-        .ripple { position: absolute; border-radius: 50%; transform: scale(0); animation: ripple-anim 0.5s linear; background-color: rgba(0,0,0,0.05); pointer-events: none; }
-        @keyframes ripple-anim { to { transform: scale(2.8); opacity: 0; } }
-
-        /* [모바일 최적화] 여백 12px로 더 축소 */
+        /* [수정] 모바일 최적화: 여백 12px */
         @media (max-width: 600px) {
-            .header { padding: 12px; }
+            .header { width: 100%; padding: 12px; }
             .container { padding: 0 12px 20px 12px; }
+            .bottom-nav { width: 100%; bottom: 0; } /* 꽉 차게 */
+            .summary-card { padding: 14px 10px; } 
         }
     </style>
 </head>
@@ -129,7 +146,9 @@
                 <div class="card-title">이번 주 지출</div>
                 <span style="font-size:13px; color:#888;">일 ~ 토</span>
             </div>
-            <div class="week-chart" id="week-chart"></div>
+            <div class="week-chart" id="week-chart">
+                <!-- JS 생성 -->
+            </div>
         </div>
 
         <!-- 2. 월간 흐름 -->
@@ -158,16 +177,20 @@
     <!-- 하단 내비게이션 -->
     <nav class="bottom-nav">
         <a href="#" class="nav-item active">
-            <span class="material-icons">home</span><span class="label">홈</span>
+            <span class="material-icons">home</span>
+            <span class="label">홈</span>
         </a>
         <a href="/index.html" class="nav-item">
-            <span class="material-icons">receipt_long</span><span class="label">기록</span>
+            <span class="material-icons">receipt_long</span>
+            <span class="label">기록</span>
         </a>
         <a href="#" class="nav-item">
-            <span class="material-icons">track_changes</span><span class="label">목표</span>
+            <span class="material-icons">track_changes</span>
+            <span class="label">목표</span>
         </a>
         <a href="#" class="nav-item">
-            <span class="material-icons">person</span><span class="label">MY</span>
+            <span class="material-icons">person</span>
+            <span class="label">MY</span>
         </a>
     </nav>
 
