@@ -140,10 +140,7 @@
             transform: translateX(-100%);
             animation: shimmer 1.5s infinite;
         }
-        @keyframes shimmer {
-            100% { transform: translateX(100%); }
-        }
-        /* 스켈레톤 적용 시 텍스트 숨김 처리를 위한 헬퍼 */
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
         .skeleton * { opacity: 0; }
 
         /* 하단 내비게이션 */
@@ -163,7 +160,6 @@
         }
         .nav-item.active { color: var(--text-dark); font-weight: 600; }
         
-        /* PC 기본 */
         .nav-item.active::before {
             content: ''; position: absolute; top: 50%; left: 50%;
             width: 100px; height: 55px; background-color: #f2f4f6; 
@@ -171,7 +167,7 @@
         }
         .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
 
-        /* 알림 팝업 스타일 (홈에도 추가) */
+        /* 알림 팝업 스타일 */
         .alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; display: none; justify-content: center; align-items: center; }
         .alert-box { width: 85%; max-width: 320px; background-color: white; border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
         .alert-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; color: white; cursor: pointer; background-color: var(--text-dark); margin-top: 20px; }
@@ -188,13 +184,12 @@
             .header { width: 100%; padding: 0 16px; } 
             .container { padding: 0 5px 20px 5px; } 
             
-            /* 내비게이션 바 너비 93% */
             .bottom-nav { width: 93%; bottom: 20px; }
             
-            /* [수정됨] 활성화 표시: 더 길고(가로), 조금 더 높게(세로) */
+            /* [수정됨] 활성화 원: 너비 90px로 축소 */
             .nav-item.active::before { 
-                width: 110px; /* 가로 더 길게 */
-                height: 60px; /* 높이 조금 더 높게 */
+                width: 90px; 
+                height: 60px; 
                 border-radius: 30px;
             }
         }
@@ -257,7 +252,6 @@
             <div class="ranking-container">
                 <div class="donut-chart skeleton" id="donut-chart"></div>
                 <div class="rank-list" id="rank-list">
-                    <!-- 스켈레톤 목록 -->
                     <div class="rank-item skeleton" style="height:16px; width:100%; margin-bottom:8px;"></div>
                     <div class="rank-item skeleton" style="height:16px; width:80%; margin-bottom:8px;"></div>
                     <div class="rank-item skeleton" style="height:16px; width:60%;"></div>
@@ -290,7 +284,7 @@
         </a>
     </nav>
 
-    <!-- 알림 팝업 (홈에도 추가됨) -->
+    <!-- 알림 팝업 -->
     <div id="alert-overlay" class="alert-overlay">
         <div class="alert-box">
             <span class="material-icons" id="alert-icon" style="font-size:48px; margin-bottom:10px;">check_circle</span>
@@ -316,12 +310,11 @@
         else if (hours >= 18 && hours < 22) timeGreeting = "오늘 하루도 수고했어요";
         else timeGreeting = "편안한 밤 되세요";
 
-        let pendingReportDocId = null; // 알림용 변수
+        let pendingReportDocId = null; 
 
         auth.onAuthStateChanged((user) => {
             if (user) {
                 const name = user.displayName || "사용자";
-                // 스켈레톤 제거 후 텍스트 설정
                 const greetingEl = document.getElementById('greeting-text');
                 greetingEl.classList.remove('skeleton');
                 greetingEl.style.width = 'auto'; 
@@ -329,7 +322,7 @@
                 greetingEl.innerText = `${timeGreeting}, ${name}님`;
                 
                 loadHomeData(user.uid);
-                listenForParentDecision(user.uid); // 홈에서도 알림 리스너 실행
+                listenForParentDecision(user.uid); 
             } else {
                 window.location.href = '/auth';
             }
@@ -350,7 +343,6 @@
         }
 
         function calculateMetrics(transactions) {
-            // ... (기존 계산 로직과 동일) ...
             const now = new Date();
             const currentYear = now.getFullYear();
             const currentMonth = now.getMonth(); 
@@ -382,7 +374,6 @@
 
             const netAsset = totalIncome - totalExpense;
             
-            // [스켈레톤 제거 함수]
             const removeSkeleton = (id) => {
                 const el = document.getElementById(id);
                 if(el) { el.classList.remove('skeleton'); el.style.width='auto'; el.style.height='auto'; }
@@ -415,7 +406,6 @@
             const rankListEl = document.getElementById('rank-list');
             rankListEl.innerHTML = '';
             
-            // 도넛 차트 스켈레톤 제거
             document.getElementById('donut-chart').classList.remove('skeleton');
 
             if (sortedCats.length > 0) {
@@ -447,7 +437,6 @@
         }
         document.querySelectorAll('.ripple-target').forEach(btn => btn.addEventListener('click', createRipple));
 
-        // [추가] 홈 화면 알림 리스너
         function listenForParentDecision(uid) {
             db.collection('shared_reports').where('uid','==',uid).where('status','in',['승인','반려'])
             .onSnapshot(ss => {
