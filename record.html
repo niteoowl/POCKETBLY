@@ -125,13 +125,16 @@
 
         /* [수정됨] 모바일 최적화 */
         @media (max-width: 600px) {
-            /* 여백 16px -> 12px로 축소 */
-            .header { width: 100%; padding: 0 12px; } 
-            .container { padding: 0 12px 20px 12px; } 
+            /* 헤더 여백은 원래대로 (16px) */
+            .header { width: 100%; padding: 0 16px; } 
+            
+            /* [요청 반영] 내용 여백을 10px로 줄임 */
+            .container { padding: 0 10px 20px 10px; } 
+            
             .bottom-nav { width: 85%; bottom: 20px; }
             .summary-card { padding: 14px 10px; min-height: auto; } 
 
-            /* 활성화 메뉴 길이 축소 (100px -> 55px) */
+            /* [요청 반영] 활성화 메뉴 길이 축소 */
             .nav-item.active::before { width: 55px; }
         }
 
@@ -201,11 +204,20 @@
         </section>
     </div>
     
+    <!-- [수정됨] 내비게이션 링크 업데이트 -->
     <nav class="bottom-nav">
-        <a href="/home.html" class="nav-item"><span class="material-icons">home</span><span>홈</span></a>
-        <a href="#" class="nav-item active"><span class="material-icons">receipt_long</span><span>기록</span></a>
-        <a href="#" class="nav-item"><span class="material-icons">track_changes</span><span>목표</span></a>
-        <a href="#" class="nav-item"><span class="material-icons">person</span><span>MY</span></a>
+        <a href="/" class="nav-item">
+            <span class="material-icons">home</span><span>홈</span>
+        </a>
+        <a href="/record" class="nav-item active">
+            <span class="material-icons">receipt_long</span><span>기록</span>
+        </a>
+        <a href="/challenge" class="nav-item">
+            <span class="material-icons">track_changes</span><span>도전</span>
+        </a>
+        <a href="/my" class="nav-item">
+            <span class="material-icons">person</span><span>MY</span>
+        </a>
     </nav>
     
     <div id="add-modal" class="modal">
@@ -231,7 +243,7 @@
         </div>
     </div>
 
-    <!-- [수정됨] 수정/삭제 바텀 시트 (날짜 추가 및 라벨 변경) -->
+    <!-- 수정/삭제 바텀 시트 -->
     <div id="edit-modal" class="edit-modal-overlay" onclick="if(event.target===this) closeEditModal()">
         <div class="edit-modal-sheet">
             <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
@@ -240,7 +252,7 @@
             </div>
             <input type="hidden" id="edit-doc-id">
             
-            <!-- [추가] 날짜 및 시간 수정 -->
+            <!-- 날짜 및 시간 수정 -->
             <div class="edit-field">
                 <label class="edit-label">날짜 및 시간</label>
                 <input type="datetime-local" id="edit-date" class="edit-input" style="background:#fff;">
@@ -254,7 +266,7 @@
                 <label class="edit-label">금액</label>
                 <input type="number" id="edit-amount" class="edit-input">
             </div>
-            <!-- [수정] 메모 -> 내용 -->
+            <!-- 메모 -> 내용 -->
             <div class="edit-field">
                 <label class="edit-label">내용</label>
                 <input type="text" id="edit-memo" class="edit-input">
@@ -373,7 +385,6 @@
                     const li = document.createElement('li');
                     li.className = 'transaction-item ripple-target';
                     
-                    // [수정됨] 클릭 시 시간(밀리초)도 전달하여 Date 객체 재생성 가능하게 함
                     li.onclick = () => openEditModal(item.id, item.usage, item.amount, item.memo, item.dateObj.getTime());
 
                     const isIncome = item.type === '수입' || item.amount > 0;
@@ -451,7 +462,6 @@
         }
         document.querySelectorAll('.ripple-target').forEach(btn => { if(!btn.onclick) btn.addEventListener('click', createRipple); });
 
-        // [수정됨] Date 객체를 input value(YYYY-MM-DDTHH:mm) 형태로 변환하는 헬퍼 함수
         function toDatetimeLocal(date) {
             const ten = (i) => (i < 10 ? '0' : '') + i;
             const YYYY = date.getFullYear();
@@ -462,14 +472,12 @@
             return `${YYYY}-${MM}-${DD}T${HH}:${II}`;
         }
 
-        // [수정됨] 수정 모달 열기 (날짜 세팅 로직 추가)
         function openEditModal(id, usage, amount, memo, timeMs) {
             document.getElementById('edit-doc-id').value = id;
             document.getElementById('edit-usage').value = usage;
             document.getElementById('edit-amount').value = Math.abs(amount);
             document.getElementById('edit-memo').value = memo;
             
-            // 날짜 세팅
             const d = new Date(timeMs);
             document.getElementById('edit-date').value = toDatetimeLocal(d);
             
@@ -490,7 +498,6 @@
             const amountInput = parseInt(document.getElementById('edit-amount').value);
             const memo = document.getElementById('edit-memo').value;
             
-            // [추가] 날짜 값 읽기
             const dateVal = document.getElementById('edit-date').value;
             const newDate = dateVal ? new Date(dateVal) : new Date();
 
@@ -499,7 +506,6 @@
                 const isIncome = oldData.type === '수입' || oldData.amount > 0;
                 const newAmount = isIncome ? Math.abs(amountInput) : -Math.abs(amountInput);
                 
-                // [수정됨] createdAt 업데이트 포함
                 doc.ref.update({ 
                     usage: usage, 
                     amount: newAmount, 
