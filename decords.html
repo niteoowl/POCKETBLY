@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>거래 내역 기록</title>
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -59,7 +59,7 @@
             padding: 16px 24px;
         }
         .header h1 { font-size: 26px; font-weight: 800; color: var(--text-dark); margin: 0; }
-        .header-action { display: flex; gap: 12px; }
+        .header-action { display: flex; gap: 8px; }
         
         .icon-button {
             background: none; border: none; color: var(--text-dark); cursor: pointer;
@@ -70,7 +70,7 @@
         }
         .icon-button:hover { background-color: #f2f4f6; }
         
-        /* [요약 카드 섹션 헤더] - 토글 버튼 포함 */
+        /* [요약 카드 섹션 헤더] */
         .summary-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 12px; margin-top: 10px;
@@ -192,7 +192,7 @@
         }
         .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
 
-        /* 모달 */
+        /* 모달 (공통 스타일) */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #ffffff; z-index: 2000;
@@ -200,6 +200,7 @@
             display: flex; flex-direction: column; visibility: hidden;
         }
         .modal.open { transform: translateY(0); visibility: visible; }
+        
         .modal-header { 
             display: flex; justify-content: space-between; align-items: center; 
             padding: 16px 24px; border-bottom: 1px solid var(--border-light); flex-shrink: 0; 
@@ -214,13 +215,13 @@
         }
         @keyframes ripple-anim { to { transform: scale(2.8); opacity: 0; } }
 
+        /* 반응형 미세 조정 */
         @media (max-width: 600px) {
             .header { width: 100%; padding: 0 20px; }
             .container { padding: 0 20px 20px 20px; }
             .bottom-nav { width: 85%; bottom: 20px; }
             .summary-card { padding: 14px 10px; min-height: auto; } 
             .summary-card-value { font-size: 16px; }
-            .summary-label { font-size: 14px; }
         }
     </style>
 </head>
@@ -230,6 +231,10 @@
     <header class="header">
         <h1>기록</h1>
         <div class="header-action">
+            <!-- 공유 버튼 추가됨 -->
+            <button class="icon-button ripple-target" title="부모님께 전송" onclick="openShareModal()">
+                <span class="material-icons">ios_share</span>
+            </button>
             <button class="icon-button ripple-target" title="필터">
                 <span class="material-icons">filter_list</span>
             </button>
@@ -317,6 +322,33 @@
         </div>
     </div>
 
+    <!-- [추가] 공유하기 전화번호 입력 모달 -->
+    <div id="share-modal" class="modal" style="z-index: 2100;">
+        <div class="modal-header">
+            <h2>부모님께 전송</h2>
+            <button class="icon-button ripple-target" onclick="closeShareModal()">
+                <span class="material-icons">close</span>
+            </button>
+        </div>
+        <div class="modal-content" style="padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <p style="color: #6b7684; margin-bottom: 20px; text-align: center; line-height: 1.5;">
+                현재 보고 계신 <strong id="share-month-target" style="color: #191f28;">11월</strong>의 내역을<br>
+                부모님께 공유합니다.
+            </p>
+            
+            <div style="width: 100%; margin-bottom: 24px;">
+                <label style="display: block; font-size: 13px; font-weight: 600; color: #8b95a1; margin-bottom: 8px;">받는 분 전화번호</label>
+                <input type="tel" id="parent-phone" placeholder="01012345678" 
+                       style="width: 100%; padding: 16px; border: 1px solid #e5e8eb; border-radius: 14px; font-size: 16px; outline: none; background-color: #f9fafb;">
+            </div>
+
+            <button onclick="createAndSendReport()" id="btn-send-sms" class="ripple-target"
+                    style="width: 100%; padding: 18px; background-color: #191f28; color: white; border: none; border-radius: 16px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                문자로 링크 보내기
+            </button>
+        </div>
+    </div>
+
     <script>
         // Firebase 설정
         const firebaseConfig = {
@@ -336,8 +368,6 @@
         let currentUserId = null;
         let allTransactions = [];
         let currentDate = new Date();
-        
-        // 요약 카드 모드: false = 월별(기본), true = 전체 누적
         let isSummaryTotalMode = false; 
 
         auth.onAuthStateChanged((user) => {
@@ -368,10 +398,10 @@
                 });
         }
 
-        // 모드 전환 토글 함수
+        // 모드 전환
         function toggleSummaryMode() {
             isSummaryTotalMode = !isSummaryTotalMode;
-            renderSummary(); // 요약 영역만 다시 렌더링
+            renderSummary(); 
             updateToggleUI();
         }
 
@@ -380,11 +410,11 @@
             const label = document.getElementById('summary-status-text');
             
             if (isSummaryTotalMode) {
-                btn.textContent = '월별 보기'; // 버튼을 누르면 돌아갈 모드 이름
+                btn.textContent = '월별 보기'; 
                 btn.classList.add('active');
                 label.textContent = '전체 누적 현황';
             } else {
-                btn.textContent = '전체 보기'; // 버튼을 누르면 갈 모드 이름
+                btn.textContent = '전체 보기'; 
                 btn.classList.remove('active');
                 label.textContent = '이번 달 현황';
             }
@@ -396,15 +426,12 @@
             updateToggleUI();
         }
 
-        // 요약 카드 렌더링 로직 분리
         function renderSummary() {
             let dataToCalculate = [];
 
             if (isSummaryTotalMode) {
-                // 전체 모드면 모든 데이터 사용
                 dataToCalculate = allTransactions;
             } else {
-                // 월별 모드면 현재 달 데이터만 필터링
                 const year = currentDate.getFullYear();
                 const month = currentDate.getMonth();
                 dataToCalculate = allTransactions.filter(item => {
@@ -426,21 +453,18 @@
             
             const netAsset = totalIncome - totalExpense;
 
-            // [요청사항 반영] ₩ 제거, 원 추가
             document.getElementById('total-income').innerText = `${totalIncome.toLocaleString()}원`;
             document.getElementById('total-expense').innerText = `${totalExpense.toLocaleString()}원`;
             document.getElementById('total-asset').innerText = `${netAsset.toLocaleString()}원`;
         }
 
-        // 리스트 렌더링 로직
         function renderList() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
 
-            // 날짜 표시 업데이트
             document.getElementById('current-month-display').textContent = `${year}년 ${month + 1}월`;
 
-            // 리스트는 항상 "선택된 월" 기준
+            // 리스트는 항상 선택된 월 기준
             const filteredData = allTransactions.filter(item => {
                 return item.dateObj.getFullYear() === year && item.dateObj.getMonth() === month;
             });
@@ -480,7 +504,6 @@
                     const isIncome = item.type === '수입' || item.amount > 0;
                     const colorClass = isIncome ? 'val-income' : 'val-expense';
                     
-                    // [요청사항 반영] ₩ 제거, 음수는 - 부호 유지, '원' 추가
                     const amtAbs = Math.abs(item.amount).toLocaleString();
                     const displayAmount = isIncome ? `${amtAbs}원` : `- ${amtAbs}원`;
 
@@ -500,9 +523,10 @@
 
         function changeMonth(delta) {
             currentDate.setMonth(currentDate.getMonth() + delta);
-            renderUI(); // 달이 바뀌면 리스트와 (월별 모드일 경우) 요약도 갱신
+            renderUI();
         }
 
+        // --- 모달 관련 함수 ---
         function openAddModal() {
             const modal = document.getElementById('add-modal');
             modal.classList.add('open');
@@ -514,6 +538,89 @@
             document.body.style.overflow = '';
         }
 
+        // --- 공유하기 관련 함수 ---
+        function openShareModal() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth() + 1;
+            document.getElementById('share-month-target').innerText = `${month}월`;
+            
+            const modal = document.getElementById('share-modal');
+            modal.classList.add('open');
+        }
+
+        function closeShareModal() {
+            document.getElementById('share-modal').classList.remove('open');
+        }
+
+        async function createAndSendReport() {
+            const phoneInput = document.getElementById('parent-phone').value.replace(/-/g, '');
+            const sendBtn = document.getElementById('btn-send-sms');
+            
+            if (phoneInput.length < 10) {
+                alert('올바른 전화번호를 입력해주세요.');
+                return;
+            }
+
+            sendBtn.disabled = true;
+            sendBtn.textContent = '공유 문서 생성 중...';
+
+            try {
+                // 1. 데이터 준비 (현재 월)
+                const year = currentDate.getFullYear();
+                const month = currentDate.getMonth();
+                
+                const reportTransactions = allTransactions.filter(item => {
+                    return item.dateObj.getFullYear() === year && item.dateObj.getMonth() === month;
+                });
+
+                let totalIncome = 0;
+                let totalExpense = 0;
+                reportTransactions.forEach(item => {
+                    const amt = parseInt(item.amount);
+                    if (item.type === '수입' || amt > 0) totalIncome += Math.abs(amt);
+                    else totalExpense += Math.abs(amt);
+                });
+
+                // 2. Firestore 저장
+                const reportData = {
+                    uid: currentUserId,
+                    year: year,
+                    month: month + 1,
+                    totalIncome: totalIncome,
+                    totalExpense: totalExpense,
+                    totalAsset: totalIncome - totalExpense,
+                    transactions: reportTransactions, 
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                // shared_reports 컬렉션에 저장 (보안 규칙 필요)
+                const docRef = await db.collection('shared_reports').add(reportData);
+                
+                // 3. 링크 생성
+                const shareUrl = `${window.location.origin}/view.html?id=${docRef.id}`;
+                const message = `[용돈 기입장] ${month+1}월 사용 내역입니다.\n확인해주세요: ${shareUrl}`;
+                
+                // 4. SMS 앱 실행
+                const ua = navigator.userAgent.toLowerCase();
+                let smsScheme = `sms:${phoneInput}?body=${encodeURIComponent(message)}`;
+                
+                if (ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1) {
+                    smsScheme = `sms:${phoneInput}&body=${encodeURIComponent(message)}`;
+                }
+
+                window.location.href = smsScheme;
+                closeShareModal();
+
+            } catch (error) {
+                console.error(error);
+                alert('공유 중 오류가 발생했습니다. (권한 설정을 확인해주세요)');
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = '문자로 링크 보내기';
+            }
+        }
+
+        // 리플 효과
         function createRipple(event) {
             const button = event.currentTarget;
             const oldRipple = button.querySelector('.ripple');
