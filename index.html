@@ -124,11 +124,32 @@
 
         .daily-val { font-size: 24px; font-weight: 800; color: var(--text-dark); }
 
+        /* [스켈레톤 UI 스타일] */
+        .skeleton {
+            background: #f2f4f6;
+            color: transparent !important;
+            border-radius: 4px;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .skeleton::after {
+            content: "";
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            transform: translateX(-100%);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+        /* 스켈레톤 적용 시 텍스트 숨김 처리를 위한 헬퍼 */
+        .skeleton * { opacity: 0; }
+
         /* 하단 내비게이션 */
         .bottom-nav {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             width: 75%; max-width: 450px; 
-            /* [수정됨] 높이 70px -> 75px로 아주 조금 증가 */
             height: 75px;
             background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); 
             display: flex; justify-content: space-around; align-items: center;
@@ -141,12 +162,19 @@
             flex-grow: 1; height: 60px; position: relative; border-radius: 25px; 
         }
         .nav-item.active { color: var(--text-dark); font-weight: 600; }
+        
+        /* PC 기본 */
         .nav-item.active::before {
             content: ''; position: absolute; top: 50%; left: 50%;
             width: 100px; height: 55px; background-color: #f2f4f6; 
             border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; 
         }
         .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
+
+        /* 알림 팝업 스타일 (홈에도 추가) */
+        .alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; display: none; justify-content: center; align-items: center; }
+        .alert-box { width: 85%; max-width: 320px; background-color: white; border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        .alert-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; color: white; cursor: pointer; background-color: var(--text-dark); margin-top: 20px; }
 
         /* 리플 효과 */
         .ripple {
@@ -160,9 +188,15 @@
             .header { width: 100%; padding: 0 16px; } 
             .container { padding: 0 5px 20px 5px; } 
             
-            /* [수정됨] 모바일에서 내비게이션 바 너비 93%로 변경 */
+            /* 내비게이션 바 너비 93% */
             .bottom-nav { width: 93%; bottom: 20px; }
-            .nav-item.active::before { width: 75px; }
+            
+            /* [수정됨] 활성화 표시: 더 길고(가로), 조금 더 높게(세로) */
+            .nav-item.active::before { 
+                width: 110px; /* 가로 더 길게 */
+                height: 60px; /* 높이 조금 더 높게 */
+                border-radius: 30px;
+            }
         }
     </style>
 </head>
@@ -183,8 +217,8 @@
     <div class="container">
         <!-- 1. 히어로 섹션 -->
         <section class="hero-section">
-            <div class="hero-greeting" id="greeting-text">안녕하세요</div>
-            <div class="hero-balance" id="total-asset">0원</div>
+            <div class="hero-greeting skeleton" id="greeting-text" style="width:150px; height:20px;">안녕하세요</div>
+            <div class="hero-balance skeleton" id="total-asset" style="width:120px; height:38px; margin-top:5px;">0원</div>
         </section>
 
         <!-- 2. 소비 리포트 -->
@@ -200,15 +234,15 @@
                 <div class="bar-row">
                     <span class="bar-label">지난달</span>
                     <div class="bar-track"><div class="bar-fill fill-prev" id="bar-prev"></div></div>
-                    <span class="bar-value" id="prev-month-amt">0원</span>
+                    <span class="bar-value skeleton" id="prev-month-amt" style="border-radius:4px;">0원</span>
                 </div>
                 <div class="bar-row">
                     <span class="bar-label">이번달</span>
                     <div class="bar-track"><div class="bar-fill fill-curr" id="bar-curr"></div></div>
-                    <span class="bar-value" id="curr-month-amt">0원</span>
+                    <span class="bar-value skeleton" id="curr-month-amt" style="border-radius:4px;">0원</span>
                 </div>
             </div>
-            <div class="trend-message" id="trend-text">데이터 분석 중...</div>
+            <div class="trend-message skeleton" id="trend-text" style="width:80%; height:20px; margin-top:16px;">데이터 분석 중...</div>
         </div>
 
         <!-- 3. 지출 랭킹 -->
@@ -221,9 +255,12 @@
                 <span class="material-icons card-icon">pie_chart</span>
             </div>
             <div class="ranking-container">
-                <div class="donut-chart" id="donut-chart"></div>
+                <div class="donut-chart skeleton" id="donut-chart"></div>
                 <div class="rank-list" id="rank-list">
-                    <div class="rank-item" style="color:#b0b8c1;">내역이 없습니다.</div>
+                    <!-- 스켈레톤 목록 -->
+                    <div class="rank-item skeleton" style="height:16px; width:100%; margin-bottom:8px;"></div>
+                    <div class="rank-item skeleton" style="height:16px; width:80%; margin-bottom:8px;"></div>
+                    <div class="rank-item skeleton" style="height:16px; width:60%;"></div>
                 </div>
             </div>
         </div>
@@ -234,7 +271,7 @@
                 <div class="card-title" style="margin-bottom:4px;">하루 평균 지출</div>
                 <div class="card-desc">이번 달 기준</div>
             </div>
-            <div class="daily-val" id="daily-avg">0원</div>
+            <div class="daily-val skeleton" id="daily-avg" style="width:100px; height:30px;">0원</div>
         </div>
     </div>
     
@@ -253,6 +290,17 @@
         </a>
     </nav>
 
+    <!-- 알림 팝업 (홈에도 추가됨) -->
+    <div id="alert-overlay" class="alert-overlay">
+        <div class="alert-box">
+            <span class="material-icons" id="alert-icon" style="font-size:48px; margin-bottom:10px;">check_circle</span>
+            <h3 id="alert-title" style="margin:0 0 10px 0; font-size:18px;">승인 완료</h3>
+            <p id="alert-msg" style="color:#666; margin:0; font-size:14px; line-height:1.4;">부모님이 확인하셨습니다.</p>
+            <div id="alert-comment" style="background:#f5f5f5; padding:12px; border-radius:10px; margin-top:15px; font-size:14px; text-align:left; color:#333;"></div>
+            <button class="alert-btn" onclick="confirmAlert()">확인</button>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('contextmenu', event => event.preventDefault());
 
@@ -268,11 +316,20 @@
         else if (hours >= 18 && hours < 22) timeGreeting = "오늘 하루도 수고했어요";
         else timeGreeting = "편안한 밤 되세요";
 
+        let pendingReportDocId = null; // 알림용 변수
+
         auth.onAuthStateChanged((user) => {
             if (user) {
                 const name = user.displayName || "사용자";
-                document.getElementById('greeting-text').innerText = `${timeGreeting}, ${name}님`;
+                // 스켈레톤 제거 후 텍스트 설정
+                const greetingEl = document.getElementById('greeting-text');
+                greetingEl.classList.remove('skeleton');
+                greetingEl.style.width = 'auto'; 
+                greetingEl.style.height = 'auto';
+                greetingEl.innerText = `${timeGreeting}, ${name}님`;
+                
                 loadHomeData(user.uid);
+                listenForParentDecision(user.uid); // 홈에서도 알림 리스너 실행
             } else {
                 window.location.href = '/auth';
             }
@@ -293,6 +350,7 @@
         }
 
         function calculateMetrics(transactions) {
+            // ... (기존 계산 로직과 동일) ...
             const now = new Date();
             const currentYear = now.getFullYear();
             const currentMonth = now.getMonth(); 
@@ -323,8 +381,20 @@
             });
 
             const netAsset = totalIncome - totalExpense;
+            
+            // [스켈레톤 제거 함수]
+            const removeSkeleton = (id) => {
+                const el = document.getElementById(id);
+                if(el) { el.classList.remove('skeleton'); el.style.width='auto'; el.style.height='auto'; }
+            };
+
+            removeSkeleton('total-asset');
             document.getElementById('total-asset').innerText = `${netAsset.toLocaleString()}원`;
+            
+            removeSkeleton('prev-month-amt');
             document.getElementById('prev-month-amt').innerText = `${lastMonthExpense.toLocaleString()}원`;
+            
+            removeSkeleton('curr-month-amt');
             document.getElementById('curr-month-amt').innerText = `${thisMonthExpense.toLocaleString()}원`;
 
             const maxVal = Math.max(thisMonthExpense, lastMonthExpense) || 1;
@@ -333,6 +403,7 @@
                 document.getElementById('bar-curr').style.width = `${(thisMonthExpense / maxVal) * 100}%`;
             }, 100);
 
+            removeSkeleton('trend-text');
             const trendEl = document.getElementById('trend-text');
             const diff = thisMonthExpense - lastMonthExpense;
             if (diff > 0) trendEl.innerHTML = `지난달보다 <span class="highlight-bad">${Math.abs(diff).toLocaleString()}원</span> 더 썼어요.`;
@@ -344,6 +415,9 @@
             const rankListEl = document.getElementById('rank-list');
             rankListEl.innerHTML = '';
             
+            // 도넛 차트 스켈레톤 제거
+            document.getElementById('donut-chart').classList.remove('skeleton');
+
             if (sortedCats.length > 0) {
                 const colors = ['#f04452', '#ff8c00', '#ffc107'];
                 let gradientStr = "", currentDeg = 0;
@@ -360,6 +434,7 @@
                 document.getElementById('donut-chart').style.background = '#f2f4f6';
             }
 
+            removeSkeleton('daily-avg');
             const dayAvg = Math.round(thisMonthExpense / (todayDate || 1));
             document.getElementById('daily-avg').innerText = `${dayAvg.toLocaleString()}원`;
         }
@@ -371,6 +446,33 @@
             button.appendChild(circle); setTimeout(() => circle.remove(), 500);
         }
         document.querySelectorAll('.ripple-target').forEach(btn => btn.addEventListener('click', createRipple));
+
+        // [추가] 홈 화면 알림 리스너
+        function listenForParentDecision(uid) {
+            db.collection('shared_reports').where('uid','==',uid).where('status','in',['승인','반려'])
+            .onSnapshot(ss => {
+                ss.docChanges().forEach(c => {
+                    if(c.type==='added' || c.type==='modified') {
+                        let d = c.doc.data(); pendingReportDocId = c.doc.id;
+                        document.getElementById('alert-title').innerText = `부모님 ${d.status}`;
+                        document.getElementById('alert-icon').innerText = d.status==='승인'?'check_circle':'cancel';
+                        document.getElementById('alert-icon').style.color = d.status==='승인'?'#2c92ff':'#f04452';
+                        if(d.parentComment) {
+                            document.getElementById('alert-comment').innerText = d.parentComment;
+                            document.getElementById('alert-comment').style.display='block';
+                        } else {
+                            document.getElementById('alert-comment').style.display='none';
+                        }
+                        document.getElementById('alert-overlay').style.display='flex';
+                    }
+                });
+            });
+        }
+        function confirmAlert() {
+            if(pendingReportDocId) db.collection('shared_reports').doc(pendingReportDocId).delete().then(()=>{
+                document.getElementById('alert-overlay').style.display='none';
+            });
+        }
     </script>
 </body>
 </html>
