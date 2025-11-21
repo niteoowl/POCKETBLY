@@ -15,21 +15,8 @@
     <style>
         /* [공통] 스타일 리셋 & 복사 방지 */
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        
-        /* 전체 선택 방지 */
-        body {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-        /* 입력창은 선택 가능 */
-        input, textarea {
-            -webkit-user-select: text;
-            -moz-user-select: text;
-            -ms-user-select: text;
-            user-select: text;
-        }
+        body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+        input, textarea { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
 
         :root {
             --primary-blue: #3b82f6;
@@ -141,11 +128,10 @@
         /* [모바일 최적화] */
         @media (max-width: 600px) {
             .header { width: 100%; padding: 0 16px; } 
-            .container { padding: 0 10px 20px 10px; } 
+            /* [수정됨] 내용 여백 5px로 축소 */
+            .container { padding: 0 5px 20px 5px; } 
             .bottom-nav { width: 85%; bottom: 20px; }
             .summary-card { padding: 14px 10px; min-height: auto; } 
-
-            /* [수정됨] 활성화 탭 길이 75px로 조정 */
             .nav-item.active::before { width: 75px; }
         }
 
@@ -174,6 +160,29 @@
         .alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; display: none; justify-content: center; align-items: center; }
         .alert-box { width: 85%; max-width: 320px; background-color: white; border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
         .alert-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; color: white; cursor: pointer; background-color: var(--text-dark); margin-top: 20px; }
+
+        /* [추가] 커스텀 Dialog 스타일 (Alert/Confirm 대체) */
+        .global-dialog-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 4000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .global-dialog-box {
+            width: 80%; max-width: 300px; background: #fff;
+            border-radius: 20px; padding: 24px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: popIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .global-dialog-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: #191f28; }
+        .global-dialog-msg { font-size: 14px; color: #6b7684; margin-bottom: 20px; line-height: 1.4; }
+        .global-dialog-actions { display: flex; gap: 10px; }
+        .global-dialog-btn { 
+            flex: 1; padding: 12px; border-radius: 12px; border: none; 
+            font-size: 14px; font-weight: 600; cursor: pointer; 
+        }
+        .btn-cancel { background-color: #f2f4f6; color: #8b95a1; }
+        .btn-confirm { background-color: #191f28; color: #fff; }
     </style>
 </head>
 <body>
@@ -262,12 +271,10 @@
             </div>
             <input type="hidden" id="edit-doc-id">
             
-            <!-- 날짜 및 시간 수정 -->
             <div class="edit-field">
                 <label class="edit-label">날짜 및 시간</label>
                 <input type="datetime-local" id="edit-date" class="edit-input" style="background:#fff;">
             </div>
-
             <div class="edit-field">
                 <label class="edit-label">사용처</label>
                 <input type="text" id="edit-usage" class="edit-input">
@@ -276,7 +283,6 @@
                 <label class="edit-label">금액</label>
                 <input type="number" id="edit-amount" class="edit-input">
             </div>
-            <!-- 메모 -> 내용 -->
             <div class="edit-field">
                 <label class="edit-label">내용</label>
                 <input type="text" id="edit-memo" class="edit-input">
@@ -299,8 +305,16 @@
         </div>
     </div>
 
+    <!-- [추가] 전역 커스텀 다이얼로그 (Alert/Confirm 대체) -->
+    <div id="global-dialog" class="global-dialog-overlay">
+        <div class="global-dialog-box">
+            <h3 id="gd-title" class="global-dialog-title">알림</h3>
+            <p id="gd-msg" class="global-dialog-msg">내용</p>
+            <div id="gd-actions" class="global-dialog-actions"></div>
+        </div>
+    </div>
+
     <script>
-        // [추가] 우클릭 방지
         document.addEventListener('contextmenu', event => event.preventDefault());
 
         const firebaseConfig = { apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI", authDomain: "pocketbly.firebaseapp.com", projectId: "pocketbly", storageBucket: "pocketbly.firebasestorage.app", messagingSenderId: "535063683428", appId: "1:535063683428:web:4729815738bee4f8305a71", measurementId: "G-RE71JXSNR3" };
@@ -314,13 +328,46 @@
         let isSummaryTotalMode = false; 
         let pendingReportDocId = null;
 
+        // [추가] 커스텀 다이얼로그 함수
+        function showGlobalDialog(type, msg, onConfirm) {
+            const dialog = document.getElementById('global-dialog');
+            const titleEl = document.getElementById('gd-title');
+            const msgEl = document.getElementById('gd-msg');
+            const actionEl = document.getElementById('gd-actions');
+
+            titleEl.innerText = type === 'confirm' ? '확인' : '알림';
+            msgEl.innerText = msg;
+            actionEl.innerHTML = '';
+
+            if (type === 'confirm') {
+                const btnCancel = document.createElement('button');
+                btnCancel.className = 'global-dialog-btn btn-cancel';
+                btnCancel.innerText = '취소';
+                btnCancel.onclick = () => dialog.style.display = 'none';
+                
+                const btnOk = document.createElement('button');
+                btnOk.className = 'global-dialog-btn btn-confirm';
+                btnOk.innerText = '확인';
+                btnOk.onclick = () => { dialog.style.display = 'none'; if(onConfirm) onConfirm(); };
+                
+                actionEl.appendChild(btnCancel);
+                actionEl.appendChild(btnOk);
+            } else {
+                const btnOk = document.createElement('button');
+                btnOk.className = 'global-dialog-btn btn-confirm';
+                btnOk.innerText = '확인';
+                btnOk.onclick = () => { dialog.style.display = 'none'; if(onConfirm) onConfirm(); };
+                actionEl.appendChild(btnOk);
+            }
+            dialog.style.display = 'flex';
+        }
+
         auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUserId = user.uid;
                 fetchTransactions(currentUserId);
                 listenForParentDecision(user.uid); 
             } else {
-                // [수정됨] 로그인 안됨 -> 강제 리디렉션
                 window.location.href = '/auth';
             }
         });
@@ -437,7 +484,7 @@
             const linkArea = document.getElementById('result-link-area');
             const urlText = document.getElementById('generated-url');
             
-            if (phoneInput.length < 10) { alert('올바른 전화번호를 입력해주세요.'); return; }
+            if (phoneInput.length < 10) { showGlobalDialog('alert', '올바른 전화번호를 입력해주세요.'); return; }
             sendBtn.disabled = true; sendBtn.textContent = '링크 생성 중...';
 
             try {
@@ -465,7 +512,7 @@
                 
                 sendBtn.textContent = '전송 창 여는 중...';
                 setTimeout(() => { window.location.href = smsScheme; sendBtn.textContent = '다시 보내기'; sendBtn.disabled = false; }, 800);
-            } catch (error) { console.error(error); alert('오류가 발생했습니다.'); sendBtn.disabled = false; sendBtn.textContent = '보내기'; }
+            } catch (error) { console.error(error); showGlobalDialog('alert', '오류가 발생했습니다.'); sendBtn.disabled = false; sendBtn.textContent = '보내기'; }
         }
 
         function createRipple(event) {
@@ -500,10 +547,14 @@
         function closeEditModal() { document.getElementById('edit-modal').style.display = 'none'; }
 
         function deleteTransaction() {
-            if(!confirm("정말 삭제하시겠습니까?")) return;
-            const id = document.getElementById('edit-doc-id').value;
-            db.collection('users').doc(currentUserId).collection('transaction_list').doc(id).delete()
-            .then(() => { closeEditModal(); alert("삭제되었습니다."); });
+            showGlobalDialog('confirm', "정말 삭제하시겠습니까?", () => {
+                const id = document.getElementById('edit-doc-id').value;
+                db.collection('users').doc(currentUserId).collection('transaction_list').doc(id).delete()
+                .then(() => { 
+                    closeEditModal(); 
+                    showGlobalDialog('alert', "삭제되었습니다."); 
+                });
+            });
         }
 
         function updateTransaction() {
@@ -526,7 +577,10 @@
                     memo: memo,
                     createdAt: firebase.firestore.Timestamp.fromDate(newDate) 
                 })
-                .then(() => { closeEditModal(); alert("수정되었습니다."); });
+                .then(() => { 
+                    closeEditModal(); 
+                    showGlobalDialog('alert', "수정되었습니다."); 
+                });
             });
         }
 
