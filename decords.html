@@ -27,25 +27,25 @@
         /* 헤더 */
         .header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 16px 20px; position: sticky; top: 0; background: rgba(255,255,255,0.95);
+            padding: 16px; position: sticky; top: 0; background: rgba(255,255,255,0.95);
             backdrop-filter: blur(5px); z-index: 100; border-bottom: 1px solid #f2f4f6;
         }
         .title { font-size: 20px; font-weight: 800; }
         .icon-btn { background: none; border: none; padding: 8px; cursor: pointer; }
 
-        /* 컨테이너 */
-        .container { padding: 0 20px; width: 100%; margin-top: 20px; }
+        /* 컨테이너 (여백 16px) */
+        .container { padding: 0 16px; width: 100%; margin-top: 20px; }
 
         /* 요약 카드 */
         .summary-box {
             display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px;
         }
         .s-item {
-            border: 1px solid #e5e8eb; border-radius: 16px; padding: 16px 10px;
+            border: 1px solid #e5e8eb; border-radius: 16px; padding: 16px 5px;
             display: flex; flex-direction: column; align-items: center;
         }
         .s-title { font-size: 13px; color: var(--secondary); margin-bottom: 4px; }
-        .s-val { font-size: 16px; font-weight: 700; }
+        .s-val { font-size: 15px; font-weight: 700; letter-spacing: -0.5px; }
         .c-inc { color: var(--blue); } .c-exp { color: var(--red); }
 
         /* 월 이동 및 토글 */
@@ -64,13 +64,13 @@
         .day-label { font-size: 14px; font-weight: 600; color: var(--secondary); margin-bottom: 10px; border-bottom: 1px solid #f2f4f6; padding-bottom: 8px; }
         .item {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 0; cursor: pointer;
+            padding: 14px 0; cursor: pointer;
         }
         .item:active { opacity: 0.6; }
         .i-left { display: flex; flex-direction: column; gap: 4px; }
         .i-usage { font-size: 16px; font-weight: 600; }
         .i-meta { font-size: 13px; color: var(--secondary); }
-        .i-amt { font-size: 17px; font-weight: 700; }
+        .i-amt { font-size: 17px; font-weight: 700; letter-spacing: -0.5px; }
 
         /* 하단 내비게이션 (고정형) */
         .bottom-nav {
@@ -102,15 +102,20 @@
         .sheet-title { font-size: 18px; font-weight: 800; }
         .inp-group { margin-bottom: 16px; }
         .inp-label { font-size: 12px; color: #999; margin-bottom: 6px; }
-        .inp { width: 100%; border: none; border-bottom: 1px solid #eee; padding: 8px 0; font-size: 16px; outline: none; }
+        .inp { width: 100%; border: none; border-bottom: 1px solid #eee; padding: 12px 0; font-size: 16px; outline: none; border-radius: 0; }
         .btn-row { display: flex; gap: 10px; margin-top: 30px; }
-        .btn-act { flex: 1; padding: 16px; border-radius: 16px; border: none; font-weight: 700; font-size: 15px; }
+        .btn-act { flex: 1; padding: 16px; border-radius: 16px; border: none; font-weight: 700; font-size: 15px; cursor: pointer; }
         .btn-del { background: #fee; color: var(--red); }
         .btn-save { background: var(--primary); color: white; }
 
-        /* 기타 모달 (전화번호) */
+        /* 기타 모달 */
         .fs-modal { position: fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:2100; transform:translateY(100%); transition:0.3s; display:flex; flex-direction:column; }
         .fs-modal.open { transform:translateY(0); }
+
+        /* 알림 모달 */
+        .alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; display: none; justify-content: center; align-items: center; }
+        .alert-box { width: 85%; max-width: 320px; background-color: white; border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        .alert-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; color: white; cursor: pointer; background-color: var(--primary); margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -156,7 +161,7 @@
             <span class="material-icons">receipt_long</span><span class="label">기록</span>
         </a>
         <a href="#" class="nav-item">
-            <span class="material-icons">pie_chart</span><span class="label">분석</span>
+            <span class="material-icons">track_changes</span><span class="label">목표</span>
         </a>
         <a href="#" class="nav-item">
             <span class="material-icons">person</span><span class="label">MY</span>
@@ -168,7 +173,7 @@
         <div class="sheet">
             <div class="sheet-head">
                 <div class="sheet-title">내역 상세</div>
-                <span class="material-icons" onclick="closeSheet()">close</span>
+                <span class="material-icons" onclick="closeSheet()" style="cursor:pointer;">close</span>
             </div>
             <input type="hidden" id="e-id">
             <div class="inp-group">
@@ -190,20 +195,33 @@
         </div>
     </div>
 
-    <!-- 추가 모달 (Iframe) -->
+    <!-- 추가 모달 -->
     <div id="add-modal" class="fs-modal">
         <div style="padding:16px; display:flex; justify-content:space-between;">
-            <h2>추가</h2><span class="material-icons" onclick="closeAdd()">close</span>
+            <h2>추가</h2><span class="material-icons" onclick="closeAdd()" style="cursor:pointer;">close</span>
         </div>
         <iframe src="/plus" style="flex:1; border:none;"></iframe>
     </div>
 
     <!-- 공유 모달 -->
     <div id="share-modal" class="fs-modal" style="justify-content:center; align-items:center;">
-        <span class="material-icons" onclick="closeShare()" style="position:absolute; top:20px; right:20px; padding:10px;">close</span>
-        <h3>부모님께 공유</h3>
-        <input type="tel" id="share-ph" placeholder="01012345678" style="font-size:24px; text-align:center; border:none; border-bottom:2px solid #333; margin:30px 0; width:80%; outline:none;">
-        <button onclick="doShare()" style="background:#191f28; color:white; padding:15px 40px; border-radius:30px; border:none; font-weight:700;">전송</button>
+        <span class="material-icons" onclick="closeShare()" style="position:absolute; top:20px; right:20px; padding:10px; cursor:pointer;">close</span>
+        <h3 style="margin-bottom:30px;">부모님께 전송</h3>
+        <p style="color:#888; margin-bottom:20px; font-size:14px;">현재 월 내역을 전송합니다.</p>
+        <input type="tel" id="share-ph" placeholder="010 1234 5678" style="font-size:24px; text-align:center; border:none; border-bottom:2px solid #e5e8eb; margin-bottom:30px; width:80%; outline:none; padding:10px 0;">
+        <button onclick="doShare()" style="background:#191f28; color:white; padding:16px 50px; border-radius:16px; border:none; font-weight:700; font-size:16px;">보내기</button>
+        <div id="link-box" style="margin-top:20px; background:#f9f9f9; padding:16px; border-radius:12px; font-size:13px; display:none; word-break:break-all; width:80%;"></div>
+    </div>
+
+    <!-- 알림 팝업 -->
+    <div id="alert-overlay" class="alert-overlay">
+        <div class="alert-box">
+            <span class="material-icons" id="alert-icon" style="font-size:48px; margin-bottom:10px;">check_circle</span>
+            <h3 id="alert-title" style="margin:0 0 10px 0; font-size:18px;">승인 완료</h3>
+            <p id="alert-msg" style="color:#666; margin:0; font-size:14px; line-height:1.4;">부모님이 확인하셨습니다.</p>
+            <div id="alert-comment" style="background:#f5f5f5; padding:12px; border-radius:10px; margin-top:15px; font-size:14px; text-align:left; color:#333;"></div>
+            <button class="alert-btn" onclick="confirmAlert()">확인 (내역 삭제)</button>
+        </div>
     </div>
 
     <script>
@@ -212,10 +230,10 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        let uid = null, allTx = [], curDate = new Date(), isTotal = false;
+        let uid = null, allTx = [], curDate = new Date(), isTotal = false, pendingId = null;
 
         auth.onAuthStateChanged(user => {
-            if(user) { uid = user.uid; load(); }
+            if(user) { uid = user.uid; load(); listenAlerts(user.uid); }
         });
 
         function load() {
@@ -233,14 +251,12 @@
             
             let list = isTotal ? allTx : allTx.filter(t => t.dateObj.getFullYear()===y && t.dateObj.getMonth()===m);
             
-            // 요약
             let inc=0, exp=0;
             list.forEach(t => { let a=parseInt(t.amount); if(t.type==='수입'||a>0) inc+=Math.abs(a); else exp+=Math.abs(a); });
             document.getElementById('val-inc').innerText = inc.toLocaleString();
             document.getElementById('val-exp').innerText = exp.toLocaleString();
             document.getElementById('val-net').innerText = (inc-exp).toLocaleString();
 
-            // 리스트
             const area = document.getElementById('list-area');
             area.innerHTML = '';
             if(list.length===0) { area.innerHTML='<div style="text-align:center; padding:60px; color:#ccc">내역이 없습니다.</div>'; return; }
@@ -252,12 +268,7 @@
                 grp[dStr].push(t);
             });
 
-            // 날짜 정렬은 allTx가 이미 createdAt desc이므로 순서대로 옴. 그룹핑만 잘하면 됨.
-            // 하지만 그룹 키 순서 보장을 위해 키 정렬
-            let keys = Object.keys(grp).sort((a,b) => {
-               // 날짜 문자열 파싱보다, 첫 아이템의 dateObj 비교가 정확
-               return grp[b][0].dateObj - grp[a][0].dateObj;
-            });
+            let keys = Object.keys(grp).sort((a,b) => grp[b][0].dateObj - grp[a][0].dateObj);
 
             keys.forEach(k => {
                 let html = `<div class="list-group"><div class="day-label">${k}</div>`;
@@ -281,10 +292,14 @@
         function toggleMode() { isTotal=!isTotal; document.getElementById('toggle-btn').innerText = isTotal?'전체':'월별'; document.getElementById('toggle-btn').classList.toggle('active'); render(); }
         function moveMonth(d) { curDate.setMonth(curDate.getMonth()+d); render(); }
 
-        // 모달 제어
+        // 모달
         function openAdd() { document.getElementById('add-modal').classList.add('open'); }
         function closeAdd() { document.getElementById('add-modal').classList.remove('open'); }
-        function openShare() { document.getElementById('share-modal').classList.add('open'); }
+        function openShare() { 
+            document.getElementById('share-modal').classList.add('open'); 
+            document.getElementById('share-ph').value = '';
+            document.getElementById('link-box').style.display = 'none';
+        }
         function closeShare() { document.getElementById('share-modal').classList.remove('open'); }
 
         // 수정 시트
@@ -307,8 +322,6 @@
             let u = document.getElementById('e-usage').value;
             let a = parseInt(document.getElementById('e-amt').value);
             let m = document.getElementById('e-memo').value;
-            // *주의: 여기선 단순히 amount 부호를 이전 데이터 기반으로 판단해야하나, 
-            // 편의상 지출은 무조건 음수 저장 등 로직 필요. 여기선 원본을 fetch해서 타입 확인 후 저장 권장.
             db.collection('users').doc(uid).collection('transaction_list').doc(id).get().then(doc=>{
                 let old = doc.data();
                 let isInc = old.type==='수입' || old.amount>0;
@@ -316,16 +329,71 @@
             }).then(()=>closeSheet());
         }
 
-        // 공유 (기존 로직 사용)
+        // 공유
         async function doShare() {
-            let ph = document.getElementById('share-ph').value.replace(/-/g,'');
-            if(ph.length<10) return alert('번호 확인');
-            // ... (기존 createAndSendReport 로직 복사) ...
-            // 여기에 index.html의 createAndSendReport 함수 내용을 그대로 넣으면 됩니다.
-            alert('공유 기능은 index.html의 로직을 그대로 사용합니다.');
-            closeShare();
+            let ph = document.getElementById('share-ph').value.replace(/[^0-9]/g,'');
+            if(ph.length<10) return alert('번호를 확인해주세요');
+            
+            const y = curDate.getFullYear();
+            const m = curDate.getMonth();
+            
+            // 이번달 데이터
+            let list = allTx.filter(t => t.dateObj.getFullYear()===y && t.dateObj.getMonth()===m);
+            
+            let inc=0, exp=0;
+            list.forEach(t => { let a=parseInt(t.amount); if(t.type==='수입'||a>0) inc+=Math.abs(a); else exp+=Math.abs(a); });
+
+            const reportData = {
+                uid: uid, year: y, month: m+1,
+                totalIncome: inc, totalExpense: exp, totalAsset: inc-exp,
+                transactions: list, status: 'pending',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                const docRef = await db.collection('shared_reports').add(reportData);
+                const url = `https://mo.nmate.kr/view?id=${docRef.id}`;
+                
+                document.getElementById('link-box').innerText = url;
+                document.getElementById('link-box').style.display = 'block';
+
+                const msg = `[용돈 기입장] ${m+1}월 내역입니다.\n확인: ${url}`;
+                const ua = navigator.userAgent.toLowerCase();
+                let scheme = `sms:${ph}?body=${encodeURIComponent(msg)}`;
+                if(ua.includes('iphone')||ua.includes('ipad')) scheme = `sms:${ph}&body=${encodeURIComponent(msg)}`;
+                
+                setTimeout(() => { window.location.href = scheme; closeShare(); }, 1000);
+            } catch(e) {
+                alert('오류 발생');
+            }
+        }
+
+        // 알림 리스너 (Home과 동일)
+        function listenAlerts(uid) {
+            db.collection('shared_reports').where('uid','==',uid).where('status','in',['승인','반려'])
+            .onSnapshot(ss => {
+                ss.docChanges().forEach(c => {
+                    if(c.type==='added' || c.type==='modified') {
+                        let d = c.doc.data(); pendingId = c.doc.id;
+                        document.getElementById('alert-title').innerText = `부모님 ${d.status}`;
+                        document.getElementById('alert-icon').innerText = d.status==='승인'?'check_circle':'cancel';
+                        document.getElementById('alert-icon').style.color = d.status==='승인'?'#3182f6':'#f04452';
+                        if(d.parentComment) {
+                            document.getElementById('alert-comment').innerText = d.parentComment;
+                            document.getElementById('alert-comment').style.display='block';
+                        } else {
+                            document.getElementById('alert-comment').style.display='none';
+                        }
+                        document.getElementById('alert-overlay').style.display='flex';
+                    }
+                });
+            });
+        }
+        function confirmAlert() {
+            if(pendingId) db.collection('shared_reports').doc(pendingId).delete().then(()=>{
+                document.getElementById('alert-overlay').style.display='none';
+            });
         }
     </script>
 </body>
 </html>
-```
