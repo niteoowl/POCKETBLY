@@ -4,42 +4,97 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>POCKETBLY - 부모님 홈</title>
-    <!-- 스타일은 기존과 동일하되, 입력창 스타일만 조금 다듬음 -->
+    
+    <!-- Pretendard & Icons -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
     <style>
-        /* [기존 스타일 유지] */
-        :root { --color-white: #ffffff; --color-black: #191f28; --color-gray: #8b95a1; --color-bg: #f2f4f6; --color-accent: #1a1a1a; --padding-x: 24px; }
+        :root {
+            --color-white: #ffffff;
+            --color-black: #191f28;
+            --color-gray: #8b95a1;
+            --color-bg: #f2f4f6;
+            --color-accent: #1a1a1a;
+            --padding-x: 24px;
+        }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Pretendard Variable', sans-serif; background-color: var(--color-white); margin: 0; padding: 0; color: var(--color-black); }
-        .header { position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 100; padding: 16px var(--padding-x); border-bottom: 1px solid #f2f4f6; display: flex; justify-content: space-between; align-items: center; }
+        body {
+            font-family: 'Pretendard Variable', sans-serif;
+            background-color: var(--color-white);
+            margin: 0; padding: 0; color: var(--color-black);
+        }
+
+        /* 헤더 */
+        .header {
+            position: sticky; top: 0; background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px); z-index: 100;
+            padding: 16px var(--padding-x);
+            border-bottom: 1px solid #f2f4f6;
+            display: flex; justify-content: space-between; align-items: center;
+        }
         .header h1 { font-size: 20px; font-weight: 700; margin: 0; }
         .logout-btn { background: none; border: none; font-size: 14px; color: var(--color-gray); cursor: pointer; }
+
+        /* 컨테이너 */
         .container { padding: 24px var(--padding-x); padding-bottom: 100px; }
-        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0; text-align: center; color: var(--color-gray); }
+
+        /* 자녀 리스트 (없을 때) */
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 60px 0; text-align: center; color: var(--color-gray);
+        }
         .empty-icon { font-size: 48px; margin-bottom: 12px; color: #d1d6db; }
-        
-        /* 자녀 카드 스타일 */
-        .child-card { background: var(--color-white); border: 1px solid #e5e8eb; border-radius: 20px; padding: 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 20px rgba(0,0,0,0.03); cursor: pointer; transition: transform 0.1s; }
+
+        /* 자녀 카드 */
+        .child-card {
+            background: var(--color-white);
+            border: 1px solid #e5e8eb;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            cursor: pointer; transition: transform 0.1s;
+        }
         .child-card:active { transform: scale(0.98); }
         .child-info { display: flex; align-items: center; gap: 16px; }
-        .child-avatar { width: 50px; height: 50px; border-radius: 50%; background-color: #f2f4f6; display: flex; align-items: center; justify-content: center; color: #b0b8c1; }
+        .child-avatar {
+            width: 50px; height: 50px; border-radius: 50%; background-color: #f2f4f6;
+            display: flex; align-items: center; justify-content: center; color: #b0b8c1;
+        }
         .child-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
         .child-email { font-size: 13px; color: var(--color-gray); }
         .arrow-icon { color: #d1d6db; }
 
-        .fab { position: fixed; bottom: 30px; right: 24px; width: 60px; height: 60px; border-radius: 30px; background-color: var(--color-accent); color: white; border: none; box-shadow: 0 8px 20px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 50; transition: transform 0.2s; }
+        /* 플로팅 버튼 (자녀 추가) */
+        .fab {
+            position: fixed; bottom: 30px; right: 24px;
+            width: 60px; height: 60px; border-radius: 30px;
+            background-color: var(--color-accent); color: white;
+            border: none; box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 50; transition: transform 0.2s;
+        }
         .fab:active { transform: scale(0.9); }
 
-        /* 모달 스타일 */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: center; justify-content: center; }
-        .modal-box { background: white; width: 90%; max-width: 340px; padding: 24px; border-radius: 24px; text-align: center; animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        /* 모달 (자녀 연결) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 200;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-box {
+            background: white; width: 90%; max-width: 340px;
+            padding: 24px; border-radius: 24px; text-align: center;
+            animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
         @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
         .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
         .modal-desc { font-size: 14px; color: var(--color-gray); margin-bottom: 20px; line-height: 1.4; }
         
-        /* [수정됨] 코드 입력창 스타일 */
+        /* 코드 입력창 */
         .code-input { 
             width: 100%; padding: 16px; border: 2px solid #e5e8eb; border-radius: 12px; 
             font-size: 24px; text-align: center; letter-spacing: 4px; font-weight: 700;
@@ -52,7 +107,13 @@
         .btn { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: 600; cursor: pointer; font-size: 15px; }
         .btn-cancel { background: #f2f4f6; color: var(--color-gray); }
         .btn-confirm { background: var(--color-accent); color: white; }
-        .spinner { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid white; width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; display: none; }
+
+        /* 로딩 스피너 */
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3); border-radius: 50%;
+            border-top: 3px solid white; width: 20px; height: 20px;
+            animation: spin 1s linear infinite; margin: 0 auto; display: none;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -98,10 +159,11 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
-            getFirestore, doc, getDoc, updateDoc, deleteDoc,
+            getFirestore, doc, getDoc, setDoc, deleteDoc,
             arrayUnion, collection, query, where, getDocs 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Firebase 설정
         const firebaseConfig = { apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI", authDomain: "pocketbly.firebaseapp.com", projectId: "pocketbly", storageBucket: "pocketbly.firebasestorage.app", messagingSenderId: "535063683428", appId: "1:535063683428:web:4729815738bee4f8305a71", measurementId: "G-RE71JXSNR3" };
 
         const app = initializeApp(firebaseConfig);
@@ -110,6 +172,7 @@
 
         let currentUserId = null;
 
+        // 로그인 체크
         auth.onAuthStateChanged((user) => {
             if (user) {
                 currentUserId = user.uid;
@@ -119,19 +182,22 @@
             }
         });
 
+        // 자녀 목록 불러오기
         async function loadChildren() {
             const container = document.getElementById('child-list-container');
             try {
                 const userDoc = await getDoc(doc(db, "users", currentUserId));
                 if (userDoc.exists()) {
-                    const children = userDoc.data().children || [];
+                    const userData = userDoc.data();
+                    const children = userData.children || [];
+
                     if (children.length > 0) {
                         container.innerHTML = '';
                         children.forEach(child => {
                             const card = document.createElement('div');
                             card.className = 'child-card';
                             card.onclick = () => { 
-                                // 자녀 ID를 URL 파라미터로 넘겨 상세 페이지로 이동
+                                // 자녀 ID를 파라미터로 넘겨 상세 통계 페이지로 이동
                                 window.location.href = `/parent/stats.html?childId=${child.uid}&childName=${encodeURIComponent(child.name)}`; 
                             };
                             card.innerHTML = `
@@ -153,7 +219,7 @@
             }
         }
 
-        // [핵심] 인증 코드로 연결하기
+        // [핵심] 인증 코드로 연결하기 (setDoc 사용)
         window.connectChild = async function() {
             const codeInput = document.getElementById('auth-code-input');
             const code = codeInput.value.trim();
@@ -180,32 +246,33 @@
 
                 // 2. 코드 문서에서 자녀 정보 가져오기
                 const codeDoc = querySnapshot.docs[0];
-                const childData = codeDoc.data(); // { uid, name, code ... }
+                const childData = codeDoc.data(); 
                 const childUid = childData.uid;
 
-                // 3. 이미 연결된 자녀인지 확인 (선택 사항, UI에서 필터링 가능)
-                // (Firestore arrayUnion이 중복은 알아서 처리해주지만 UX상 체크하면 좋음)
-
-                // 4. 부모 계정에 자녀 추가
-                await updateDoc(doc(db, "users", currentUserId), {
+                // 3. 부모 계정에 자녀 추가 (setDoc + merge)
+                // 부모 문서가 없으면 새로 생성, 있으면 children 추가
+                await setDoc(doc(db, "users", currentUserId), {
+                    role: 'parent',
+                    email: auth.currentUser.email,
                     children: arrayUnion({
                         uid: childUid,
                         name: childData.name
                     })
-                });
+                }, { merge: true });
 
-                // 5. 자녀 계정에 부모 추가 (양방향 연결)
-                await updateDoc(doc(db, "users", childUid), {
+                // 4. 자녀 계정에 부모 추가 (setDoc + merge)
+                // 자녀 문서가 없으면 생성, 있으면 parents 추가
+                await setDoc(doc(db, "users", childUid), {
                     parents: arrayUnion(currentUserId)
-                });
+                }, { merge: true });
 
-                // 6. [중요] 사용된 코드는 삭제 (보안 및 낭비 방지)
+                // 5. 사용된 코드는 삭제 (보안)
                 await deleteDoc(doc(db, "invite_codes", codeDoc.id));
 
                 alert(`${childData.name} 자녀와 연결되었습니다!`);
                 closeModal();
                 codeInput.value = '';
-                loadChildren();
+                loadChildren(); // 목록 새로고침
 
             } catch (error) {
                 console.error("Connection failed:", error);
