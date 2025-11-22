@@ -10,7 +10,7 @@
     <!-- Pretendard Font -->
     <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
     
-    <!-- Firebase SDK -->
+    <!-- Firebase SDK (Compat 버전) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -163,7 +163,7 @@
         }
         @keyframes shimmer { 100% { transform: translateX(100%); } }
 
-        /* 모달 (이름 변경 등) */
+        /* 모달 (수정/이름변경 등) */
         .edit-modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0,0,0,0.5); z-index: 2500;
@@ -177,6 +177,18 @@
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .edit-input { width: 100%; border: none; border-bottom: 1px solid #eee; padding: 12px 0; font-size: 18px; outline: none; margin-top: 10px; }
         .edit-btn-save { width: 100%; padding: 16px; background-color: #191f28; color: #fff; border: none; border-radius: 16px; font-weight: 700; margin-top: 24px; cursor: pointer; }
+
+        /* [추가] 코드 표시 모달 */
+        .code-display-box {
+            background-color: #f9fafb; border: 1px solid #e5e8eb;
+            border-radius: 16px; padding: 24px; text-align: center;
+            margin-top: 20px; margin-bottom: 10px;
+        }
+        .generated-code {
+            font-size: 32px; font-weight: 800; letter-spacing: 4px;
+            color: var(--primary-blue); margin: 10px 0;
+        }
+        .code-desc { font-size: 14px; color: #8b95a1; line-height: 1.5; }
 
         /* 다이얼로그 */
         .global-dialog-overlay {
@@ -212,7 +224,7 @@
     
     <header class="header">
         <h1>MY</h1>
-        <div style="width: 24px;"></div> <!-- 밸런스용 공백 -->
+        <div style="width: 24px;"></div> 
     </header>
 
     <div class="container">
@@ -230,6 +242,11 @@
         <div class="menu-group">
             <div class="menu-group-title">계정</div>
             <ul class="menu-list">
+                <!-- [추가됨] 부모님 연결 버튼 -->
+                <li class="menu-item ripple-target" onclick="generateInviteCode()">
+                    <div class="menu-left"><span class="material-icons menu-icon">diversity_3</span>부모님 연결</div>
+                    <span class="material-icons chevron">chevron_right</span>
+                </li>
                 <li class="menu-item ripple-target" onclick="openNameModal()">
                     <div class="menu-left"><span class="material-icons menu-icon">edit</span>이름 변경</div>
                     <span class="material-icons chevron">chevron_right</span>
@@ -299,6 +316,24 @@
         </div>
     </div>
 
+    <!-- [추가됨] 인증코드 표시 모달 -->
+    <div id="code-modal" class="edit-modal-overlay" onclick="if(event.target===this) closeCodeModal()">
+        <div class="edit-modal-sheet">
+            <div style="display:flex; justify-content:space-between; align-items: center;">
+                <h3 style="margin:0; font-size:18px;">부모님 연결</h3>
+                <span class="material-icons" style="cursor:pointer;" onclick="closeCodeModal()">close</span>
+            </div>
+            
+            <div class="code-display-box">
+                <div class="code-desc">부모님 앱에 아래 코드를 입력해주세요.</div>
+                <div class="generated-code" id="invite-code-display">------</div>
+                <div class="code-desc" style="font-size:12px;">코드는 1회용입니다.</div>
+            </div>
+
+            <button class="edit-btn-save ripple-target" onclick="closeCodeModal()">닫기</button>
+        </div>
+    </div>
+
     <!-- 전역 다이얼로그 -->
     <div id="global-dialog" class="global-dialog-overlay">
         <div class="global-dialog-box">
@@ -311,7 +346,6 @@
     <script>
         document.addEventListener('contextmenu', event => event.preventDefault());
 
-        // Firebase Config (기존과 동일)
         const firebaseConfig = { apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI", authDomain: "pocketbly.firebaseapp.com", projectId: "pocketbly", storageBucket: "pocketbly.firebasestorage.app", messagingSenderId: "535063683428", appId: "1:535063683428:web:4729815738bee4f8305a71", measurementId: "G-RE71JXSNR3" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
@@ -319,7 +353,6 @@
 
         let currentUser = null;
 
-        // [공통] 다이얼로그 함수
         function showGlobalDialog(type, msg, onConfirm) {
             const dialog = document.getElementById('global-dialog');
             const titleEl = document.getElementById('gd-title');
@@ -365,29 +398,45 @@
         function renderProfile(user) {
             const nameEl = document.getElementById('profile-name');
             const emailEl = document.getElementById('profile-email');
-            
-            // 스켈레톤 제거
-            nameEl.classList.remove('skeleton');
-            nameEl.style.width = 'auto';
-            nameEl.style.height = 'auto';
-            
-            emailEl.classList.remove('skeleton');
-            emailEl.style.width = 'auto';
-            emailEl.style.height = 'auto';
-            
+            nameEl.classList.remove('skeleton'); nameEl.style.width = 'auto'; nameEl.style.height = 'auto';
+            emailEl.classList.remove('skeleton'); emailEl.style.width = 'auto'; emailEl.style.height = 'auto';
             nameEl.innerText = user.displayName || "이름 없음";
             emailEl.innerText = user.email || "이메일 없음";
         }
 
         function logout() {
             showGlobalDialog('confirm', '정말 로그아웃 하시겠습니까?', () => {
-                auth.signOut().then(() => {
-                    window.location.href = '/auth';
-                });
+                auth.signOut().then(() => { window.location.href = '/auth'; });
             });
         }
 
-        // 이름 변경 모달 관련
+        // [추가됨] 인증 코드 생성 로직
+        function generateInviteCode() {
+            // 6자리 랜덤 코드 생성
+            const code = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            // 모달 먼저 표시 (로딩 느낌)
+            document.getElementById('invite-code-display').innerText = '...';
+            document.getElementById('code-modal').style.display = 'flex';
+
+            db.collection('invite_codes').add({
+                code: code,
+                uid: currentUser.uid,
+                name: currentUser.displayName || '이름 없음',
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                document.getElementById('invite-code-display').innerText = code;
+            }).catch(err => {
+                console.error(err);
+                closeCodeModal();
+                showGlobalDialog('alert', '코드 생성에 실패했습니다.');
+            });
+        }
+
+        function closeCodeModal() {
+            document.getElementById('code-modal').style.display = 'none';
+        }
+
         function openNameModal() {
             const modal = document.getElementById('name-modal');
             const input = document.getElementById('new-name-input');
@@ -395,21 +444,14 @@
             modal.style.display = 'flex';
             setTimeout(() => input.focus(), 100);
         }
-        function closeNameModal() {
-            document.getElementById('name-modal').style.display = 'none';
-        }
+        function closeNameModal() { document.getElementById('name-modal').style.display = 'none'; }
         
         function updateProfileName() {
             const newName = document.getElementById('new-name-input').value.trim();
             if (!newName) return showGlobalDialog('alert', '이름을 입력해주세요.');
 
             currentUser.updateProfile({ displayName: newName }).then(() => {
-                // DB의 유저 정보도 업데이트 (필요시)
-                db.collection('users').doc(currentUser.uid).set({
-                    name: newName,
-                    email: currentUser.email
-                }, { merge: true });
-                
+                db.collection('users').doc(currentUser.uid).set({ name: newName, email: currentUser.email }, { merge: true });
                 renderProfile(currentUser);
                 closeNameModal();
                 showGlobalDialog('alert', '이름이 변경되었습니다.');
@@ -421,33 +463,17 @@
 
         function resetData() {
             showGlobalDialog('confirm', '모든 거래 내역이 영구적으로 삭제됩니다.\n정말 초기화 하시겠습니까?', () => {
-                // 모든 transaction_list 삭제 (Batch 처리는 클라이언트에서 제한적일 수 있으나 간단히 구현)
-                // 실제로는 Cloud Functions 등을 권장하지만 여기선 클라이언트 루프로 처리
                 const ref = db.collection('users').doc(currentUser.uid).collection('transaction_list');
-                
                 ref.get().then(snapshot => {
-                    if (snapshot.empty) {
-                        showGlobalDialog('alert', '삭제할 데이터가 없습니다.');
-                        return;
-                    }
-                    
-                    // 배치 삭제 (Firestore는 한번에 500개 제한)
+                    if (snapshot.empty) { return showGlobalDialog('alert', '삭제할 데이터가 없습니다.'); }
                     const batch = db.batch();
-                    snapshot.docs.forEach(doc => {
-                        batch.delete(doc.ref);
-                    });
-
-                    batch.commit().then(() => {
-                        showGlobalDialog('alert', '모든 데이터가 초기화되었습니다.');
-                    }).catch(err => {
-                        console.error(err);
-                        showGlobalDialog('alert', '초기화 중 오류가 발생했습니다.');
-                    });
+                    snapshot.docs.forEach(doc => { batch.delete(doc.ref); });
+                    batch.commit().then(() => { showGlobalDialog('alert', '모든 데이터가 초기화되었습니다.'); })
+                    .catch(err => { showGlobalDialog('alert', '초기화 중 오류가 발생했습니다.'); });
                 });
             });
         }
 
-        // 리플 효과
         function createRipple(event) {
             const button = event.currentTarget; const oldRipple = button.querySelector('.ripple'); if(oldRipple) oldRipple.remove();
             const circle = document.createElement('span'); const diameter = Math.max(button.clientWidth, button.clientHeight); const radius = diameter / 2; const rect = button.getBoundingClientRect();
