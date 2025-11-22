@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>POCKETBLY - MY</title>
+    
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Pretendard Font -->
+    <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <style>
+        /* [공통 스타일] */
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+        input, textarea { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
+
+        :root {
+            --primary-blue: #3b82f6;
+            --text-dark: #191f28;
+            --text-gray: #8b95a1;
+            --border-light: #e5e8eb;
+            --header-height: 80px; 
+            --ripple-color: rgba(0, 0, 0, 0.08);
+            --expense-color: #f04452;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #ffffff;
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column; align-items: center;
+            overflow-y: scroll; 
+            padding-top: var(--header-height); 
+            padding-bottom: 110px; 
+            color: var(--text-dark);
+        }
+
+        /* 헤더 */
+        .header {
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 95%; max-width: 1024px; z-index: 1005;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
+            height: var(--header-height); 
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 24px;
+        }
+        .header h1 { font-size: 26px; font-weight: 800; color: var(--text-dark); margin: 0; }
+
+        /* 컨테이너 */
+        .container {
+            width: 95%;
+            max-width: 1024px; 
+            background-color: #ffffff;
+            padding: 0 24px 24px 24px; 
+        }
+
+        /* 프로필 섹션 */
+        .profile-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 0 40px 0;
+        }
+        .avatar-circle {
+            width: 80px; height: 80px;
+            background-color: #f2f4f6;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 16px;
+            color: #b0b8c1;
+        }
+        .avatar-icon { font-size: 40px; }
+        
+        .profile-name {
+            font-size: 22px; font-weight: 700; color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+        .profile-email {
+            font-size: 14px; color: var(--text-gray);
+            margin-bottom: 20px;
+        }
+        .btn-edit-profile {
+            background-color: #f2f4f6;
+            color: var(--text-dark);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* 메뉴 리스트 */
+        .menu-group { margin-bottom: 30px; }
+        .menu-group-title {
+            font-size: 13px; font-weight: 600; color: var(--text-gray);
+            margin-bottom: 10px; padding-left: 4px;
+        }
+        .menu-list {
+            list-style: none; padding: 0; margin: 0;
+            background-color: #fff;
+        }
+        .menu-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 18px 4px;
+            border-bottom: 1px solid #f2f4f6;
+            cursor: pointer;
+            font-size: 16px; font-weight: 500; color: var(--text-dark);
+        }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-left { display: flex; align-items: center; gap: 12px; }
+        .menu-icon { color: var(--text-dark); font-size: 22px; }
+        .chevron { color: #d1d6db; font-size: 20px; }
+
+        .text-danger { color: var(--expense-color) !important; }
+
+        /* 하단 내비게이션 */
+        .bottom-nav {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 75%; max-width: 450px; height: 75px;
+            background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); 
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 1000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); 
+            border: 1px solid var(--border-light); border-radius: 50px; padding: 0 10px;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-decoration: none; color: #b0b8c1; font-size: 11px; font-weight: 500;
+            flex-grow: 1; height: 60px; position: relative; border-radius: 25px; 
+        }
+        .nav-item.active { color: var(--text-dark); font-weight: 600; }
+        .nav-item.active::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 100px; height: 55px; background-color: #f2f4f6; 
+            border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; 
+        }
+        .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
+
+        /* 리플 효과 */
+        .ripple {
+            position: absolute; border-radius: 50%; transform: scale(0);
+            animation: ripple-anim 0.5s linear; background-color: var(--ripple-color); pointer-events: none; 
+        }
+        @keyframes ripple-anim { to { transform: scale(2.8); opacity: 0; } }
+
+        /* 스켈레톤 UI */
+        .skeleton {
+            background: #f2f4f6; color: transparent !important;
+            border-radius: 4px; user-select: none; position: relative; overflow: hidden;
+        }
+        .skeleton::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            transform: translateX(-100%); animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+
+        /* 모달 (이름 변경 등) */
+        .edit-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); z-index: 2500;
+            display: none; align-items: flex-end; justify-content: center;
+        }
+        .edit-modal-sheet {
+            width: 100%; max-width: 600px; background-color: #fff;
+            border-radius: 24px 24px 0 0; padding: 24px;
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .edit-input { width: 100%; border: none; border-bottom: 1px solid #eee; padding: 12px 0; font-size: 18px; outline: none; margin-top: 10px; }
+        .edit-btn-save { width: 100%; padding: 16px; background-color: #191f28; color: #fff; border: none; border-radius: 16px; font-weight: 700; margin-top: 24px; cursor: pointer; }
+
+        /* 다이얼로그 */
+        .global-dialog-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 4000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .global-dialog-box {
+            width: 80%; max-width: 300px; background: #fff;
+            border-radius: 20px; padding: 24px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: popIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .global-dialog-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: #191f28; }
+        .global-dialog-msg { font-size: 14px; color: #6b7684; margin-bottom: 20px; line-height: 1.4; }
+        .global-dialog-actions { display: flex; gap: 10px; }
+        .global-dialog-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn-cancel { background-color: #f2f4f6; color: #8b95a1; }
+        .btn-confirm { background-color: #191f28; color: #fff; }
+
+        /* [모바일 최적화] */
+        @media (max-width: 600px) {
+            .header { width: 100%; padding: 0 16px; } 
+            .container { padding: 0 5px 20px 5px; } 
+            
+            .bottom-nav { width: 93%; bottom: 20px; }
+            .nav-item.active::before { width: 90px; height: 60px; border-radius: 30px; }
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="header">
+        <h1>MY</h1>
+        <div style="width: 24px;"></div> <!-- 밸런스용 공백 -->
+    </header>
+
+    <div class="container">
+        <!-- 프로필 섹션 -->
+        <div class="profile-section">
+            <div class="avatar-circle">
+                <span class="material-icons avatar-icon">person</span>
+            </div>
+            <div class="profile-name skeleton" id="profile-name" style="width: 100px; height: 26px;">사용자</div>
+            <div class="profile-email skeleton" id="profile-email" style="width: 150px; height: 18px; margin-top: 4px;">user@email.com</div>
+            <button class="btn-edit-profile ripple-target" onclick="openNameModal()">프로필 수정</button>
+        </div>
+
+        <!-- 메뉴 그룹 1: 계정 -->
+        <div class="menu-group">
+            <div class="menu-group-title">계정</div>
+            <ul class="menu-list">
+                <li class="menu-item ripple-target" onclick="openNameModal()">
+                    <div class="menu-left"><span class="material-icons menu-icon">edit</span>이름 변경</div>
+                    <span class="material-icons chevron">chevron_right</span>
+                </li>
+                <li class="menu-item ripple-target" onclick="logout()">
+                    <div class="menu-left"><span class="material-icons menu-icon">logout</span>로그아웃</div>
+                    <span class="material-icons chevron">chevron_right</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 메뉴 그룹 2: 데이터 -->
+        <div class="menu-group">
+            <div class="menu-group-title">데이터 관리</div>
+            <ul class="menu-list">
+                <li class="menu-item ripple-target" onclick="resetData()">
+                    <div class="menu-left"><span class="material-icons menu-icon text-danger">delete_forever</span>데이터 초기화</div>
+                    <span class="material-icons chevron">chevron_right</span>
+                </li>
+            </ul>
+        </div>
+        
+        <!-- 메뉴 그룹 3: 앱 정보 -->
+        <div class="menu-group">
+            <div class="menu-group-title">앱 정보</div>
+            <ul class="menu-list">
+                <li class="menu-item" style="cursor: default;">
+                    <div class="menu-left"><span class="material-icons menu-icon">info</span>버전</div>
+                    <div style="font-size: 14px; color: #8b95a1;">v1.0.2</div>
+                </li>
+            </ul>
+        </div>
+        
+        <div style="text-align:center; margin-top: 30px; margin-bottom: 30px; font-size: 12px; color: #d1d6db;">
+            POCKETBLY<br>Designed for Family
+        </div>
+    </div>
+
+    <!-- 하단 내비게이션 -->
+    <nav class="bottom-nav">
+        <a href="/" class="nav-item">
+            <span class="material-icons">home</span><span>홈</span>
+        </a>
+        <a href="/record" class="nav-item">
+            <span class="material-icons">receipt_long</span><span>기록</span>
+        </a>
+        <a href="/challenge" class="nav-item">
+            <span class="material-icons">track_changes</span><span>도전</span>
+        </a>
+        <a href="/my" class="nav-item active">
+            <span class="material-icons">person</span><span>MY</span>
+        </a>
+    </nav>
+
+    <!-- 이름 변경 모달 -->
+    <div id="name-modal" class="edit-modal-overlay" onclick="if(event.target===this) closeNameModal()">
+        <div class="edit-modal-sheet">
+            <div style="display:flex; justify-content:space-between; align-items: center;">
+                <h3 style="margin:0; font-size:18px;">이름 변경</h3>
+                <span class="material-icons" style="cursor:pointer;" onclick="closeNameModal()">close</span>
+            </div>
+            <div style="margin-top: 20px;">
+                <label style="font-size: 12px; color: #8b95a1;">새로운 이름</label>
+                <input type="text" id="new-name-input" class="edit-input" placeholder="이름을 입력하세요">
+            </div>
+            <button class="edit-btn-save ripple-target" onclick="updateProfileName()">저장하기</button>
+        </div>
+    </div>
+
+    <!-- 전역 다이얼로그 -->
+    <div id="global-dialog" class="global-dialog-overlay">
+        <div class="global-dialog-box">
+            <h3 id="gd-title" class="global-dialog-title">알림</h3>
+            <p id="gd-msg" class="global-dialog-msg">내용</p>
+            <div id="gd-actions" class="global-dialog-actions"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // Firebase Config (기존과 동일)
+        const firebaseConfig = { apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI", authDomain: "pocketbly.firebaseapp.com", projectId: "pocketbly", storageBucket: "pocketbly.firebasestorage.app", messagingSenderId: "535063683428", appId: "1:535063683428:web:4729815738bee4f8305a71", measurementId: "G-RE71JXSNR3" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        let currentUser = null;
+
+        // [공통] 다이얼로그 함수
+        function showGlobalDialog(type, msg, onConfirm) {
+            const dialog = document.getElementById('global-dialog');
+            const titleEl = document.getElementById('gd-title');
+            const msgEl = document.getElementById('gd-msg');
+            const actionEl = document.getElementById('gd-actions');
+
+            titleEl.innerText = type === 'confirm' ? '확인' : '알림';
+            msgEl.innerText = msg;
+            actionEl.innerHTML = '';
+
+            if (type === 'confirm') {
+                const btnCancel = document.createElement('button');
+                btnCancel.className = 'global-dialog-btn btn-cancel';
+                btnCancel.innerText = '취소';
+                btnCancel.onclick = () => dialog.style.display = 'none';
+                
+                const btnOk = document.createElement('button');
+                btnOk.className = 'global-dialog-btn btn-confirm';
+                btnOk.innerText = '확인';
+                btnOk.onclick = () => { dialog.style.display = 'none'; if(onConfirm) onConfirm(); };
+                
+                actionEl.appendChild(btnCancel);
+                actionEl.appendChild(btnOk);
+            } else {
+                const btnOk = document.createElement('button');
+                btnOk.className = 'global-dialog-btn btn-confirm';
+                btnOk.innerText = '확인';
+                btnOk.onclick = () => { dialog.style.display = 'none'; if(onConfirm) onConfirm(); };
+                actionEl.appendChild(btnOk);
+            }
+            dialog.style.display = 'flex';
+        }
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                renderProfile(user);
+            } else {
+                window.location.href = '/auth';
+            }
+        });
+
+        function renderProfile(user) {
+            const nameEl = document.getElementById('profile-name');
+            const emailEl = document.getElementById('profile-email');
+            
+            // 스켈레톤 제거
+            nameEl.classList.remove('skeleton');
+            nameEl.style.width = 'auto';
+            nameEl.style.height = 'auto';
+            
+            emailEl.classList.remove('skeleton');
+            emailEl.style.width = 'auto';
+            emailEl.style.height = 'auto';
+            
+            nameEl.innerText = user.displayName || "이름 없음";
+            emailEl.innerText = user.email || "이메일 없음";
+        }
+
+        function logout() {
+            showGlobalDialog('confirm', '정말 로그아웃 하시겠습니까?', () => {
+                auth.signOut().then(() => {
+                    window.location.href = '/auth';
+                });
+            });
+        }
+
+        // 이름 변경 모달 관련
+        function openNameModal() {
+            const modal = document.getElementById('name-modal');
+            const input = document.getElementById('new-name-input');
+            input.value = currentUser.displayName || "";
+            modal.style.display = 'flex';
+            setTimeout(() => input.focus(), 100);
+        }
+        function closeNameModal() {
+            document.getElementById('name-modal').style.display = 'none';
+        }
+        
+        function updateProfileName() {
+            const newName = document.getElementById('new-name-input').value.trim();
+            if (!newName) return showGlobalDialog('alert', '이름을 입력해주세요.');
+
+            currentUser.updateProfile({ displayName: newName }).then(() => {
+                // DB의 유저 정보도 업데이트 (필요시)
+                db.collection('users').doc(currentUser.uid).set({
+                    name: newName,
+                    email: currentUser.email
+                }, { merge: true });
+                
+                renderProfile(currentUser);
+                closeNameModal();
+                showGlobalDialog('alert', '이름이 변경되었습니다.');
+            }).catch((error) => {
+                console.error(error);
+                showGlobalDialog('alert', '오류가 발생했습니다.');
+            });
+        }
+
+        function resetData() {
+            showGlobalDialog('confirm', '모든 거래 내역이 영구적으로 삭제됩니다.\n정말 초기화 하시겠습니까?', () => {
+                // 모든 transaction_list 삭제 (Batch 처리는 클라이언트에서 제한적일 수 있으나 간단히 구현)
+                // 실제로는 Cloud Functions 등을 권장하지만 여기선 클라이언트 루프로 처리
+                const ref = db.collection('users').doc(currentUser.uid).collection('transaction_list');
+                
+                ref.get().then(snapshot => {
+                    if (snapshot.empty) {
+                        showGlobalDialog('alert', '삭제할 데이터가 없습니다.');
+                        return;
+                    }
+                    
+                    // 배치 삭제 (Firestore는 한번에 500개 제한)
+                    const batch = db.batch();
+                    snapshot.docs.forEach(doc => {
+                        batch.delete(doc.ref);
+                    });
+
+                    batch.commit().then(() => {
+                        showGlobalDialog('alert', '모든 데이터가 초기화되었습니다.');
+                    }).catch(err => {
+                        console.error(err);
+                        showGlobalDialog('alert', '초기화 중 오류가 발생했습니다.');
+                    });
+                });
+            });
+        }
+
+        // 리플 효과
+        function createRipple(event) {
+            const button = event.currentTarget; const oldRipple = button.querySelector('.ripple'); if(oldRipple) oldRipple.remove();
+            const circle = document.createElement('span'); const diameter = Math.max(button.clientWidth, button.clientHeight); const radius = diameter / 2; const rect = button.getBoundingClientRect();
+            circle.style.width = circle.style.height = `${diameter}px`; circle.style.left = `${event.clientX - rect.left - radius}px`; circle.style.top = `${event.clientY - rect.top - radius}px`; circle.classList.add('ripple');
+            button.appendChild(circle); setTimeout(() => circle.remove(), 500);
+        }
+        document.querySelectorAll('.ripple-target').forEach(btn => { if(!btn.onclick) btn.addEventListener('click', createRipple); });
+    </script>
+</body>
+</html>
