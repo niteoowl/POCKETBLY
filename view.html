@@ -37,7 +37,8 @@
             min-height: 100vh;
             box-shadow: 0 0 20px rgba(0,0,0,0.05);
         }
-        /* ... (기존 스타일 대부분 생략) ... */
+        
+        /* ... (기존 헤더/요약/목록 스타일) ... */
         .report-header { padding: 40px 24px 20px 24px; background-color: #fff; border-bottom: 1px solid var(--border-light); }
         .report-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
         .report-date { font-size: 14px; color: var(--text-gray); }
@@ -92,26 +93,18 @@
             padding: 50px 24px; text-align: center;
             min-height: calc(100vh - 100px); 
         }
-        .question-box {
-            font-size: 20px; font-weight: 700; margin-bottom: 20px;
-            padding: 15px 10px; border: 2px solid var(--income-color); border-radius: 10px;
+        .math-problem {
+            font-size: 24px; font-weight: 700; margin-bottom: 20px;
+            padding: 15px 20px; border: 2px solid var(--income-color); border-radius: 10px;
             background-color: #e6f7ff;
             color: var(--text-dark);
             width: 100%; max-width: 300px;
-        }
-        .number-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
-            width: 100%; max-width: 300px; margin-bottom: 20px;
-        }
-        .number-box {
-            padding: 15px 0; border: 1px solid var(--border-light); border-radius: 8px;
-            font-size: 24px; font-weight: 700; background-color: #f9f9f9;
         }
         #captcha-answer {
             width: 100%; max-width: 300px; padding: 12px; border: 1px solid var(--border-light); 
             border-radius: 10px; font-size: 18px; text-align: center; margin-bottom: 15px;
             appearance: none; 
-            background-color: #f9f9f9; 
+            background-color: #f9f9f9; /* 입력 불가능 표시 */
         }
         .btn-open-report {
             background-color: var(--income-color); color: white;
@@ -126,14 +119,14 @@
         }
         .msg-error { color: var(--expense-color); }
 
-        /* [SCK] (Screen Crypto Keyboard) 스타일 */
+        /* [NEW] SCK (Screen Crypto Keyboard) 스타일 */
         .sck-keyboard {
             width: 100%; max-width: 300px;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
-            margin: 20px 0 10px 0; /* 상단 간격 조정 */
-            user-select: none; 
+            margin: 20px 0;
+            user-select: none; /* 드래그 방지 */
         }
         .sck-key {
             padding: 15px 0;
@@ -153,7 +146,7 @@
         }
     </style>
 </head>
-<body onload="setupBotDefense()">
+<body onload="generateCaptcha()">
 
     <div class="report-container">
         <div class="report-header">
@@ -162,29 +155,46 @@
         </div>
 
         <div id="content-area" style="display: none;">
-            <!-- ... (기존 요약/목록 내용) ... -->
-        </div>
-
-        <!-- [Final High-Level Bot Defense] 인지 기반 캡챠 + SCK 키보드 게이트 -->
-        <div id="captcha-gate" class="captcha-gate">
-            <div style="margin-bottom: 20px;">
-                <span class="material-icons" style="font-size:60px; color:#2c92ff; margin-bottom:15px;">visibility</span>
-                <div style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">용돈 보고서 보안 접근</div>
-                <div style="font-size: 14px; color: var(--text-gray);">로봇 자동 접근을 막기 위해<br>아래 정보를 보고 **정답**을 SCK로 입력해주세요.</div>
+            <div class="summary-grid">
+                <div class="s-card">
+                    <div class="s-label">총 수입</div>
+                    <div class="s-val val-income" id="v-income">0원</div>
+                </div>
+                <div class="s-card">
+                    <div class="s-label">총 지출</div>
+                    <div class="s-val val-expense" id="v-expense">0원</div>
+                </div>
             </div>
             
-            <!-- 인지 기반 문제 영역 -->
-            <div id="captcha-question" class="question-box"></div>
-            <div id="number-grid" class="number-grid"></div>
+            <div class="total-row">
+                <span class="t-label">남은 금액</span>
+                <span class="t-val" id="v-asset">0원</span>
+            </div>
 
-            <input type="text" id="captcha-answer" placeholder="정답을 SCK로 입력하세요" readonly>
+            <div class="list-area">
+                <div class="list-title">상세 내역</div>
+                <div id="list-container"></div>
+            </div>
+        </div>
 
-            <!-- SCK 보안 키보드 영역 -->
+        <!-- [Level 4] 수학 문제 + SCK 보안 키보드 게이트 -->
+        <div id="captcha-gate" class="captcha-gate">
+            <div style="margin-bottom: 20px;">
+                <span class="material-icons" style="font-size:60px; color:#2c92ff; margin-bottom:15px;">vpn_key</span>
+                <div style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">용돈 보고서 보안 접근</div>
+                <div style="font-size: 14px; color: var(--text-gray);">로봇 자동 접근을 막기 위해<br>아래 **SCK 보안 키보드**로 정답을 입력해주세요.</div>
+            </div>
+            
+            <div id="math-problem" class="math-problem"></div>
+            <!-- readonly 속성 추가 및 type="text"로 변경하여 물리 키보드 차단 -->
+            <input type="text" id="captcha-answer" placeholder="정답을 입력하세요" readonly>
+
+            <!-- [NEW] SCK 보안 키보드 영역 -->
             <div id="sck-keyboard" class="sck-keyboard">
                 <!-- 키는 JS로 렌더링 됩니다. -->
             </div>
 
-            <button class="btn-open-report" id="captcha-btn">보고서 열기</button>
+            <button class="btn-open-report" onclick="checkCaptchaAndLoad()">보고서 열기</button>
 
             <div id="captcha-message" class="captcha-message"></div>
             <div id="loading-indicator" class="captcha-message" style="display:none;">데이터를 불러오는 중...</div>
@@ -207,11 +217,11 @@
     </div>
 
     <script>
-        // 전역 변수
+        // 전역 변수 선언
         let db = null;
         let listenerActive = false;
         let currentDocData = null;
-        let captchaAnswer = 0; 
+        let captchaAnswer = 0; // 정답을 저장할 변수
         const urlParams = new URLSearchParams(window.location.search);
         const reportId = urlParams.get('id');
 
@@ -221,133 +231,107 @@
             projectId: "pocketbly",
             storageBucket: "pocketbly.firebasestorage.app",
             messagingSenderId: "535063683428",
-            appId: "1:535063683428:web:47298115738bee4f8305a71",
+            appId: "1:535063683428:web:4729815738bee4f8305a71",
             measurementId: "G-RE71JXSNR3"
         };
         
-        // --- SCK 좌표 변형을 위한 유틸리티 ---
-        function getRandomShift(min, max) {
-            return (Math.random() * (max - min) + min) + 'px';
-        }
-
-        // --- SCK 키보드 로직 ---
+        // 배열을 무작위로 섞는 함수 (피셔-예이츠 셔플 알고리즘)
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [array[i], array[j]] = [array[j], array[i]];
             }
         }
+
+        // [SCK] 키보드 입력 처리
         function inputSCK(value) {
             const input = document.getElementById('captcha-answer');
-            if (input.value.length < 5) {
+            if (input.value.length < 5) { // 최대 5자리로 제한
                 input.value += value;
             }
         }
+
+        // [SCK] 마지막 글자 지우기
         function deleteSCK() {
             const input = document.getElementById('captcha-answer');
             input.value = input.value.slice(0, -1);
         }
 
+        // [SCK] 보안 키보드 렌더링 (랜덤 배치)
         function renderSCK() {
             const keyboardContainer = document.getElementById('sck-keyboard');
             keyboardContainer.innerHTML = '';
             
-            const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-            shuffleArray(numbers); 
+            const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+            shuffleArray(numbers); // 매번 숫자를 랜덤하게 섞습니다.
 
-            const keys = [...numbers, 'DEL', 'EMPTY']; 
-            
-            keys.forEach((keyVal) => {
+            numbers.forEach((num, index) => {
                 const key = document.createElement('div');
-                
-                if (keyVal === 'EMPTY') {
-                    key.className = 'sck-key';
-                    key.style.backgroundColor = 'transparent';
-                    key.style.border = 'none';
-                    key.style.cursor = 'default';
-                    return; 
-                }
-
-                key.className = 'sck-key' + (keyVal === 'DEL' ? ' sck-delete' : '');
-                key.innerText = keyVal === 'DEL' ? '' : keyVal;
-                
-                if (keyVal === 'DEL') {
-                    key.innerHTML = '<span class="material-icons">backspace</span>';
-                    key.onclick = deleteSCK;
-                } else {
-                    key.onclick = () => inputSCK(keyVal);
-                }
-
-                // CSS 속성을 동적으로 미세 조정
-                key.style.paddingLeft = getRandomShift(10, 20);
-                key.style.paddingRight = getRandomShift(10, 20);
-                key.style.fontSize = (22 + Math.random() * 2 - 1) + 'px'; 
-                
+                key.className = 'sck-key';
+                key.innerText = num;
+                key.onclick = () => inputSCK(num);
                 keyboardContainer.appendChild(key);
+                
+                // 3의 배수 위치에 지우기 버튼 추가 (랜덤 위치에 삽입)
+                if (index === 8) { // 9번째 키(index 8) 다음에 지우기 버튼 위치
+                    const deleteKey = document.createElement('div');
+                    deleteKey.className = 'sck-key sck-delete';
+                    deleteKey.innerHTML = '<span class="material-icons">backspace</span>';
+                    deleteKey.onclick = deleteSCK;
+                    keyboardContainer.appendChild(deleteKey);
+                }
             });
+            // 마지막 남은 한 칸은 0 버튼이 차지하도록 로직 조정 (현재 0~9 총 10개 키 + 삭제키 1개)
+            // 3x3 + 1줄 3칸 (12칸) 레이아웃으로 가정하여 지우기 버튼을 3번째 줄 오른쪽으로 배치
+            
+            // 기존 3x4 (12칸) 레이아웃에 맞게 0~9 + 지우기 + 빈칸을 섞어 렌더링
+            const keysToRender = [...numbers]; // 0-9
+            
+            // 지우기 버튼을 삽입할 랜덤 위치 (1부터 11 사이)
+            // const deleteIndex = Math.floor(Math.random() * 11) + 1;
+
+            // numbers.splice(deleteIndex, 0, 'DEL'); 
+            
+            // 3x4 키패드 형태: 1 2 3 / 4 5 6 / 7 8 9 / - 0 DEL
+            // 안전하게 지우기 버튼은 12번째에 배치 (JS에서)
         }
-        // ---------------------------------------------
 
 
-        // --- [NEW] 인지 기반 캡챠 생성 함수 ---
+        // 수학 문제 생성 함수
         function generateCaptcha() {
-            // 1. 1~9 사이의 무작위 숫자 9개 생성
-            const numbers = Array.from({length: 9}, () => Math.floor(Math.random() * 9) + 1);
-            
-            // 2. 문제 유형 결정
-            const questionTypes = [
-                { text: "가장 작은 숫자는?", getAnswer: (arr) => Math.min(...arr) },
-                { text: "가장 큰 숫자는?", getAnswer: (arr) => Math.max(...arr) },
-                { text: "세 번째로 작은 숫자는?", getAnswer: (arr) => [...arr].sort((a, b) => a - b)[2] },
-                { text: "두 번째로 큰 숫자는?", getAnswer: (arr) => [...arr].sort((a, b) => b - a)[1] },
-                { text: "짝수 중 가장 큰 숫자는?", getAnswer: (arr) => Math.max(...arr.filter(n => n % 2 === 0)) || 0 },
-                { text: "홀수 중 가장 작은 숫자는?", getAnswer: (arr) => Math.min(...arr.filter(n => n % 2 !== 0)) || 0 }
-            ];
-            
-            // 3. 무작위 문제 선택
-            const questionIndex = Math.floor(Math.random() * questionTypes.length);
-            const selectedQuestion = questionTypes[questionIndex];
-            
-            // 4. 정답 계산
-            captchaAnswer = selectedQuestion.getAnswer(numbers);
-            // 만약 정답이 0 (조건에 맞는 숫자가 없는 경우), 문제를 다시 생성
-            if (captchaAnswer === 0 && (selectedQuestion.text.includes('짝수') || selectedQuestion.text.includes('홀수'))) {
-                return generateCaptcha(); // 재귀 호출
+            const num1 = Math.floor(Math.random() * 80) + 10; // 10 ~ 89
+            const num2 = Math.floor(Math.random() * 10) + 1;  // 1 ~ 10
+            const operator = ['+', '-'][Math.floor(Math.random() * 2)]; // 덧셈 또는 뺄셈
+
+            let result;
+            let problem;
+            if (operator === '+') {
+                result = num1 + num2;
+                problem = `${num1} + ${num2} = ?`;
+            } else {
+                // 뺄셈 결과가 음수가 되지 않도록 조정
+                if (num1 < num2) {
+                    [num1, num2] = [num2, num1]; // Swap
+                }
+                result = num1 - num2;
+                problem = `${num1} - ${num2} = ?`;
             }
 
-            // 5. UI 업데이트
-            document.getElementById('captcha-question').innerText = selectedQuestion.text;
-            const gridContainer = document.getElementById('number-grid');
-            gridContainer.innerHTML = '';
-            
-            numbers.forEach(num => {
-                const box = document.createElement('div');
-                box.className = 'number-box';
-                box.innerText = num;
-                gridContainer.appendChild(box);
-            });
-            
+            captchaAnswer = result;
+            document.getElementById('math-problem').innerText = problem;
             document.getElementById('captcha-answer').value = '';
             document.getElementById('captcha-message').innerText = '';
             document.getElementById('captcha-message').classList.remove('msg-error');
             
-            renderSCK(); 
+            renderSCK(); // 새 문제마다 키보드 재배치
         }
 
-        // CAPTCHA 정답 확인 및 데이터 로드 (함수 이름 안정화)
+        // CAPTCHA 정답 확인 후 데이터 로드
         function checkCaptchaAndLoad() {
             const userAnswer = parseInt(document.getElementById('captcha-answer').value, 10);
             const msgElement = document.getElementById('captcha-message');
 
-            // 정답이 한 자리 수이므로, 입력 값도 한 자리 수여야 함
-            if (String(userAnswer).length !== String(captchaAnswer).length && String(captchaAnswer).length === 1 && String(userAnswer).length > 1) {
-                msgElement.innerText = "정답은 한 자리 숫자입니다. 다시 시도해 주세요.";
-                msgElement.classList.add('msg-error');
-                generateCaptcha();
-                return;
-            }
-
-            if (isNaN(userAnswer) || String(userAnswer).trim() === '') {
+            if (isNaN(userAnswer) || userAnswer === null || String(userAnswer).trim() === '') {
                 msgElement.innerText = "답변을 SCK로 입력해주세요.";
                 msgElement.classList.add('msg-error');
                 return;
@@ -358,21 +342,20 @@
                 msgElement.innerText = "확인되었습니다. 보고서를 불러옵니다.";
                 msgElement.classList.remove('msg-error');
                 document.getElementById('loading-indicator').style.display = 'block';
-                document.getElementById('captcha-btn').disabled = true;
+                document.querySelector('.btn-open-report').disabled = true;
                 document.getElementById('captcha-answer').disabled = true;
-                document.getElementById('sck-keyboard').style.pointerEvents = 'none'; 
+                document.getElementById('sck-keyboard').style.pointerEvents = 'none'; // 키보드 비활성화
 
                 loadFirebaseData();
             } else {
                 // 오답: 메시지 표시 후 새 문제 생성
-                msgElement.innerText = `정답이 틀렸습니다. (입력: ${userAnswer}) 다시 시도해 주세요.`;
+                msgElement.innerText = "정답이 틀렸습니다. 다시 시도해 주세요.";
                 msgElement.classList.add('msg-error');
                 generateCaptcha();
             }
         }
 
-
-        // Firebase 초기화 및 데이터 로드 함수 (함수 이름 안정화)
+        // Firebase 초기화 및 데이터 로드 함수 (정답 확인 후 실행)
         function loadFirebaseData() {
             if (listenerActive) return;
             listenerActive = true;
@@ -390,6 +373,7 @@
 
 
             if (reportId) {
+                // 실시간 리스너 시작 (사람 상호작용 후 시작)
                 db.collection('shared_reports').doc(reportId).onSnapshot((doc) => {
                     document.getElementById('captcha-gate').style.display = 'none'; // 게이트 숨기기
                     
@@ -404,6 +388,7 @@
                     currentDocData = data;
                     renderReport(data);
 
+                    // 이미 승인/반려 상태라면 입력창 숨김
                     if (data.status && data.status !== 'pending') {
                         document.getElementById('action-bar').style.display = 'none';
                         document.getElementById('completed-view').style.display = 'block';
@@ -414,6 +399,7 @@
                             부모님이 <strong>${data.status}</strong> 하셨습니다.
                         `;
                     } else {
+                        // 대기 상태면 액션 바 표시
                         document.getElementById('action-bar').style.display = 'flex';
                     }
                 }, (error) => {
@@ -425,16 +411,6 @@
             }
         }
 
-
-        // --- 초기 방어 설정 함수 (안정화) ---
-        function setupBotDefense() {
-            // 버튼의 onclick 속성을 명시적으로 할당
-            document.getElementById('captcha-btn').onclick = checkCaptchaAndLoad;
-            
-            generateCaptcha();
-        }
-
-        // 나머지 함수들 (renderReport, submitDecision)은 그대로 유지
 
         function renderReport(data) {
             document.getElementById('content-area').style.display = 'block';
@@ -499,6 +475,7 @@
             });
         }
 
+        // 부모님의 결정 전송
         function submitDecision(status) {
             if (!db) {
                 alert('데이터베이스가 아직 로드되지 않았습니다. 보고서 열기를 먼저 눌러주세요.');
@@ -509,9 +486,10 @@
             
             if (!confirm(`${status} 처리 하시겠습니까?`)) return;
 
+            // 문서 업데이트 
             db.collection('shared_reports').doc(reportId).update({
-                status: status,           
-                parentComment: comment,   
+                status: status,           // '승인' or '반려'
+                parentComment: comment,   // 코멘트
                 decidedAt: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
                 alert('전송되었습니다!');
@@ -520,6 +498,9 @@
                 alert('오류가 발생했습니다: ' + error.message);
             });
         }
+        
+        // 엔터 키 이벤트 리스너는 SCK 적용으로 인해 제거됨.
+        // 사용자가 물리 키보드 대신 SCK를 사용하도록 강제함.
     </script>
 </body>
 </html>
