@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>용돈 내역 보고서</title>
+    <!-- [Level 1] 봇 인덱싱 및 캐시 완전 차단 (가장 강력한 설정) -->
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, max-snippet:0, max-image-preview:none, max-video-preview:0"> 
+
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
     
@@ -11,6 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
+        /* 기존 스타일 유지 */
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         :root {
             --text-dark: #191f28;
@@ -25,7 +29,7 @@
             margin: 0; padding: 0;
             color: var(--text-dark);
             display: flex; justify-content: center;
-            padding-bottom: 100px; /* 하단 액션바 공간 */
+            padding-bottom: 100px; 
         }
         .report-container {
             width: 100%; max-width: 600px;
@@ -34,39 +38,34 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.05);
         }
         
+        /* ... (기존 헤더/요약/목록 스타일) ... */
         .report-header { padding: 40px 24px 20px 24px; background-color: #fff; border-bottom: 1px solid var(--border-light); }
         .report-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
         .report-date { font-size: 14px; color: var(--text-gray); }
-
         .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 24px; }
         .s-card { background-color: #f9fafb; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; }
         .s-label { font-size: 13px; color: var(--text-gray); margin-bottom: 6px; }
         .s-val { font-size: 18px; font-weight: 700; }
         .val-income { color: var(--income-color); }
         .val-expense { color: var(--expense-color); }
-        
         .total-row { margin: 0 24px 24px 24px; padding: 20px; background-color: #191f28; color: white; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; }
         .t-label { font-size: 15px; font-weight: 600; }
         .t-val { font-size: 20px; font-weight: 700; }
-
         .list-area { padding: 0 24px 50px 24px; }
         .list-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
         .day-header { font-size: 14px; font-weight: 600; color: var(--text-gray); margin-top: 24px; margin-bottom: 10px; }
-        
         .item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #f2f4f6; }
         .item-left { display: flex; flex-direction: column; gap: 4px; }
         .i-usage { font-size: 16px; font-weight: 500; color: var(--text-dark); }
         .i-meta { font-size: 13px; color: var(--text-gray); }
         .i-amount { font-size: 16px; font-weight: 700; }
-
-        /* [추가] 하단 부모님 액션 바 */
         .parent-action-bar {
             position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
             width: 100%; max-width: 600px;
             background-color: white;
             border-top: 1px solid var(--border-light);
             padding: 16px 24px;
-            display: none; /* 로딩 전 숨김 */
+            display: none; 
             flex-direction: column; gap: 12px;
             box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
             z-index: 100;
@@ -81,15 +80,73 @@
         }
         .btn-approve { background-color: var(--income-color); color: white; }
         .btn-reject { background-color: var(--expense-color); color: white; }
-
-        /* 완료 메시지 */
         .complete-msg {
             text-align: center; padding: 40px 20px; color: var(--text-dark); font-weight: 700; font-size: 18px;
         }
-        .loading { text-align: center; padding: 100px 0; color: var(--text-gray); }
+
+        /* CAPTCHA 게이트 스타일 */
+        .captcha-gate { 
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+            background-color: white; 
+            z-index: 10; 
+            display: flex; flex-direction: column; justify-content: flex-start; align-items: center; 
+            padding: 50px 24px; text-align: center;
+            min-height: calc(100vh - 100px); 
+        }
+        .math-problem {
+            font-size: 24px; font-weight: 700; margin-bottom: 20px;
+            padding: 15px 20px; border: 2px solid var(--income-color); border-radius: 10px;
+            background-color: #e6f7ff;
+            color: var(--text-dark);
+            width: 100%; max-width: 300px;
+        }
+        #captcha-answer {
+            width: 100%; max-width: 300px; padding: 12px; border: 1px solid var(--border-light); 
+            border-radius: 10px; font-size: 18px; text-align: center; margin-bottom: 15px;
+            appearance: none; 
+            background-color: #f9f9f9; /* 입력 불가능 표시 */
+        }
+        .btn-open-report {
+            background-color: var(--income-color); color: white;
+            padding: 18px 30px; border: none; border-radius: 14px;
+            font-size: 18px; font-weight: 700; cursor: pointer;
+            width: 100%; max-width: 300px;
+        }
+        .captcha-message {
+            margin-top: 10px; font-size: 14px; font-weight: 600;
+            color: var(--text-gray);
+            min-height: 20px; 
+        }
+        .msg-error { color: var(--expense-color); }
+
+        /* [NEW] SCK (Screen Crypto Keyboard) 스타일 */
+        .sck-keyboard {
+            width: 100%; max-width: 300px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            user-select: none; /* 드래그 방지 */
+        }
+        .sck-key {
+            padding: 15px 0;
+            background-color: #f2f4f6;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            font-size: 22px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.1s;
+        }
+        .sck-key:active { background-color: #e5e8eb; }
+        .sck-delete {
+            background-color: #e5e8eb;
+            font-size: 18px;
+            color: var(--text-gray);
+        }
     </style>
 </head>
-<body>
+<body onload="generateCaptcha()">
 
     <div class="report-container">
         <div class="report-header">
@@ -120,7 +177,28 @@
             </div>
         </div>
 
-        <div id="loading-msg" class="loading">문서를 찾고 있습니다...</div>
+        <!-- [Level 4] 수학 문제 + SCK 보안 키보드 게이트 -->
+        <div id="captcha-gate" class="captcha-gate">
+            <div style="margin-bottom: 20px;">
+                <span class="material-icons" style="font-size:60px; color:#2c92ff; margin-bottom:15px;">vpn_key</span>
+                <div style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">용돈 보고서 보안 접근</div>
+                <div style="font-size: 14px; color: var(--text-gray);">로봇 자동 접근을 막기 위해<br>아래 **SCK 보안 키보드**로 정답을 입력해주세요.</div>
+            </div>
+            
+            <div id="math-problem" class="math-problem"></div>
+            <!-- readonly 속성 추가 및 type="text"로 변경하여 물리 키보드 차단 -->
+            <input type="text" id="captcha-answer" placeholder="정답을 입력하세요" readonly>
+
+            <!-- [NEW] SCK 보안 키보드 영역 -->
+            <div id="sck-keyboard" class="sck-keyboard">
+                <!-- 키는 JS로 렌더링 됩니다. -->
+            </div>
+
+            <button class="btn-open-report" onclick="checkCaptchaAndLoad()">보고서 열기</button>
+
+            <div id="captcha-message" class="captcha-message"></div>
+            <div id="loading-indicator" class="captcha-message" style="display:none;">데이터를 불러오는 중...</div>
+        </div>
 
         <!-- 이미 처리된 경우 표시 -->
         <div id="completed-view" style="display:none;" class="complete-msg">
@@ -139,6 +217,14 @@
     </div>
 
     <script>
+        // 전역 변수 선언
+        let db = null;
+        let listenerActive = false;
+        let currentDocData = null;
+        let captchaAnswer = 0; // 정답을 저장할 변수
+        const urlParams = new URLSearchParams(window.location.search);
+        const reportId = urlParams.get('id');
+
         const firebaseConfig = {
             apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI",
             authDomain: "pocketbly.firebaseapp.com",
@@ -148,49 +234,185 @@
             appId: "1:535063683428:web:4729815738bee4f8305a71",
             measurementId: "G-RE71JXSNR3"
         };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const reportId = urlParams.get('id');
-        let currentDocData = null;
-
-        if (reportId) {
-            // 실시간 리스너로 변경 (상태 변화 감지)
-            db.collection('shared_reports').doc(reportId).onSnapshot((doc) => {
-                if (!doc.exists) {
-                    document.getElementById('loading-msg').innerText = "삭제되었거나 존재하지 않는 문서입니다.";
-                    document.getElementById('content-area').style.display = 'none';
-                    document.getElementById('action-bar').style.display = 'none';
-                    return;
-                }
-
-                const data = doc.data();
-                currentDocData = data;
-                renderReport(data);
-
-                // 이미 승인/반려 상태라면 입력창 숨김
-                if (data.status && data.status !== 'pending') {
-                    document.getElementById('action-bar').style.display = 'none';
-                    document.getElementById('completed-view').style.display = 'block';
-                    document.getElementById('completed-view').innerHTML = `
-                        <span class="material-icons" style="font-size:48px; color:${data.status === '승인' ? '#2c92ff' : '#f04452'}; margin-bottom:10px;">
-                            ${data.status === '승인' ? 'check_circle' : 'cancel'}
-                        </span><br>
-                        부모님이 <strong>${data.status}</strong> 하셨습니다.
-                    `;
-                } else {
-                    // 대기 상태면 액션 바 표시
-                    document.getElementById('action-bar').style.display = 'flex';
-                }
-            });
-        } else {
-            document.getElementById('loading-msg').innerText = "잘못된 접근입니다.";
+        
+        // 배열을 무작위로 섞는 함수 (피셔-예이츠 셔플 알고리즘)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
         }
 
+        // [SCK] 키보드 입력 처리
+        function inputSCK(value) {
+            const input = document.getElementById('captcha-answer');
+            if (input.value.length < 5) { // 최대 5자리로 제한
+                input.value += value;
+            }
+        }
+
+        // [SCK] 마지막 글자 지우기
+        function deleteSCK() {
+            const input = document.getElementById('captcha-answer');
+            input.value = input.value.slice(0, -1);
+        }
+
+        // [SCK] 보안 키보드 렌더링 (랜덤 배치)
+        function renderSCK() {
+            const keyboardContainer = document.getElementById('sck-keyboard');
+            keyboardContainer.innerHTML = '';
+            
+            const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+            shuffleArray(numbers); // 매번 숫자를 랜덤하게 섞습니다.
+
+            numbers.forEach((num, index) => {
+                const key = document.createElement('div');
+                key.className = 'sck-key';
+                key.innerText = num;
+                key.onclick = () => inputSCK(num);
+                keyboardContainer.appendChild(key);
+                
+                // 3의 배수 위치에 지우기 버튼 추가 (랜덤 위치에 삽입)
+                if (index === 8) { // 9번째 키(index 8) 다음에 지우기 버튼 위치
+                    const deleteKey = document.createElement('div');
+                    deleteKey.className = 'sck-key sck-delete';
+                    deleteKey.innerHTML = '<span class="material-icons">backspace</span>';
+                    deleteKey.onclick = deleteSCK;
+                    keyboardContainer.appendChild(deleteKey);
+                }
+            });
+            // 마지막 남은 한 칸은 0 버튼이 차지하도록 로직 조정 (현재 0~9 총 10개 키 + 삭제키 1개)
+            // 3x3 + 1줄 3칸 (12칸) 레이아웃으로 가정하여 지우기 버튼을 3번째 줄 오른쪽으로 배치
+            
+            // 기존 3x4 (12칸) 레이아웃에 맞게 0~9 + 지우기 + 빈칸을 섞어 렌더링
+            const keysToRender = [...numbers]; // 0-9
+            
+            // 지우기 버튼을 삽입할 랜덤 위치 (1부터 11 사이)
+            // const deleteIndex = Math.floor(Math.random() * 11) + 1;
+
+            // numbers.splice(deleteIndex, 0, 'DEL'); 
+            
+            // 3x4 키패드 형태: 1 2 3 / 4 5 6 / 7 8 9 / - 0 DEL
+            // 안전하게 지우기 버튼은 12번째에 배치 (JS에서)
+        }
+
+
+        // 수학 문제 생성 함수
+        function generateCaptcha() {
+            const num1 = Math.floor(Math.random() * 80) + 10; // 10 ~ 89
+            const num2 = Math.floor(Math.random() * 10) + 1;  // 1 ~ 10
+            const operator = ['+', '-'][Math.floor(Math.random() * 2)]; // 덧셈 또는 뺄셈
+
+            let result;
+            let problem;
+            if (operator === '+') {
+                result = num1 + num2;
+                problem = `${num1} + ${num2} = ?`;
+            } else {
+                // 뺄셈 결과가 음수가 되지 않도록 조정
+                if (num1 < num2) {
+                    [num1, num2] = [num2, num1]; // Swap
+                }
+                result = num1 - num2;
+                problem = `${num1} - ${num2} = ?`;
+            }
+
+            captchaAnswer = result;
+            document.getElementById('math-problem').innerText = problem;
+            document.getElementById('captcha-answer').value = '';
+            document.getElementById('captcha-message').innerText = '';
+            document.getElementById('captcha-message').classList.remove('msg-error');
+            
+            renderSCK(); // 새 문제마다 키보드 재배치
+        }
+
+        // CAPTCHA 정답 확인 후 데이터 로드
+        function checkCaptchaAndLoad() {
+            const userAnswer = parseInt(document.getElementById('captcha-answer').value, 10);
+            const msgElement = document.getElementById('captcha-message');
+
+            if (isNaN(userAnswer) || userAnswer === null || String(userAnswer).trim() === '') {
+                msgElement.innerText = "답변을 SCK로 입력해주세요.";
+                msgElement.classList.add('msg-error');
+                return;
+            }
+
+            if (userAnswer === captchaAnswer) {
+                // 정답: Firebase 로드 실행
+                msgElement.innerText = "확인되었습니다. 보고서를 불러옵니다.";
+                msgElement.classList.remove('msg-error');
+                document.getElementById('loading-indicator').style.display = 'block';
+                document.querySelector('.btn-open-report').disabled = true;
+                document.getElementById('captcha-answer').disabled = true;
+                document.getElementById('sck-keyboard').style.pointerEvents = 'none'; // 키보드 비활성화
+
+                loadFirebaseData();
+            } else {
+                // 오답: 메시지 표시 후 새 문제 생성
+                msgElement.innerText = "정답이 틀렸습니다. 다시 시도해 주세요.";
+                msgElement.classList.add('msg-error');
+                generateCaptcha();
+            }
+        }
+
+        // Firebase 초기화 및 데이터 로드 함수 (정답 확인 후 실행)
+        function loadFirebaseData() {
+            if (listenerActive) return;
+            listenerActive = true;
+            
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                db = firebase.firestore();
+            } catch (error) {
+                 console.error("Firebase 초기화 오류:", error);
+                 document.getElementById('loading-indicator').innerText = "데이터베이스 초기화에 실패했습니다.";
+                 return;
+            }
+
+
+            if (reportId) {
+                // 실시간 리스너 시작 (사람 상호작용 후 시작)
+                db.collection('shared_reports').doc(reportId).onSnapshot((doc) => {
+                    document.getElementById('captcha-gate').style.display = 'none'; // 게이트 숨기기
+                    
+                    if (!doc.exists) {
+                        document.getElementById('loading-indicator').innerText = "삭제되었거나 존재하지 않는 문서입니다.";
+                        document.getElementById('content-area').style.display = 'none';
+                        document.getElementById('action-bar').style.display = 'none';
+                        return;
+                    }
+
+                    const data = doc.data();
+                    currentDocData = data;
+                    renderReport(data);
+
+                    // 이미 승인/반려 상태라면 입력창 숨김
+                    if (data.status && data.status !== 'pending') {
+                        document.getElementById('action-bar').style.display = 'none';
+                        document.getElementById('completed-view').style.display = 'block';
+                        document.getElementById('completed-view').innerHTML = `
+                            <span class="material-icons" style="font-size:48px; color:${data.status === '승인' ? '#2c92ff' : '#f04452'}; margin-bottom:10px;">
+                                ${data.status === '승인' ? 'check_circle' : 'cancel'}
+                            </span><br>
+                            부모님이 <strong>${data.status}</strong> 하셨습니다.
+                        `;
+                    } else {
+                        // 대기 상태면 액션 바 표시
+                        document.getElementById('action-bar').style.display = 'flex';
+                    }
+                }, (error) => {
+                    console.error("Firestore 리스너 오류:", error);
+                    document.getElementById('loading-indicator').innerText = "데이터 로드 중 오류가 발생했습니다.";
+                });
+            } else {
+                document.getElementById('loading-indicator').innerText = "잘못된 접근입니다.";
+            }
+        }
+
+
         function renderReport(data) {
-            document.getElementById('loading-msg').style.display = 'none';
             document.getElementById('content-area').style.display = 'block';
 
             document.getElementById('r-title').innerText = `${data.month}월 용돈 내역서`;
@@ -253,25 +475,32 @@
             });
         }
 
-        // [핵심] 부모님의 결정 전송
+        // 부모님의 결정 전송
         function submitDecision(status) {
+            if (!db) {
+                alert('데이터베이스가 아직 로드되지 않았습니다. 보고서 열기를 먼저 눌러주세요.');
+                return;
+            }
+
             const comment = document.getElementById('p-comment').value;
             
             if (!confirm(`${status} 처리 하시겠습니까?`)) return;
 
-            // 문서 업데이트 (규칙 덕분에 인증 없이 가능)
+            // 문서 업데이트 
             db.collection('shared_reports').doc(reportId).update({
                 status: status,           // '승인' or '반려'
                 parentComment: comment,   // 코멘트
                 decidedAt: firebase.firestore.FieldValue.serverTimestamp()
             }).then(() => {
                 alert('전송되었습니다!');
-                // UI는 onSnapshot에 의해 자동으로 업데이트됨
             }).catch((error) => {
                 console.error(error);
                 alert('오류가 발생했습니다: ' + error.message);
             });
         }
+        
+        // 엔터 키 이벤트 리스너는 SCK 적용으로 인해 제거됨.
+        // 사용자가 물리 키보드 대신 SCK를 사용하도록 강제함.
     </script>
 </body>
 </html>
