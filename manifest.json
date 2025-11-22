@@ -1,0 +1,58 @@
+{
+  "name": "POCKETBLY",
+  "short_name": "POCKETBLY",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff8ed",
+  "theme_color": "#fff8ed",
+  "icons": [
+    {
+      "src": "image/icon_192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "image/icon_512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+  {
+    "src": "/image/s1.png",
+    "sizes": "1080x1920",
+    "type": "image/png"
+  },
+  {
+    "src": "/image/s2.png",
+    "sizes": "1080x1920",
+    "type": "image/png"
+  },
+  {
+    "src": "/image/s3.png",
+    "sizes": "1080x1920",
+    "type": "image/png"
+  },
+  {
+    "src": "/image/s4.png",
+    "sizes": "1080x1920",
+    "type": "image/png"
+  },
+  {
+    "src": "/image/s5.png",
+    "sizes": "1080x1920",
+    "type": "image/png"
+  },
+  {
+    "src": "/image/s6.png",
+    "sizes": "1080x1920",
+    "type": "image/png"
+  },
+  {
+    "src": "/image/s7.png",
+    "sizes": "1080x1920",
+    "type": "image/png"
+  }
+]
+
+}
