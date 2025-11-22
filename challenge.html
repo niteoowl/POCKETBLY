@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>POCKETBLY - 도전</title>
     
+    <!-- [깜빡임 방지 스크립트] (홈 화면에서 가져옴) -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- Pretendard Font -->
@@ -21,20 +34,584 @@
         body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
         input, textarea { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
 
+        /* [중요] 전체 트랜지션 -> 배경과 글자색에만 적용 (홈 화면과 통일) */
+        body, .container, .header, .challenge-card, .modal-sheet, .bottom-nav, .nav-item, .input-field {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* [색상 팔레트] (홈/기록 화면과 통일) */
         :root {
+            /* === Light Mode === */
+            --bg-color: #ffffff;
+            --header-bg: rgba(255, 255, 255, 0.95);
+            --card-bg: #ffffff;
+            
+            --text-main: #191f28;
+            --text-sub: #8b95a1;
+            
+            --border-color: #e5e8eb;
+            
+            --nav-bg: rgba(255, 255, 255, 0.85);
+            --nav-border: #e5e8eb;
+            --nav-active-bg: #f2f4f6;
+            --nav-inactive: #b0b8c1;
+            --nav-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+
+            --skeleton-base: #f2f4f6;
+            --skeleton-highlight: rgba(255, 255, 255, 0.5);
+
+            --popup-bg: #ffffff;
+            
             --primary-blue: #3b82f6;
-            --text-dark: #191f28;
-            --text-gray: #8b95a1;
-            --border-light: #e5e8eb;
-            --header-height: 80px; 
-            --ripple-color: rgba(0, 0, 0, 0.08);
-            --income-color: #2c92ff;   
             --expense-color: #f04452;
             --success-green: #00c73c;
+            --ripple-color: rgba(0, 0, 0, 0.08);
+            --header-height: 80px; 
+
+            --chal-dday-bg: var(--text-main);
+            --chal-dday-color: #fff;
+            --chal-icon-bg: var(--nav-active-bg);
+            --progress-track: var(--nav-active-bg);
+            --delete-icon-color: #d1d6db;
+            
+            --empty-icon-color: #e5e8eb;
+            --empty-text-color: #b0b8c1;
+            --empty-sub-color: #d1d6db;
+        }
+
+        /* === Dark Mode === */
+        [data-theme="dark"] {
+            --bg-color: #18171e;
+            --header-bg: #18171e;
+            
+            --card-bg: #24232b;
+            
+            --text-main: #eff1f3;
+            --text-sub: #8b95a1;
+            
+            --border-color: #2c2b33; 
+            
+            --nav-bg: #25242c;
+            --nav-border: #33323a;
+            --nav-active-bg: #35343d;
+            --nav-inactive: #686d77;
+            --nav-shadow: 0 4px 25px rgba(0, 0, 0, 0.4);
+            
+            --skeleton-base: #24232b;
+            --skeleton-highlight: rgba(255, 255, 255, 0.08);
+
+            --popup-bg: #24232b;
+            
+            --ripple-color: rgba(255, 255, 255, 0.1);
+
+            --chal-dday-bg: var(--text-sub);
+            --chal-dday-color: var(--text-main);
+            --chal-icon-bg: var(--nav-active-bg);
+            --progress-track: var(--nav-active-bg);
+            --delete-icon-color: #4b525a;
+
+            --empty-icon-color: #35343d;
+            --empty-text-color: #686d77;
+            --empty-sub-color: #3f454f;
         }
 
         body {
             font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg-color); /* 변수 사용 */
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column; align-items: center;
+            overflow-y: scroll; 
+            padding-top: var(--header-height); 
+            padding-bottom: 110px; 
+            color: var(--text-main); /* 변수 사용 */
+        }
+
+        /* 헤더 */
+        .header {
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 95%; max-width: 1024px; z-index: 1005;
+            background-color: var(--header-bg); /* 변수 사용 */
+            backdrop-filter: blur(5px);
+            height: var(--header-height); 
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 24px;
+        }
+        [data-theme="dark"] .header { backdrop-filter: none; }
+        .header h1 { font-size: 26px; font-weight: 800; color: var(--text-main); margin: 0; }
+        .header-action { display: flex; gap: 8px; }
+        
+        .icon-button {
+            background: none; border: none; color: var(--text-main); cursor: pointer;
+            padding: 8px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+            transition: background-color 0.2s;
+        }
+        .icon-button:hover { background-color: var(--nav-active-bg); } /* 변수 사용 */
+
+        /* 컨테이너 */
+        .container {
+            width: 95%;
+            max-width: 1024px; 
+            background-color: var(--bg-color); /* 변수 사용 */
+            padding: 0 24px 24px 24px; 
+        }
+
+        /* [도전 카드 스타일] */
+        .challenge-list { display: flex; flex-direction: column; gap: 16px; }
+        
+        .challenge-card {
+            background-color: var(--card-bg); /* 변수 사용 */
+            border: 1px solid var(--border-color); /* 변수 사용 */
+            border-radius: 20px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, background-color 0.3s, border-color 0.3s;
+        }
+        .challenge-card:active { transform: scale(0.98); }
+
+        .chal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .chal-info { flex-grow: 1; }
+        .chal-title { font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
+        .chal-d-day { 
+            font-size: 12px; font-weight: 600; 
+            color: var(--chal-dday-color); /* 변수 사용 */
+            background-color: var(--chal-dday-bg); /* 변수 사용 */
+            padding: 4px 8px; border-radius: 8px;
+            display: inline-block; margin-right: 6px;
+        }
+        .chal-date { font-size: 13px; color: var(--text-sub); }
+        
+        .chal-icon-box {
+            width: 48px; height: 48px; border-radius: 16px;
+            background-color: var(--chal-icon-bg); /* 변수 사용 */
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary-blue); flex-shrink: 0; margin-left: 12px;
+        }
+
+        /* 프로그레스 바 */
+        .progress-container { display: flex; flex-direction: column; gap: 8px; }
+        .progress-labels { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--text-sub); } /* 변수 사용 */
+        .progress-val-curr { color: var(--primary-blue); font-weight: 700; }
+        
+        .progress-track {
+            width: 100%; height: 12px; background-color: var(--progress-track); border-radius: 6px; overflow: hidden; /* 변수 사용 */
+        }
+        .progress-fill {
+            height: 100%; border-radius: 6px; width: 0%;
+            background: linear-gradient(90deg, var(--primary-blue), #60a5fa);
+            transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .progress-fill.completed { background: var(--success-green); }
+
+        /* 삭제 버튼 (카드 내부) */
+        .btn-delete-card {
+            position: absolute; top: 20px; right: 20px;
+            color: var(--delete-icon-color); background: none; border: none; cursor: pointer; /* 변수 사용 */
+        }
+
+        /* 엠티 스테이트 */
+        .empty-state {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 60px 0; text-align: center;
+        }
+        .empty-icon { font-size: 60px; color: var(--empty-icon-color); margin-bottom: 16px; } /* 변수 사용 */
+        .empty-text { font-size: 16px; font-weight: 600; color: var(--empty-text-color); margin-bottom: 6px; } /* 변수 사용 */
+        .empty-sub { font-size: 13px; color: var(--empty-sub-color); } /* 변수 사용 */
+
+        /* 하단 내비게이션 */
+        .bottom-nav {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 75%; max-width: 450px; height: 75px;
+            background-color: var(--nav-bg); 
+            backdrop-filter: blur(10px); 
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 1000; 
+            border: 1px solid var(--nav-border); 
+            box-shadow: var(--nav-shadow);
+            border-radius: 50px; padding: 0 10px;
+        }
+        [data-theme="dark"] .bottom-nav { backdrop-filter: none; }
+
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-decoration: none; color: var(--nav-inactive); font-size: 11px; font-weight: 500;
+            flex-grow: 1; height: 60px; position: relative; border-radius: 25px; 
+        }
+        .nav-item.active { color: var(--text-main); font-weight: 600; }
+        .nav-item.active::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 100px; height: 55px; background-color: var(--nav-active-bg); 
+            border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; 
+        }
+        .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
+
+        /* 스켈레톤 UI */
+        .skeleton {
+            background: var(--skeleton-base); 
+            color: transparent !important;
+            border-radius: 4px; user-select: none; position: relative; overflow: hidden;
+        }
+        .skeleton::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
+            transform: translateX(-100%); animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        .skeleton * { opacity: 0; }
+
+        /* 모달 스타일 (추가) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); z-index: 2500;
+            display: none; align-items: flex-end; justify-content: center;
+        }
+        .modal-sheet {
+            width: 100%; max-width: 600px; background-color: var(--popup-bg); /* 변수 사용 */
+            border-radius: 24px 24px 0 0; padding: 24px;
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .input-group { margin-bottom: 20px; }
+        .input-label { display: block; font-size: 13px; color: var(--text-sub); margin-bottom: 8px; } /* 변수 사용 */
+        .input-field { 
+            width: 100%; padding: 14px; border: 1px solid var(--border-color); /* 변수 사용 */
+            border-radius: 12px; font-size: 16px; outline: none; background-color: var(--card-bg); /* 변수 사용 */
+            color: var(--text-main);
+        }
+        .input-field:focus { border-color: var(--text-main); } /* 변수 사용 */
+        .btn-submit { 
+            width: 100%; padding: 16px; background-color: var(--text-main); /* 변수 사용 */
+            color: var(--popup-bg); border: none; border-radius: 16px; font-weight: 700; font-size: 16px; cursor: pointer; 
+        }
+
+        /* 리플 효과 */
+        .ripple {
+            position: absolute; border-radius: 50%; transform: scale(0);
+            animation: ripple-anim 0.5s linear; background-color: var(--ripple-color); pointer-events: none; 
+        }
+        @keyframes ripple-anim { to { transform: scale(2.8); opacity: 0; } }
+
+        /* 다이얼로그 */
+        .global-dialog-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 4000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .global-dialog-box {
+            width: 80%; max-width: 300px; background: var(--popup-bg); /* 변수 사용 */
+            border-radius: 20px; padding: 24px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: popIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .global-dialog-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text-main); } /* 변수 사용 */
+        .global-dialog-msg { font-size: 14px; color: var(--text-sub); margin-bottom: 20px; line-height: 1.4; } /* 변수 사용 */
+        .global-dialog-actions { display: flex; gap: 10px; }
+        .global-dialog-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .btn-cancel { background-color: var(--nav-active-bg); color: var(--text-sub); } /* 변수 사용 */
+        .btn-confirm { background-color: var(--text-main); color: var(--popup-bg); } /* 변수 사용 */
+
+        /* [모바일 최적화] */
+        @media (max-width: 600px) {
+            .header { width: 100%; padding: 0 16px; } 
+            .container { padding: 0 5px 20px 5px; } 
+            
+            .bottom-nav { width: 93%; bottom: 20px; }
+            .nav-item.active::before { width: 90px; height: 60px; border-radius: 30px; }
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="header">
+        <h1>도전</h1>
+        <div class="header-action">
+            <button class="icon-button ripple-target" title="목표 추가" onclick="openAddModal()">
+                <span class="material-icons">add</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="hero-section" style="margin-bottom: 20px;">
+            <div class="hero-greeting skeleton" id="greeting-text" style="width:180px; height:20px;">현재 도전 중인 목표</div>
+        </div>
+
+        <div class="challenge-list" id="challenge-list">
+            <!-- 스켈레톤 로딩 -->
+            <div class="challenge-card skeleton">
+                <div style="height:80px;"></div>
+            </div>
+            <div class="challenge-card skeleton">
+                <div style="height:80px;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <nav class="bottom-nav">
+        <a href="/" class="nav-item">
+            <span class="material-icons">home</span><span>홈</span>
+        </a>
+        <a href="/record" class="nav-item">
+            <span class="material-icons">receipt_long</span><span>기록</span>
+        </a>
+        <a href="/challenge" class="nav-item active">
+            <span class="material-icons">track_changes</span><span>도전</span>
+        </a>
+        <a href="/my" class="nav-item">
+            <span class="material-icons">person</span><span>MY</span>
+        </a>
+    </nav>
+
+    <!-- 목표 추가 모달 -->
+    <div id="add-modal" class="modal-overlay" onclick="if(event.target===this) closeAddModal()">
+        <div class="modal-sheet">
+            <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom:24px;">
+                <h3 style="margin:0; font-size:20px; font-weight:700; color:var(--text-main);">새로운 목표</h3>
+                <span class="material-icons" style="cursor:pointer; color:var(--text-sub);" onclick="closeAddModal()">close</span>
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">목표 이름</label>
+                <input type="text" id="goal-title" class="input-field" placeholder="예) 닌텐도 스위치 사기">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">목표 금액</label>
+                <input type="tel" id="goal-amount" class="input-field" placeholder="얼마를 모을까요?">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">언제까지?</label>
+                <input type="date" id="goal-date" class="input-field">
+            </div>
+
+            <button class="btn-submit ripple-target" onclick="addChallenge()">도전 시작하기</button>
+            <div style="height:20px;"></div> <!-- 하단 여백 -->
+        </div>
+    </div>
+
+    <!-- 전역 다이얼로그 -->
+    <div id="global-dialog" class="global-dialog-overlay">
+        <div class="global-dialog-box">
+            <h3 id="gd-title" class="global-dialog-title">알림</h3>
+            <p id="gd-msg" class="global-dialog-msg">내용</p>
+            <div id="gd-actions" class="global-dialog-actions"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        const firebaseConfig = { apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI", authDomain: "pocketbly.firebaseapp.com", projectId: "pocketbly", storageBucket: "pocketbly.firebasestorage.app", messagingSenderId: "535063683428", appId: "1:535063683428:web:4729815738bee4f8305a71", measurementId: "G-RE71JXSNR3" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        let currentUserId = null;
+        let totalAsset = 0; // 현재 보유 자산
+
+        // [공통] 다이얼로그 함수
+        function showGlobalDialog(type, msg, onConfirm) {
+            const dialog = document.getElementById('global-dialog');
+            const titleEl = document.getElementById('gd-title');
+            const msgEl = document.getElementById('gd-msg');
+            const actionEl = document.getElementById('gd-actions');
+
+            titleEl.innerText = type === 'confirm' ? '확인' : '알림';
+            msgEl.innerText = msg;
+            actionEl.innerHTML = '';
+
+            if (type === 'confirm') {
+                const btnCancel = document.createElement('button');
+                btnCancel.className = 'global-dialog-btn btn-cancel';
+                btnCancel.innerText = '취소';
+                btnCancel.onclick = () => dialog.style.display = 'none';
+                
+                const btnOk = document.createElement('button');
+                btnOk.className = 'global-dialog-btn btn-confirm';
+                btnOk.innerText = '확인';
+                btnOk.onclick = () => { dialog.style.display = 'none'; if(onConfirm) onConfirm(); };
+                
+                actionEl.appendChild(btnCancel);
+                actionEl.appendChild(btnOk);
+            } else {
+                const btnOk = document.createElement('button');
+                btnOk.className = 'global-dialog-btn btn-confirm';
+                btnOk.innerText = '확인';
+                btnOk.onclick = () => { dialog.style.display = 'none'; if(onConfirm) onConfirm(); };
+                actionEl.appendChild(btnOk);
+            }
+            dialog.style.display = 'flex';
+        }
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUserId = user.uid;
+                document.getElementById('greeting-text').innerText = "현재 도전 중인 목표";
+                document.getElementById('greeting-text').classList.remove('skeleton');
+                document.getElementById('greeting-text').style.width = 'auto';
+                
+                // 1. 전체 자산 계산
+                calculateTotalAsset(user.uid);
+            } else {
+                window.location.href = '/auth';
+            }
+        });
+
+        function calculateTotalAsset(uid) {
+            db.collection('users').doc(uid).collection('transaction_list')
+                .onSnapshot((snapshot) => {
+                    let income = 0;
+                    let expense = 0;
+                    snapshot.forEach(doc => {
+                        const d = doc.data();
+                        const amt = parseInt(d.amount);
+                        if (d.type === '수입' || amt > 0) income += Math.abs(amt);
+                        else expense += Math.abs(amt);
+                    });
+                    totalAsset = income - expense;
+                    
+                    // 2. 도전 목록 불러오기 (자산 업데이트 시마다 갱신)
+                    loadChallenges(uid);
+                });
+        }
+
+        function loadChallenges(uid) {
+            db.collection('users').doc(uid).collection('challenges')
+                .orderBy('createdAt', 'desc')
+                .onSnapshot((snapshot) => {
+                    const listEl = document.getElementById('challenge-list');
+                    listEl.innerHTML = '';
+
+                    if (snapshot.empty) {
+                        listEl.innerHTML = `
+                            <div class="empty-state">
+                                <span class="material-icons empty-icon">emoji_events</span>
+                                <div class="empty-text">진행 중인 목표가 없어요</div>
+                                <div class="empty-sub">우측 상단 + 버튼을 눌러 시작해보세요!</div>
+                            </div>`;
+                        return;
+                    }
+
+                    snapshot.forEach(doc => {
+                        const d = doc.data();
+                        // D-Day 계산
+                        const today = new Date();
+                        today.setHours(0,0,0,0);
+                        const deadline = new Date(d.deadline);
+                        deadline.setHours(0,0,0,0); // 날짜만 비교하기 위해 시간 초기화
+                        const diffTime = deadline - today;
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        let dDayStr = "";
+                        if (diffDays > 0) dDayStr = `D-${diffDays}`;
+                        else if (diffDays === 0) dDayStr = `D-Day`;
+                        else dDayStr = `종료됨`;
+
+                        // 퍼센트 계산 (현재 자산을 기준으로 함)
+                        let percent = 0;
+                        if (parseInt(d.targetAmount) > 0) {
+                            percent = Math.round((totalAsset / parseInt(d.targetAmount)) * 100);
+                        }
+                        if (percent > 100) percent = 100;
+                        if (percent < 0) percent = 0;
+
+                        const isCompleted = percent >= 100;
+
+                        const card = document.createElement('div');
+                        // 리플 효과를 위해 challenge-card에 ripple-target 클래스 추가
+                        card.className = 'challenge-card ripple-target'; 
+                        card.innerHTML = `
+                            <button class="btn-delete-card" onclick="deleteChallenge('${doc.id}')">
+                                <span class="material-icons" style="font-size:20px;">close</span>
+                            </button>
+                            <div class="chal-header">
+                                <div class="chal-info">
+                                    <span class="chal-d-day" style="${diffDays < 0 || isCompleted ? 'background:var(--text-sub); color:var(--text-main);' : ''}">${dDayStr}</span>
+                                    <div class="chal-title">${d.title}</div>
+                                    <div class="chal-date">목표: ${deadline.getFullYear()}.${deadline.getMonth()+1}.${deadline.getDate()}</div>
+                                </div>
+                                <div class="chal-icon-box" style="color:${isCompleted ? 'var(--success-green)' : 'var(--primary-blue)'}">
+                                    <span class="material-icons">${isCompleted ? 'emoji_events' : 'savings'}</span>
+                                </div>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-labels">
+                                    <span>${isCompleted ? '달성 완료!' : '현재 모은 돈'}</span>
+                                    <span class="progress-val-curr">${totalAsset.toLocaleString()}원 / ${parseInt(d.targetAmount).toLocaleString()}원</span>
+                                </div>
+                                <div class="progress-track">
+                                    <div class="progress-fill ${isCompleted ? 'completed' : ''}" style="width: ${percent}%"></div>
+                                </div>
+                                <div style="text-align:right; font-size:12px; color:var(--text-sub); margin-top:4px;">${percent}% 달성</div>
+                            </div>
+                        `;
+                        listEl.appendChild(card);
+                    });
+                });
+        }
+
+        function openAddModal() {
+            document.getElementById('add-modal').style.display = 'flex';
+            document.getElementById('goal-title').value = '';
+            document.getElementById('goal-amount').value = '';
+            document.getElementById('goal-date').value = '';
+        }
+        function closeAddModal() {
+            document.getElementById('add-modal').style.display = 'none';
+        }
+
+        function addChallenge() {
+            const title = document.getElementById('goal-title').value.trim();
+            const amount = document.getElementById('goal-amount').value.replace(/[^0-9]/g, '');
+            const date = document.getElementById('goal-date').value;
+
+            if (!title || !amount || !date) {
+                return showGlobalDialog('alert', '모든 내용을 입력해주세요.');
+            }
+
+            db.collection('users').doc(currentUserId).collection('challenges').add({
+                title: title,
+                targetAmount: parseInt(amount),
+                deadline: date,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                closeAddModal();
+                showGlobalDialog('alert', '새로운 도전이 시작되었습니다!');
+            }).catch(err => {
+                console.error(err);
+                showGlobalDialog('alert', '오류가 발생했습니다.');
+            });
+        }
+
+        function deleteChallenge(docId) {
+            // 이벤트 버블링 방지
+            event.stopPropagation();
+            showGlobalDialog('confirm', '이 목표를 삭제하시겠습니까?', () => {
+                db.collection('users').doc(currentUserId).collection('challenges').doc(docId).delete()
+                .then(() => {
+                    showGlobalDialog('alert', '삭제되었습니다.');
+                });
+            });
+        }
+
+        // 리플 효과
+        function createRipple(event) {
+            // 버튼 내부 클릭 시 중복 방지 (challenge-card에서 btn-delete-card 클릭 시)
+            if (event.target.closest('.btn-delete-card')) return; 
+            const button = event.currentTarget; 
+            const oldRipple = button.querySelector('.ripple'); if(oldRipple) oldRipple.remove();
+            const circle = document.createElement('span'); const diameter = Math.max(button.clientWidth, button.clientHeight); const radius = diameter / 2; const rect = button.getBoundingClientRect();
+            circle.style.width = circle.style.height = `${diameter}px`; circle.style.left = `${event.clientX - rect.left - radius}px`; circle.style.top = `${event.clientY - rect.top - radius}px`; circle.classList.add('ripple');
+            button.appendChild(circle); setTimeout(() => circle.remove(), 500);
+        }
+        document.querySelectorAll('.ripple-target').forEach(btn => { btn.addEventListener('click', createRipple); });
+    </script>
+</body>
+</html>            font-family: 'Pretendard', sans-serif;
             background-color: #ffffff;
             margin: 0; padding: 0;
             display: flex; flex-direction: column; align-items: center;
