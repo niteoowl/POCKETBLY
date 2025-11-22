@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POCKETBLY - 부모님 모드</title>
+    <!-- Pretendard 폰트 CDN 적용 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        
+    <style>
+        /* [기존 스타일 유지] */
+        :root {
+            --color-white: #ffffff;
+            --color-black: #000000;
+            --color-accent: #1a1a1a; 
+            --color-gray: #777;
+            --color-light-gray: #f5f5f5;
+            --padding-x: 2rem; 
+            --fixed-button-area-height: 75px; 
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Pretendard Variable', Pretendard, sans-serif;
+            margin: 0; padding: 0; background-color: var(--color-white);
+            display: flex; justify-content: center; align-items: flex-start; 
+            min-height: 100vh; color: var(--color-black);
+            -webkit-tap-highlight-color: transparent; overflow-x: hidden; 
+        }
+        #app-container {
+            width: 100%; min-height: 100vh; background-color: var(--color-white);
+            display: flex; flex-direction: column; position: relative; overflow-x: hidden; 
+            opacity: 0; transition: opacity 0.5s ease;
+        }
+        #app-container.font-loaded { opacity: 1; }
+        
+        /* 헤더 */
+        #app-header {
+            display: flex; align-items: center; padding: 1rem var(--padding-x); 
+            min-height: 3.5rem; flex-shrink: 0; 
+        }
+        #back-button {
+            background: none; border: none; cursor: pointer; color: var(--color-black);
+            padding: 0.5rem; margin-left: -0.5rem; 
+        }
+        #back-button i.material-icons { font-size: 28px; line-height: 1; }
+
+        /* 메인 콘텐츠 */
+        #main-content {
+            flex-grow: 1; display: flex; flex-direction: column; padding: 0;
+            position: relative; overflow: hidden; 
+        }
+        .step-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            padding: 1rem var(--padding-x) var(--fixed-button-area-height) var(--padding-x); 
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            overflow-y: auto; z-index: 10; 
+        }
+        .step-screen.hidden { display: none; }
+        .step-screen.step-enter { transform: translateX(100%); }
+        .step-screen.step-exit { transform: translateX(-100%); }
+
+        .step-title {
+            font-size: 1.8rem; font-weight: 700; margin-bottom: 4rem; 
+            line-height: 1.4; padding: 0; flex-shrink: 0; 
+        }
+
+        /* 버튼들 */
+        .choice-button-container {
+            flex-grow: 1; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding-bottom: 20vh; 
+            width: 100%; gap: 1rem; 
+        }
+        .choice-button {
+            width: 100%; padding: 1.2rem; border: none; border-radius: 16px; 
+            font-size: 1.1rem; font-weight: 600; cursor: pointer;
+            transition: transform 0.1s ease, opacity 0.1s ease;
+        }
+        .login-button { background-color: transparent; color: var(--color-black); border: 1px solid #ddd; }
+        .signup-button { background-color: var(--color-accent); color: var(--color-white); }
+
+        /* 입력 필드 */
+        .input-group { position: relative; margin-bottom: 2rem; flex-shrink: 0; padding: 0; }
+        .auth-input {
+            width: 100%; padding: 0.5rem 0; border: none;
+            border-bottom: 2px solid var(--color-light-gray); 
+            font-size: 1.5rem; font-weight: 600; outline: none; border-radius: 0; 
+            transition: border-bottom-color 0.2s ease;
+        }
+        .auth-input:focus { border-bottom-color: var(--color-accent); }
+        .input-label {
+            position: absolute; top: -1rem; left: 0; 
+            font-size: 0.85rem; color: var(--color-gray); transition: color 0.2s ease;
+        }
+        .password-toggle {
+            position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer; padding: 0.75rem 0.5rem; 
+            color: var(--color-gray); line-height: 1; z-index: 5;
+        }
+        .password-toggle i.material-icons { font-size: 24px; }
+
+        /* 약관 */
+        .terms-container { flex-grow: 1; overflow-y: auto; padding: 0; margin-bottom: 0; }
+        .all-agree-box {
+            display: flex; align-items: center; padding: 1.2rem; 
+            background-color: #f7f7f7; border-radius: 16px; margin-bottom: 1.5rem; 
+        }
+        .all-agree-box label { font-size: 1.1rem; font-weight: 700; }
+        .term-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem 0; border-bottom: 1px solid rgba(0, 0, 0, 0.08); 
+        }
+        .term-item:last-child { border-bottom: none; }
+        .term-label-group { display: flex; align-items: center; flex-grow: 1; }
+        .term-label { font-size: 1rem; font-weight: 500; color: var(--color-black); }
+        .term-detail-link {
+            font-size: 0.85rem; color: var(--color-gray); text-decoration: none;
+            cursor: pointer; margin-left: 1rem; flex-shrink: 0; 
+        }
+        .custom-checkbox {
+            width: 24px; height: 24px; margin-right: 12px; 
+            accent-color: var(--color-accent); flex-shrink: 0; cursor: pointer; border-radius: 8px; 
+        }
+
+        /* 하단 고정 버튼 */
+        #fixed-footer-container {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            padding: 1rem var(--padding-x); background-color: var(--color-white); 
+            z-index: 50; display: flex; justify-content: center;
+        }
+        .fixed-action-button {
+            width: 100%; padding: 1rem; background-color: var(--color-accent); 
+            color: var(--color-white); border: none; border-radius: 16px; 
+            font-size: 1.1rem; font-weight: 600; cursor: pointer;
+        }
+        .fixed-action-button:disabled { background-color: #e0e0e0; cursor: not-allowed; }
+
+        /* 모달 */
+        #modal {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: rgba(0, 0, 0, 0.4); display: none;
+            justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal-content {
+            background-color: var(--color-white); padding: 1.5rem; border-radius: 20px; 
+            width: 90%; max-width: 300px; text-align: center; 
+            box-shadow: 0 8px 30px rgba(0 0 0 / 30%); 
+        }
+        .modal-title { font-size: 1.2rem; font-weight: 700; color: var(--color-black); margin-bottom: 0.75rem; }
+        .modal-text { color: #555; margin-bottom: 1.5rem; }
+        .modal-close-button {
+            padding: 0.75rem 1.5rem; background-color: var(--color-accent); 
+            color: var(--color-white); border: none; border-radius: 8px; 
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+        }
+
+        .interactive:active { transform: scale(0.97); opacity: 0.9; }
+    </style>
+</head>
+<body>
+<div id="app-container">
+    <!-- 1. 헤더 -->
+    <header id="app-header">
+        <button id="back-button" class="interactive" onclick="window.location.href='/'">
+            <i class="material-icons">arrow_back_ios</i>
+        </button>
+    </header>
+
+    <!-- 2. 메인 콘텐츠 -->
+    <div id="main-content">
+        <!-- Step 1: 선택 -->
+        <div id="step-1" class="step-screen">
+            <h1 class="step-title">부모님 계정으로<br>로그인/가입합니다.</h1>
+            
+            <div class="choice-button-container">
+                <button type="button" class="choice-button login-button interactive" onclick="handleChoice(false)">
+                    계정이 있습니다
+                </button>
+                <button type="button" class="choice-button signup-button interactive" onclick="handleChoice(true)">
+                    계정이 없습니다
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: 정보 입력 -->
+        <div id="step-2" class="step-screen hidden">
+            <h1 id="step-2-title" class="step-title"></h1>
+            <form id="form-step-2" onsubmit="event.preventDefault(); handleStep2Action()">
+                <div id="input-group-email" class="input-group">
+                    <div class="input-label">이메일 주소</div>
+                    <input type="email" id="input-email" name="email" class="auth-input" placeholder="이메일 주소 입력" required oninput="checkInputValidity()" autocomplete="email">
+                </div>
+
+                <div id="input-group-nickname" class="input-group" style="display: none;">
+                    <div class="input-label">부모님 성함(닉네임)</div>
+                    <input type="text" id="input-nickname" name="nickname" class="auth-input" placeholder="예: 서준이 아빠" oninput="checkInputValidity()" autocomplete="username">
+                </div>
+
+                <div class="input-group">
+                    <div class="input-label">비밀번호</div>
+                    <input type="password" id="input-password" name="password" class="auth-input" placeholder="비밀번호 입력" required oninput="checkInputValidity()" autocomplete="new-password">
+                    <button type="button" class="password-toggle interactive" onclick="togglePasswordVisibility('input-password', this)">
+                        <div id="toggle-icon-password"></div>
+                    </button>
+                </div>
+
+                <div id="input-group-confirm-password" style="display: none;">
+                    <div class="input-group">
+                        <div class="input-label">비밀번호 확인</div>
+                        <input type="password" id="input-confirm-password" name="confirm_password" class="auth-input" placeholder="비밀번호 재입력" oninput="checkInputValidity()" autocomplete="new-password">
+                        <button type="button" class="password-toggle interactive" onclick="togglePasswordVisibility('input-confirm-password', this)">
+                            <div id="toggle-icon-confirm-password"></div>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Step 3: 약관 동의 -->
+        <div id="step-3" class="step-screen hidden">
+            <h1 class="step-title">서비스 이용 약관에<br>동의해주세요.</h1>
+            <form id="form-step-3" onsubmit="event.preventDefault(); handleFinalSignup()">
+                <div class="terms-container">
+                    <div class="all-agree-box">
+                        <input type="checkbox" id="input-all-agree" class="custom-checkbox" onchange="handleAgreeAll()">
+                        <label for="input-all-agree">전체 동의</label>
+                    </div>
+                    <div class="term-item">
+                        <div class="term-label-group">
+                            <input type="checkbox" id="input-terms-agree" class="custom-checkbox" onchange="updateAgreeAllCheckbox(); checkInputValidity();">
+                            <label for="input-terms-agree" class="term-label">(필수) 이용 약관 동의</label>
+                        </div>
+                    </div>
+                    <div class="term-item">
+                        <div class="term-label-group">
+                            <input type="checkbox" id="input-privacy-agree" class="custom-checkbox" onchange="updateAgreeAllCheckbox(); checkInputValidity();">
+                            <label for="input-privacy-agree" class="term-label">(필수) 개인정보 처리방침 동의</label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 하단 고정 버튼 -->
+<div id="fixed-footer-container">
+    <button id="btn-final-action" class="fixed-action-button interactive" disabled onclick="submitCurrentForm()">
+        다음
+    </button>
+</div>
+
+<!-- 모달 -->
+<div id="modal">
+    <div class="modal-content">
+        <h3 class="modal-title" id="modal-title"></h3>
+        <p class="modal-text" id="modal-text"></p>
+        <button class="modal-close-button interactive" onclick="hideModal()">확인</button>
+    </div>
+</div>
+
+<script type="module">
+    // Firebase SDK Import (Auth + Firestore)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { 
+        getAuth, 
+        signInWithEmailAndPassword, 
+        createUserWithEmailAndPassword,
+        setPersistence,
+        browserLocalPersistence, 
+        updateProfile 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const EYE_ICON_HTML = '<i class="material-icons">visibility</i>';
+    const EYE_OFF_ICON_HTML = '<i class="material-icons">visibility_off</i>';
+
+    let currentStep = 1;
+    let isRegistering = false; 
+    let isTransitioning = false; 
+
+    const firebaseConfig = { apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI", authDomain: "pocketbly.firebaseapp.com", projectId: "pocketbly", storageBucket: "pocketbly.firebasestorage.app", messagingSenderId: "535063683428", appId: "1:535063683428:web:4729815738bee4f8305a71", measurementId: "G-RE71JXSNR3" };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app); // Firestore 초기화
+        
+    setPersistence(auth, browserLocalPersistence);
+
+    // DOM Elements
+    const appContainer = document.getElementById('app-container');
+    const backButton = document.getElementById('back-button');
+    const fixedFooterContainer = document.getElementById('fixed-footer-container');
+    const btnFinalAction = document.getElementById('btn-final-action');
+    const step2Title = document.getElementById('step-2-title');
+    const inputGroupNickname = document.getElementById('input-group-nickname');
+    const inputGroupConfirmPassword = document.getElementById('input-group-confirm-password');
+    const emailInput = document.getElementById('input-email'); 
+    const passwordInput = document.getElementById('input-password');
+    const confirmPasswordInput = document.getElementById('input-confirm-password');
+    const nicknameInput = document.getElementById('input-nickname');
+    const formStep2 = document.getElementById('form-step-2');
+    const agreeAllCheckbox = document.getElementById('input-all-agree');
+    const privacyAgreeCheckbox = document.getElementById('input-privacy-agree');
+    const termsAgreeCheckbox = document.getElementById('input-terms-agree');
+    const formStep3 = document.getElementById('form-step-3');
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalText = document.getElementById('modal-text');
+
+    // --- Navigation Logic ---
+    window.goToStep = function(newStep, direction) {
+        if (isTransitioning || newStep === currentStep) return;
+        isTransitioning = true;
+        const currentScreen = document.getElementById(`step-${currentStep}`);
+        const nextScreen = document.getElementById(`step-${newStep}`);
+
+        const skipTransition = (currentStep === 1 && newStep === 2); 
+
+        const finalization = () => {
+            nextScreen.classList.remove('step-enter', 'step-exit');
+            currentScreen.classList.add('hidden');
+            currentScreen.classList.remove('step-exit', 'step-enter');
+            currentStep = newStep;
+            updateUI();
+            isTransitioning = false;
+
+            if (newStep === 2) {
+                emailInput.value = ''; passwordInput.value = '';
+                confirmPasswordInput.value = ''; nicknameInput.value = '';
+                emailInput.focus();
+            } else if (newStep === 3) {
+                if (agreeAllCheckbox) agreeAllCheckbox.checked = false;
+                privacyAgreeCheckbox.checked = false;
+                termsAgreeCheckbox.checked = false;
+            }
+        };
+
+        if (skipTransition) {
+            nextScreen.classList.remove('hidden');
+            finalization();
+        } else {
+            currentScreen.classList.add(direction === 'next' ? 'step-exit' : 'step-enter');
+            nextScreen.classList.remove('hidden');
+            nextScreen.classList.add(direction === 'next' ? 'step-enter' : 'step-exit');
+            setTimeout(finalization, 300); 
+        }
+    }
+
+    window.prevStep = function() {
+        if (currentStep === 1) window.location.href = '/'; // 홈으로 돌아가기
+        else if (currentStep === 2) { window.goToStep(1, 'prev'); isRegistering = false; }
+        else if (currentStep === 3) window.goToStep(2, 'prev');
+    }
+
+    function updateUI() {
+        backButton.style.opacity = '1';
+        backButton.onclick = window.prevStep;
+                
+        fixedFooterContainer.style.display = currentStep === 1 ? 'none' : 'flex'; 
+        let buttonText = '다음';
+
+        if (currentStep === 2) {
+            if (isRegistering) {
+                buttonText = '다음'; 
+                step2Title.innerHTML = '부모님 가입 정보를<br>입력해주세요.'; 
+                inputGroupNickname.style.display = 'block';
+                inputGroupConfirmPassword.style.display = 'block';
+                nicknameInput.setAttribute('required', 'required');
+                confirmPasswordInput.setAttribute('required', 'required');
+            } else {
+                buttonText = '로그인';
+                step2Title.innerHTML = '부모님 계정으로<br>로그인합니다.'; 
+                inputGroupNickname.style.display = 'none';
+                inputGroupConfirmPassword.style.display = 'none';
+                nicknameInput.removeAttribute('required');
+                confirmPasswordInput.removeAttribute('required');
+            }
+        } else if (currentStep === 3) { 
+            buttonText = '가입 완료'; 
+            window.updateAgreeAllCheckbox();
+        }
+        btnFinalAction.textContent = buttonText;
+        window.checkInputValidity();
+    }
+        
+    window.checkInputValidity = function() {
+        let isValid = false;
+        if (currentStep === 1) isValid = true;
+        else if (currentStep === 2) {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            isValid = /\S+@\S+\.\S+/.test(email) && (password.length >= 6); 
+            if (isRegistering) {
+                const confirmPassword = confirmPasswordInput.value.trim();
+                const nickname = nicknameInput.value.trim();
+                isValid = isValid && (nickname.length > 0) && (password === confirmPassword) && (confirmPassword.length >= 6);
+            }
+        } else if (currentStep === 3) {
+            isValid = privacyAgreeCheckbox.checked && termsAgreeCheckbox.checked;
+        }
+        btnFinalAction.disabled = !isValid;
+    }
+        
+    window.submitCurrentForm = function() {
+        if (currentStep === 2) formStep2.requestSubmit();
+        else if (currentStep === 3) formStep3.requestSubmit();
+    }
+
+    window.handleChoice = function(isSignup) {
+        isRegistering = isSignup;
+        window.goToStep(2, 'next');
+    }
+        
+    // --- 로그인 처리 ---
+    window.handleStep2Action = async function() {
+        btnFinalAction.disabled = true;
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        if (!/\S+@\S+\.\S+/.test(email) || password.length < 6) {
+            window.showModal('오류', '입력 정보를 확인해주세요.');
+            btnFinalAction.disabled = false; return;
+        }
+
+        if (!isRegistering) {
+            // [로그인 로직]
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                
+                // DB에서 역할 확인 (선택 사항이지만 권장)
+                const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+                if (userDoc.exists() && userDoc.data().role === 'parent') {
+                    window.location.href = '/parent/home'; // 부모 전용 홈으로 이동
+                } else {
+                    // 부모 계정이 아니거나 데이터가 없는 경우
+                    // 여기서는 편의상 그냥 이동시키거나, 경고를 띄울 수 있음
+                    window.location.href = '/parent/home';
+                }
+            } catch (error) {
+                console.error(error);
+                window.showModal('로그인 오류', '아이디 또는 비밀번호를 확인해주세요.');
+            } finally {
+                btnFinalAction.disabled = false;
+            }
+        } else {
+            // 회원가입 -> 다음 단계
+            const confirmPassword = confirmPasswordInput.value.trim();
+            const nickname = nicknameInput.value.trim();
+            if (nickname.length === 0 || password !== confirmPassword) { 
+                window.showModal('오류', '입력 정보를 확인해주세요.'); 
+                btnFinalAction.disabled = false; return;
+            }
+            window.goToStep(3, 'next');
+        }
+    }
+
+    // --- 회원가입 처리 (부모 계정 생성) ---
+    window.handleFinalSignup = async function() {
+        btnFinalAction.disabled = true;
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+        const nickname = nicknameInput.value.trim();
+                
+        if (!privacyAgreeCheckbox.checked || !termsAgreeCheckbox.checked) { 
+            btnFinalAction.disabled = false; return;
+        }
+
+        try {
+            // 1. Auth 생성
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            // 2. 프로필 업데이트
+            await updateProfile(user, { displayName: nickname });
+
+            // 3. Firestore에 부모 역할 저장 (중요!)
+            await setDoc(doc(db, "users", user.uid), {
+                email: email,
+                name: nickname,
+                role: 'parent', // 역할을 'parent'로 명시
+                createdAt: new Date(),
+                children: [] // 나중에 자녀 계정 연결용 배열
+            });
+
+            // 4. 이동
+            window.location.href = '/parent/home';
+                    
+        } catch (error) {
+            console.error(error);
+            let msg = '회원가입에 실패했습니다.';
+            if (error.code === 'auth/email-already-in-use') msg = '이미 사용 중인 이메일입니다.';
+            window.showModal('오류', msg);
+        } finally {
+            btnFinalAction.disabled = false;
+        }
+    }
+        
+    // --- Helper Functions ---
+    window.handleAgreeAll = function() {
+        const isChecked = agreeAllCheckbox.checked;
+        privacyAgreeCheckbox.checked = isChecked;
+        termsAgreeCheckbox.checked = isChecked;
+        window.checkInputValidity();
+    }
+
+    window.updateAgreeAllCheckbox = function() {
+        agreeAllCheckbox.checked = privacyAgreeCheckbox.checked && termsAgreeCheckbox.checked;
+        window.checkInputValidity();
+    }
+        
+    window.togglePasswordVisibility = function(inputId, buttonElement) {
+        const input = document.getElementById(inputId);
+        const iconContainer = buttonElement.querySelector('div');
+        if (input.type === 'password') {
+            input.type = 'text'; iconContainer.innerHTML = EYE_OFF_ICON_HTML;
+        } else {
+            input.type = 'password'; iconContainer.innerHTML = EYE_ICON_HTML;
+        }
+    }
+
+    window.showModal = function(title, text) {
+        modalTitle.textContent = title;
+        modalText.textContent = text;
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            modal.querySelector('.modal-content').style.transform = 'scale(1)';
+            modal.querySelector('.modal-content').style.opacity = '1';
+        }, 10); 
+    }
+
+    window.hideModal = function() {
+        modal.querySelector('.modal-content').style.transform = 'scale(0.9)';
+        modal.querySelector('.modal-content').style.opacity = '0';
+        setTimeout(() => { modal.style.display = 'none'; }, 200); 
+    }
+        
+    function initializeIcons() {
+        const passwordIcon = document.getElementById('toggle-icon-password');
+        const confirmPasswordIcon = document.getElementById('toggle-icon-confirm-password');
+        if(passwordIcon) passwordIcon.innerHTML = EYE_ICON_HTML;
+        if(confirmPasswordIcon) confirmPasswordIcon.innerHTML = EYE_ICON_HTML;
+    }
+
+    window.addEventListener('load', () => {
+        initializeIcons();
+        appContainer.style.minHeight = `${window.innerHeight}px`;
+        updateUI();
+        document.fonts.ready.then(() => appContainer.classList.add('font-loaded'));
+    });
+    window.addEventListener('resize', () => {
+        appContainer.style.minHeight = `${window.innerHeight}px`;
+    });
+</script>
+</body>
+</html>
