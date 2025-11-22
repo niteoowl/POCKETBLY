@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>거래 내역 기록</title>
+    
+    <!-- [핵심] 다크모드 깜빡임 방지 스크립트 -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
     
@@ -13,39 +27,95 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     
     <style>
-        /* [공통] 스타일 리셋 & 복사 방지 */
+        /* 초기화 */
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
-        input, textarea { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
+        
+        /* 트랜지션: 배경과 테두리, 글자색만 부드럽게 전환 */
+        body, .container, .header, .summary-card, .bottom-nav, .modal, .edit-modal-sheet, .search-box-wrapper {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
 
+        body { -webkit-user-select: none; user-select: none; }
+        input, textarea { -webkit-user-select: text; user-select: text; }
+
+        /* [색상 팔레트 정의] - 홈 화면과 통일 */
         :root {
+            /* === Light Mode === */
+            --bg-color: #ffffff;
+            --header-bg: rgba(255, 255, 255, 0.95);
+            --card-bg: #ffffff;
+            
+            --text-main: #191f28;
+            --text-sub: #8b95a1;
+            
+            --border-color: #e5e8eb;
+            --input-bg: #ffffff;
+            --input-border: #191f28;
+            
+            --nav-bg: rgba(255, 255, 255, 0.9);
+            --nav-border: #e5e8eb;
+            --nav-active-bg: #f2f4f6;
+            --nav-inactive: #b0b8c1;
+            --nav-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            
+            --popup-bg: #ffffff;
+            --popup-comment: #f5f5f5;
+            
+            --skeleton-base: #f2f4f6;
+            --skeleton-highlight: rgba(255, 255, 255, 0.5);
+
             --primary-blue: #3b82f6;
-            --text-dark: #191f28;
-            --text-gray: #8b95a1;
-            --border-light: #e5e8eb;
-            --header-height: 80px; 
-            --ripple-color: rgba(0, 0, 0, 0.08);
-            --income-color: #2c92ff;   
+            --income-color: #2c92ff;
             --expense-color: #f04452;
+            --ripple-color: rgba(0, 0, 0, 0.08);
+            --header-height: 80px; 
+        }
+
+        /* === Dark Mode (#18171e Toss Style) === */
+        [data-theme="dark"] {
+            --bg-color: #18171e;
+            --header-bg: #18171e;
+            
+            --card-bg: #24232b;
+            
+            --text-main: #eff1f3;
+            --text-sub: #8b95a1;
+            
+            --border-color: #2c2b33;
+            --input-bg: #24232b;
+            --input-border: #33323a;
+            
+            --nav-bg: #25242c;
+            --nav-border: #33323a;
+            --nav-active-bg: #35343d;
+            --nav-inactive: #686d77;
+            --nav-shadow: 0 -4px 25px rgba(0, 0, 0, 0.4);
+            
+            --popup-bg: #24232b;
+            --popup-comment: #1c1c24;
+            
+            --skeleton-base: #24232b;
+            --skeleton-highlight: rgba(255, 255, 255, 0.08);
+            
+            --ripple-color: rgba(255, 255, 255, 0.1);
         }
 
         body {
             font-family: 'Pretendard', sans-serif;
-            background-color: #ffffff;
+            background-color: var(--bg-color);
             margin: 0; padding: 0;
             display: flex; flex-direction: column; align-items: center;
             overflow-y: scroll; 
             padding-top: var(--header-height); 
             padding-bottom: 110px; 
-            color: var(--text-dark);
+            color: var(--text-main);
         }
 
         /* 메인 컨테이너 */
         .container {
             width: 95%;
             max-width: 1024px; 
-            background-color: #ffffff;
-            /* PC 여백 문제를 해결하기 위해 검색창도 이 패딩 안으로 들어옵니다 */
+            background-color: var(--bg-color);
             padding: 0 24px 24px 24px; 
         }
 
@@ -53,29 +123,31 @@
         .header {
             position: fixed; top: 0; left: 50%; transform: translateX(-50%);
             width: 95%; max-width: 1024px; z-index: 1005;
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: var(--header-bg);
             backdrop-filter: blur(5px);
             height: var(--header-height); 
             display: flex; align-items: center; justify-content: space-between;
             padding: 16px 24px;
         }
-        .header h1 { font-size: 26px; font-weight: 800; color: var(--text-dark); margin: 0; }
+        [data-theme="dark"] .header { backdrop-filter: none; }
+
+        .header h1 { font-size: 26px; font-weight: 800; color: var(--text-main); margin: 0; }
         .header-action { display: flex; gap: 8px; }
         
         .icon-button {
-            background: none; border: none; color: var(--text-dark); cursor: pointer;
+            background: none; border: none; color: var(--text-main); cursor: pointer;
             padding: 8px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center;
             position: relative; overflow: hidden;
             transition: background-color 0.2s;
         }
-        .icon-button:hover { background-color: #f2f4f6; }
+        .icon-button:hover { background-color: var(--nav-active-bg); }
 
-        /* [수정된 검색창 스타일] */
+        /* [검색창 스타일] */
         .search-bar-container {
             width: 100%;
-            margin-bottom: 16px; /* 아래 카드와의 간격 */
-            display: none; /* 기본 숨김 */
+            margin-bottom: 16px; 
+            display: none; 
             animation: slideDown 0.3s ease-out;
             margin-top: 10px;
         }
@@ -85,11 +157,13 @@
             display: flex;
             align-items: center;
             width: 100%;
-            background-color: #ffffff; /* 흰색 배경 */
-            border: 1px solid #191f28; /* 검정 테두리 */
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
             border-radius: 12px;
             padding: 6px 12px;
         }
+        /* 다크모드에서 검색창 테두리 색상 조정 */
+        [data-theme="dark"] .search-box-wrapper { border-color: var(--border-color); }
 
         .search-input {
             flex-grow: 1;
@@ -98,14 +172,14 @@
             font-size: 15px;
             padding: 8px 0;
             outline: none;
-            color: var(--text-dark);
+            color: var(--text-main);
         }
-        .search-input::placeholder { color: #b0b8c1; }
+        .search-input::placeholder { color: var(--nav-inactive); }
 
         .search-submit-btn {
             background: none;
             border: none;
-            color: #191f28;
+            color: var(--text-main);
             cursor: pointer;
             padding: 4px;
             display: flex;
@@ -115,37 +189,37 @@
 
         /* [요약 카드] */
         .summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; margin-top: 0; }
-        .summary-label { font-size: 15px; font-weight: 700; color: var(--text-dark); }
-        .toggle-btn { background-color: #f2f4f6; border: none; border-radius: 12px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--text-gray); cursor: pointer; transition: all 0.2s; }
-        .toggle-btn.active { background-color: var(--text-dark); color: #fff; }
+        .summary-label { font-size: 15px; font-weight: 700; color: var(--text-main); }
+        .toggle-btn { background-color: var(--nav-active-bg); border: none; border-radius: 12px; padding: 6px 12px; font-size: 12px; font-weight: 600; color: var(--text-sub); cursor: pointer; transition: all 0.2s; }
+        .toggle-btn.active { background-color: var(--text-main); color: var(--bg-color); }
         
         .summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
-        .summary-card { background-color: #ffffff; border: 1px solid var(--border-light); padding: 16px 12px; border-radius: 16px; display: flex; flex-direction: column; justify-content: center; min-height: 80px; }
-        .summary-card-title { font-size: 13px; font-weight: 500; color: var(--text-gray); display: flex; align-items: center; margin-bottom: 6px; }
-        .summary-card-value { font-size: 17px; font-weight: 700; color: var(--text-dark); word-break: keep-all; letter-spacing: -0.5px; }
-        .val-income { color: var(--income-color); } .val-expense { color: var(--expense-color); } .val-net { color: var(--text-dark); }
+        .summary-card { background-color: var(--card-bg); border: 1px solid var(--border-color); padding: 16px 12px; border-radius: 16px; display: flex; flex-direction: column; justify-content: center; min-height: 80px; }
+        .summary-card-title { font-size: 13px; font-weight: 500; color: var(--text-sub); display: flex; align-items: center; margin-bottom: 6px; }
+        .summary-card-value { font-size: 17px; font-weight: 700; color: var(--text-main); word-break: keep-all; letter-spacing: -0.5px; }
+        .val-income { color: var(--income-color); } .val-expense { color: var(--expense-color); } .val-net { color: var(--text-main); }
 
         /* 날짜 탐색 */
         .date-navigation { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; margin-bottom: 20px; padding: 12px 0; transition: opacity 0.3s; }
         .date-navigation.hidden { display: none; } 
-        .date-display { font-size: 18px; font-weight: 700; color: var(--text-dark); flex-grow: 1; text-align: center; }
-        .nav-arrow { background: none; border: none; color: var(--text-dark); cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-        .nav-arrow:hover { background-color: #f2f4f6; }
+        .date-display { font-size: 18px; font-weight: 700; color: var(--text-main); flex-grow: 1; text-align: center; }
+        .nav-arrow { background: none; border: none; color: var(--text-main); cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        .nav-arrow:hover { background-color: var(--nav-active-bg); }
 
         /* 리스트 */
-        .transaction-list-section h2 { font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 12px; }
+        .transaction-list-section h2 { font-size: 16px; font-weight: 600; color: var(--text-main); margin-bottom: 12px; }
         .transaction-list { list-style: none; padding: 0; margin: 0; }
-        .daily-header { padding: 24px 0 10px 0; font-size: 15px; font-weight: 700; color: #6b7684; border-bottom: 1px solid transparent; }
+        .daily-header { padding: 24px 0 10px 0; font-size: 15px; font-weight: 700; color: var(--text-sub); border-bottom: 1px solid transparent; }
         
-        .transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #f2f4f6; cursor: pointer; position: relative; overflow: hidden; }
+        .transaction-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border-color); cursor: pointer; position: relative; overflow: hidden; }
         .transaction-text-group { display: flex; flex-direction: column; gap: 4px; }
-        .trans-usage { font-size: 16px; font-weight: 600; color: var(--text-dark); }
-        .trans-meta { font-size: 13px; color: var(--text-gray); font-weight: 400; }
+        .trans-usage { font-size: 16px; font-weight: 600; color: var(--text-main); }
+        .trans-meta { font-size: 13px; color: var(--text-sub); font-weight: 400; }
         .transaction-amount { font-weight: 700; font-size: 17px; text-align: right; letter-spacing: -0.5px;}
         
         /* [스켈레톤 UI] */
         .skeleton {
-            background: #f2f4f6;
+            background: var(--skeleton-base);
             color: transparent !important;
             border-radius: 4px;
             user-select: none;
@@ -155,32 +229,45 @@
         .skeleton::after {
             content: "";
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
             transform: translateX(-100%);
             animation: shimmer 1.5s infinite;
         }
         @keyframes shimmer { 100% { transform: translateX(100%); } }
+        .skeleton * { opacity: 0; }
         
-        /* 하단 내비게이션 */
-        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 75%; max-width: 450px; height: 75px; background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; z-index: 1000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); border: 1px solid var(--border-light); border-radius: 50px; padding: 0 10px; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: #b0b8c1; font-size: 11px; font-weight: 500; flex-grow: 1; height: 60px; position: relative; border-radius: 25px; }
-        .nav-item.active { color: var(--text-dark); font-weight: 600; }
-        .nav-item.active::before { content: ''; position: absolute; top: 50%; left: 50%; width: 100px; height: 55px; background-color: #f2f4f6; border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; }
+        /* 하단 내비게이션 (홈과 통일) */
+        .bottom-nav { 
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 75%; max-width: 450px; 
+            height: 75px; 
+            background-color: var(--nav-bg); 
+            backdrop-filter: blur(10px); 
+            display: flex; justify-content: space-around; align-items: center; z-index: 1000; 
+            box-shadow: var(--nav-shadow); 
+            border: 1px solid var(--nav-border); 
+            border-radius: 50px; padding: 0 10px; 
+        }
+        [data-theme="dark"] .bottom-nav { backdrop-filter: none; }
+
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: var(--nav-inactive); font-size: 11px; font-weight: 500; flex-grow: 1; height: 60px; position: relative; border-radius: 25px; }
+        .nav-item.active { color: var(--text-main); font-weight: 600; }
+        .nav-item.active::before { content: ''; position: absolute; top: 50%; left: 50%; width: 100px; height: 55px; background-color: var(--nav-active-bg); border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; }
         .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
 
         /* 모달 및 기타 스타일 */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #ffffff; z-index: 2000; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); display: flex; flex-direction: column; visibility: hidden; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--popup-bg); z-index: 2000; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); display: flex; flex-direction: column; visibility: hidden; }
         .modal.open { transform: translateY(0); visibility: visible; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border-light); flex-shrink: 0; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
+        .modal-header h2 { color: var(--text-main); margin: 0; font-size: 20px; }
         .modal-content { flex-grow: 1; }
         .modal-iframe { width: 100%; height: 100%; border: none; }
 
         .transfer-input-container { width: 100%; text-align: center; margin-bottom: 30px; margin-top: 10px; }
-        .transfer-label { font-size: 14px; color: var(--text-gray); margin-bottom: 12px; display: block; }
-        .transfer-input { width: 100%; border: none; border-bottom: 2px solid #e5e8eb; font-size: 28px; font-weight: 700; text-align: center; padding: 10px 0; background-color: transparent; color: var(--text-dark); outline: none; border-radius: 0; transition: border-color 0.3s; }
-        .transfer-input:focus { border-bottom-color: #191f28; }
-        .result-link-box { margin-top: 20px; padding: 16px; background-color: #f9fafb; border-radius: 12px; border: 1px solid #e5e8eb; text-align: center; display: none; width: 100%; }
-        .result-link-title { font-size: 12px; color: var(--text-gray); margin-bottom: 6px; }
+        .transfer-label { font-size: 14px; color: var(--text-sub); margin-bottom: 12px; display: block; }
+        .transfer-input { width: 100%; border: none; border-bottom: 2px solid var(--border-color); font-size: 28px; font-weight: 700; text-align: center; padding: 10px 0; background-color: transparent; color: var(--text-main); outline: none; border-radius: 0; transition: border-color 0.3s; }
+        .transfer-input:focus { border-bottom-color: var(--text-main); }
+        .result-link-box { margin-top: 20px; padding: 16px; background-color: var(--nav-active-bg); border-radius: 12px; border: 1px solid var(--border-color); text-align: center; display: none; width: 100%; }
+        .result-link-title { font-size: 12px; color: var(--text-sub); margin-bottom: 6px; }
         .result-link-url { font-size: 14px; font-weight: 600; color: var(--primary-blue); word-break: break-all; line-height: 1.4; }
 
         .ripple { position: absolute; border-radius: 50%; transform: scale(0); animation: ripple-anim 0.5s linear; background-color: var(--ripple-color); pointer-events: none; }
@@ -196,29 +283,43 @@
             .nav-item.active::before { width: 90px; height: 60px; border-radius: 30px; }
         }
 
-        /* 기타 팝업 스타일 */
+        /* 수정/삭제 바텀 시트 */
         .edit-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 2500; display: none; align-items: flex-end; justify-content: center; }
-        .edit-modal-sheet { width: 100%; max-width: 600px; background-color: #fff; border-radius: 24px 24px 0 0; padding: 24px; animation: slideUp 0.3s ease-out; }
+        .edit-modal-sheet { width: 100%; max-width: 600px; background-color: var(--popup-bg); border-radius: 24px 24px 0 0; padding: 24px; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .edit-modal-sheet h3 { color: var(--text-main); }
+        .edit-modal-sheet .material-icons { color: var(--text-main); }
+        
         .edit-field { margin-bottom: 16px; }
-        .edit-label { display: block; font-size: 12px; color: #999; margin-bottom: 6px; }
-        .edit-input { width: 100%; border: none; border-bottom: 1px solid #eee; padding: 10px 0; font-size: 16px; outline: none; }
+        .edit-label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px; }
+        .edit-input { width: 100%; border: none; border-bottom: 1px solid var(--border-color); padding: 10px 0; font-size: 16px; outline: none; background: transparent; color: var(--text-main); border-radius: 0;}
+        /* input type date 등의 아이콘 색상 반전 */
+        .edit-input[type="datetime-local"] { color-scheme: light dark; }
+
         .edit-buttons { display: flex; gap: 10px; margin-top: 30px; }
         .btn-edit { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: 700; font-size: 15px; cursor: pointer; }
-        .btn-delete { background-color: #ffebeb; color: #f04452; }
-        .btn-save { background-color: #191f28; color: #fff; }
+        .btn-delete { background-color: #442a2a; color: #ff6b6b; } /* 다크모드에서 덜 눈부시게 */
+        [data-theme="light"] .btn-delete { background-color: #ffebeb; color: #f04452; }
+        
+        .btn-save { background-color: var(--text-main); color: var(--bg-color); }
+        
+        /* 알림 팝업 */
         .alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; display: none; justify-content: center; align-items: center; }
-        .alert-box { width: 85%; max-width: 320px; background-color: white; border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
-        .alert-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; color: white; cursor: pointer; background-color: var(--text-dark); margin-top: 20px; }
+        .alert-box { width: 85%; max-width: 320px; background-color: var(--popup-bg); border-radius: 24px; padding: 24px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+        .alert-box h3 { color: var(--text-main); }
+        .alert-box p { color: var(--text-sub); }
+        .alert-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; color: white; cursor: pointer; background-color: var(--primary-blue); margin-top: 20px; }
+        
+        /* 전역 다이얼로그 */
         .global-dialog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 4000; display: none; align-items: center; justify-content: center; }
-        .global-dialog-box { width: 80%; max-width: 300px; background: #fff; border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
+        .global-dialog-box { width: 80%; max-width: 300px; background: var(--popup-bg); border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
         @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .global-dialog-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: #191f28; }
-        .global-dialog-msg { font-size: 14px; color: #6b7684; margin-bottom: 20px; line-height: 1.4; }
+        .global-dialog-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text-main); }
+        .global-dialog-msg { font-size: 14px; color: var(--text-sub); margin-bottom: 20px; line-height: 1.4; }
         .global-dialog-actions { display: flex; gap: 10px; }
         .global-dialog-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .btn-cancel { background-color: #f2f4f6; color: #8b95a1; }
-        .btn-confirm { background-color: #191f28; color: #fff; }
+        .btn-cancel { background-color: var(--nav-active-bg); color: var(--nav-inactive); }
+        .btn-confirm { background-color: var(--text-main); color: var(--bg-color); }
     </style>
 </head>
 <body>
@@ -239,7 +340,7 @@
     </header>
 
     <div class="container">
-        <!-- [수정됨] 검색창이 container 내부로 이동되었습니다 -->
+        <!-- 검색창 -->
         <div id="search-bar-container" class="search-bar-container">
             <div class="search-box-wrapper">
                 <input type="text" id="search-input" class="search-input" placeholder="사용처 또는 내용을 검색하세요..." onkeyup="handleSearch()">
@@ -270,13 +371,13 @@
         <section class="transaction-list-section">
             <ul class="transaction-list" id="transaction-list-container">
                 <!-- 초기 스켈레톤 로딩 UI -->
-                <li style="padding: 14px 0; border-bottom: 1px solid #f2f4f6;">
+                <li style="padding: 14px 0; border-bottom: 1px solid var(--border-color);">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="width: 100px; height: 20px;" class="skeleton"></div>
                         <div style="width: 60px; height: 20px;" class="skeleton"></div>
                     </div>
                 </li>
-                <li style="padding: 14px 0; border-bottom: 1px solid #f2f4f6;">
+                <li style="padding: 14px 0; border-bottom: 1px solid var(--border-color);">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="width: 120px; height: 20px;" class="skeleton"></div>
                         <div style="width: 50px; height: 20px;" class="skeleton"></div>
@@ -309,14 +410,14 @@
     <div id="share-modal" class="modal" style="z-index: 2100;">
         <div class="modal-header"><h2>부모님께 전송</h2><button class="icon-button ripple-target" onclick="closeShareModal()"><span class="material-icons">close</span></button></div>
         <div class="modal-content" style="padding: 30px 24px; display: flex; flex-direction: column; align-items: center;">
-            <p style="color: #6b7684; margin-bottom: 30px; text-align: center; font-size: 15px; line-height: 1.4;">
-                <strong id="share-month-target" style="color: #191f28;">11월</strong> 내역을 부모님께 전송합니다.
+            <p style="color: var(--text-sub); margin-bottom: 30px; text-align: center; font-size: 15px; line-height: 1.4;">
+                <strong id="share-month-target" style="color: var(--text-main);">11월</strong> 내역을 부모님께 전송합니다.
             </p>
             <div class="transfer-input-container">
                 <label class="transfer-label">받는 분 전화번호</label>
                 <input type="tel" id="parent-phone" class="transfer-input" placeholder="010 1234 5678">
             </div>
-            <button onclick="createAndSendReport()" id="btn-send-sms" class="ripple-target" style="width: 100%; padding: 18px; background-color: #191f28; color: white; border: none; border-radius: 16px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">보내기</button>
+            <button onclick="createAndSendReport()" id="btn-send-sms" class="ripple-target" style="width: 100%; padding: 18px; background-color: var(--text-main); color: var(--bg-color); border: none; border-radius: 16px; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">보내기</button>
             <div id="result-link-area" class="result-link-box">
                 <div class="result-link-title">생성된 링크</div>
                 <div class="result-link-url" id="generated-url"></div>
@@ -335,7 +436,7 @@
             
             <div class="edit-field">
                 <label class="edit-label">날짜 및 시간</label>
-                <input type="datetime-local" id="edit-date" class="edit-input" style="background:#fff;">
+                <input type="datetime-local" id="edit-date" class="edit-input">
             </div>
             <div class="edit-field">
                 <label class="edit-label">사용처</label>
@@ -361,8 +462,8 @@
         <div class="alert-box">
             <span class="material-icons" id="alert-icon" style="font-size:48px; margin-bottom:10px;">check_circle</span>
             <h3 id="alert-title" style="margin:0 0 10px 0; font-size:18px;">승인 완료</h3>
-            <p id="alert-msg" style="color:#666; margin:0; font-size:14px; line-height:1.4;">부모님이 확인하셨습니다.</p>
-            <div id="alert-comment" style="background:#f5f5f5; padding:12px; border-radius:10px; margin-top:15px; font-size:14px; text-align:left; color:#333;"></div>
+            <p id="alert-msg" style="margin:0; font-size:14px; line-height:1.4;">부모님이 확인하셨습니다.</p>
+            <div id="alert-comment" style="background:var(--popup-comment); padding:12px; border-radius:10px; margin-top:15px; font-size:14px; text-align:left; color:var(--text-main);"></div>
             <button class="alert-btn" onclick="confirmAlert()">확인 (내역 삭제)</button>
         </div>
     </div>
@@ -557,7 +658,7 @@
             listContainer.innerHTML = '';
             
             if (filteredData.length === 0) { 
-                listContainer.innerHTML = '<li style="text-align:center; padding:60px 0; color:#b0b8c1; font-size:14px;">거래 내역이 없습니다.</li>'; 
+                listContainer.innerHTML = '<li style="text-align:center; padding:60px 0; color:var(--text-sub); font-size:14px;">거래 내역이 없습니다.</li>'; 
                 return; 
             }
 
@@ -658,99 +759,4 @@
         }
 
         function createRipple(event) {
-            const button = event.currentTarget; const oldRipple = button.querySelector('.ripple'); if(oldRipple) oldRipple.remove();
-            const circle = document.createElement('span'); const diameter = Math.max(button.clientWidth, button.clientHeight); const radius = diameter / 2; const rect = button.getBoundingClientRect();
-            circle.style.width = circle.style.height = `${diameter}px`; circle.style.left = `${event.clientX - rect.left - radius}px`; circle.style.top = `${event.clientY - rect.top - radius}px`; circle.classList.add('ripple');
-            button.appendChild(circle); setTimeout(() => circle.remove(), 500);
-        }
-        document.querySelectorAll('.ripple-target').forEach(btn => { if(!btn.onclick) btn.addEventListener('click', createRipple); });
-
-        function toDatetimeLocal(date) {
-            const ten = (i) => (i < 10 ? '0' : '') + i;
-            const YYYY = date.getFullYear();
-            const MM = ten(date.getMonth() + 1);
-            const DD = ten(date.getDate());
-            const HH = ten(date.getHours());
-            const II = ten(date.getMinutes());
-            return `${YYYY}-${MM}-${DD}T${HH}:${II}`;
-        }
-
-        function openEditModal(id, usage, amount, memo, timeMs) {
-            document.getElementById('edit-doc-id').value = id;
-            document.getElementById('edit-usage').value = usage;
-            document.getElementById('edit-amount').value = Math.abs(amount);
-            document.getElementById('edit-memo').value = memo;
-            
-            const d = new Date(timeMs);
-            document.getElementById('edit-date').value = toDatetimeLocal(d);
-            
-            document.getElementById('edit-modal').style.display = 'flex';
-        }
-        function closeEditModal() { document.getElementById('edit-modal').style.display = 'none'; }
-
-        function deleteTransaction() {
-            showGlobalDialog('confirm', "정말 삭제하시겠습니까?", () => {
-                const id = document.getElementById('edit-doc-id').value;
-                db.collection('users').doc(currentUserId).collection('transaction_list').doc(id).delete()
-                .then(() => { 
-                    closeEditModal(); 
-                    showGlobalDialog('alert', "삭제되었습니다."); 
-                });
-            });
-        }
-
-        function updateTransaction() {
-            const id = document.getElementById('edit-doc-id').value;
-            const usage = document.getElementById('edit-usage').value;
-            const amountInput = parseInt(document.getElementById('edit-amount').value);
-            const memo = document.getElementById('edit-memo').value;
-            
-            const dateVal = document.getElementById('edit-date').value;
-            const newDate = dateVal ? new Date(dateVal) : new Date();
-
-            db.collection('users').doc(currentUserId).collection('transaction_list').doc(id).get().then(doc => {
-                const oldData = doc.data();
-                const isIncome = oldData.type === '수입' || oldData.amount > 0;
-                const newAmount = isIncome ? Math.abs(amountInput) : -Math.abs(amountInput);
-                
-                doc.ref.update({ 
-                    usage: usage, 
-                    amount: newAmount, 
-                    memo: memo,
-                    createdAt: firebase.firestore.Timestamp.fromDate(newDate) 
-                })
-                .then(() => { 
-                    closeEditModal(); 
-                    showGlobalDialog('alert', "수정되었습니다."); 
-                });
-            });
-        }
-
-        function listenForParentDecision(uid) {
-            db.collection('shared_reports').where('uid','==',uid).where('status','in',['승인','반려'])
-            .onSnapshot(ss => {
-                ss.docChanges().forEach(c => {
-                    if(c.type==='added' || c.type==='modified') {
-                        let d = c.doc.data(); pendingReportDocId = c.doc.id;
-                        document.getElementById('alert-title').innerText = `부모님 ${d.status}`;
-                        document.getElementById('alert-icon').innerText = d.status==='승인'?'check_circle':'cancel';
-                        document.getElementById('alert-icon').style.color = d.status==='승인'?'#2c92ff':'#f04452';
-                        if(d.parentComment) {
-                            document.getElementById('alert-comment').innerText = d.parentComment;
-                            document.getElementById('alert-comment').style.display='block';
-                        } else {
-                            document.getElementById('alert-comment').style.display='none';
-                        }
-                        document.getElementById('alert-overlay').style.display='flex';
-                    }
-                });
-            });
-        }
-        function confirmAlert() {
-            if(pendingReportDocId) db.collection('shared_reports').doc(pendingReportDocId).delete().then(()=>{
-                document.getElementById('alert-overlay').style.display='none';
-            });
-        }
-    </script>
-</body>
-</html>
+            const button = event.currentTarget; const oldRipple = button.querySelector('.ripple'); if(oldRipple) oldRippl
