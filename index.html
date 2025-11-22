@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>POCKETBLY - 홈</title>
     
-    <!-- [핵심] 다크모드 깜빡임 방지 (렌더링 전 실행) -->
+    <!-- [깜빡임 방지 스크립트] -->
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme');
@@ -29,14 +29,20 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     
     <style>
-        /* 초기화 및 트랜지션 설정 */
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease, color 0.3s ease; }
+        /* 초기화 */
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        
+        /* [중요] 전체 트랜지션 제거 -> 배경과 글자색에만 적용 (내용 안 뜨는 버그 해결) */
+        body, .container, .header, .insight-card, .bottom-nav, .nav-item {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
         body { -webkit-user-select: none; user-select: none; }
         input, textarea { -webkit-user-select: text; user-select: text; }
 
-        /* [컬러 시스템 정의] */
+        /* [색상 팔레트] */
         :root {
-            /* === Light Mode (기본) === */
+            /* === Light Mode === */
             --bg-color: #ffffff;
             --header-bg: rgba(255, 255, 255, 0.92);
             --card-bg: #ffffff;
@@ -46,10 +52,12 @@
             
             --border-color: #e5e8eb;
             
-            --nav-bg: rgba(255, 255, 255, 0.9);
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --nav-border: #e5e8eb;
             --nav-active-bg: #f2f4f6;
             --nav-inactive: #b0b8c1;
-            
+            --nav-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+
             --chart-track: #f2f4f6;
             --chart-fill-prev: #d1d6db;
             
@@ -66,36 +74,38 @@
             --shadow-card: 0 4px 20px rgba(0,0,0,0.02);
         }
 
-        /* === Dark Mode (Custom #18171e Base) === */
+        /* === Dark Mode (개선됨) === */
         [data-theme="dark"] {
-            /* 요청하신 #18171e 베이스 */
+            /* 배경: 요청하신 #18171e */
             --bg-color: #18171e;
-            --header-bg: #18171e; /* 헤더와 배경 색상 완전 일치 */
+            --header-bg: #18171e;
             
-            /* 카드: 배경보다 미세하게 밝은 톤 (#18171e + 5% Lightness) */
+            /* 카드: 배경보다 조금 밝게 */
             --card-bg: #24232b;
             
-            --text-main: #eff1f3; /* 눈이 편안한 화이트 */
-            --text-sub: #7b828e;  /* 쿨 그레이 */
+            --text-main: #eff1f3;
+            --text-sub: #8b95a1;
             
-            --border-color: #302f38; /* 카드보다 살짝 밝은 경계선 */
+            --border-color: #2c2b33; 
             
-            /* 네비게이션: 카드 색상과 통일하여 깔끔하게 */
-            --nav-bg: #24232b;
-            --nav-active-bg: #302f38;
-            --nav-inactive: #5b616a;
+            /* [수정] 하단 내비게이션 확실한 구분 */
+            --nav-bg: #25242c;   /* 카드와 비슷하지만 아주 살짝 다르게 */
+            --nav-border: #33323a; /* 상단 경계선 추가 */
+            --nav-active-bg: #35343d;
+            --nav-inactive: #686d77;
+            --nav-shadow: 0 -4px 25px rgba(0, 0, 0, 0.4); /* 그림자로 깊이감 추가 */
             
-            --chart-track: #302f38;
-            --chart-fill-prev: #4b4a54;
+            --chart-track: #35343d;
+            --chart-fill-prev: #504f58;
             
             --skeleton-base: #24232b;
-            --skeleton-highlight: rgba(255, 255, 255, 0.06);
+            --skeleton-highlight: rgba(255, 255, 255, 0.08);
             
             --popup-bg: #24232b;
             --popup-comment: #1c1c24;
             
-            --ripple-color: rgba(255, 255, 255, 0.08);
-            --shadow-card: none; /* 다크모드에선 그림자 제거하고 면으로 승부 */
+            --ripple-color: rgba(255, 255, 255, 0.1);
+            --shadow-card: none;
         }
 
         body {
@@ -125,9 +135,7 @@
             height: var(--header-height); 
             display: flex; align-items: center; justify-content: space-between;
             padding: 16px 24px;
-            /* 경계선 제거 */
         }
-        /* 다크모드일 때 헤더 블러 제거 (완벽한 일체감을 위해) */
         [data-theme="dark"] .header { backdrop-filter: none; }
 
         .header h1 { font-size: 26px; font-weight: 800; color: var(--text-main); margin: 0; }
@@ -141,15 +149,15 @@
         }
         .icon-button:hover { background-color: var(--nav-active-bg); }
 
-        /* 히어로 섹션 */
+        /* 히어로 */
         .hero-section { margin-top: 10px; margin-bottom: 30px; }
         .hero-greeting { font-size: 16px; color: var(--text-sub); font-weight: 500; margin-bottom: 8px; }
         .hero-balance { font-size: 32px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
 
-        /* 카드 공통 스타일 */
+        /* 카드 */
         .insight-card {
             background-color: var(--card-bg);
-            border: 1px solid var(--border-color); /* 경계선은 미세하게 */
+            border: 1px solid var(--border-color);
             border-radius: 24px;
             padding: 24px;
             margin-bottom: 16px;
@@ -163,7 +171,7 @@
         .card-desc { font-size: 14px; color: var(--text-sub); font-weight: 400; line-height: 1.4; }
         .card-icon { color: var(--nav-inactive); font-size: 24px; }
 
-        /* 막대 그래프 */
+        /* 차트 */
         .bar-chart-container { display: flex; flex-direction: column; gap: 12px; }
         .bar-row { display: flex; align-items: center; gap: 10px; }
         .bar-label { width: 50px; font-size: 13px; color: var(--text-sub); font-weight: 500; }
@@ -177,7 +185,7 @@
         .highlight-bad { color: var(--expense-color); }
         .highlight-good { color: var(--primary-blue); }
 
-        /* 도넛 차트 */
+        /* 도넛 */
         .ranking-container { display: flex; align-items: center; gap: 20px; }
         .donut-chart {
             width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
@@ -198,7 +206,7 @@
 
         .daily-val { font-size: 24px; font-weight: 800; color: var(--text-main); }
 
-        /* 스켈레톤 로딩 */
+        /* 스켈레톤 */
         .skeleton {
             background: var(--skeleton-base);
             color: transparent !important;
@@ -215,9 +223,10 @@
             animation: shimmer 1.5s infinite;
         }
         @keyframes shimmer { 100% { transform: translateX(100%); } }
+        /* 전체 트랜지션 제거로 인해 이곳의 opacity 0 설정이 문제를 일으키지 않도록 수정 */
         .skeleton * { opacity: 0; }
 
-        /* 하단 내비게이션 */
+        /* 하단 내비게이션 (개선됨) */
         .bottom-nav {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             width: 75%; max-width: 450px; 
@@ -226,12 +235,12 @@
             backdrop-filter: blur(10px); 
             display: flex; justify-content: space-around; align-items: center;
             z-index: 1000; 
-            border: 1px solid var(--border-color); 
+            /* 테두리와 그림자로 구분감 강화 */
+            border: 1px solid var(--nav-border); 
+            box-shadow: var(--nav-shadow);
             border-radius: 50px; padding: 0 10px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
-        /* 다크모드일 땐 Nav도 블러 제거하고 카드처럼 표현 */
-        [data-theme="dark"] .bottom-nav { backdrop-filter: none; box-shadow: 0 4px 30px rgba(0,0,0,0.4); }
+        [data-theme="dark"] .bottom-nav { backdrop-filter: none; }
 
         .nav-item {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -247,14 +256,13 @@
         }
         .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
 
-        /* 알림 팝업 */
+        /* 팝업 */
         .alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; display: none; justify-content: center; align-items: center; }
         .alert-box { width: 85%; max-width: 320px; background-color: var(--popup-bg); border-radius: 24px; padding: 24px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
         .alert-box h3 { color: var(--text-main); }
         .alert-box p { color: var(--text-sub); }
         .alert-btn { width: 100%; padding: 15px; border-radius: 16px; border: none; font-size: 16px; font-weight: 700; color: white; cursor: pointer; background-color: var(--primary-blue); margin-top: 20px; }
         
-        /* 리플 효과 */
         .ripple {
             position: absolute; border-radius: 50%; transform: scale(0);
             animation: ripple-anim 0.5s linear; background-color: var(--ripple-color); pointer-events: none; 
@@ -277,7 +285,6 @@
             <button class="icon-button ripple-target">
                 <span class="material-icons">notifications</span>
             </button>
-            <!-- 테마 토글 버튼 -->
             <button class="icon-button ripple-target" onclick="toggleTheme()">
                 <span class="material-icons">settings</span>
             </button>
@@ -377,7 +384,6 @@
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             
-            // 차트 색상 업데이트를 위해 데이터 로드 재실행
             const uid = firebase.auth().currentUser?.uid;
             if(uid) loadHomeData(uid);
         }
@@ -402,10 +408,12 @@
             if (user) {
                 const name = user.displayName || "사용자";
                 const greetingEl = document.getElementById('greeting-text');
-                greetingEl.classList.remove('skeleton');
-                greetingEl.style.width = 'auto'; 
-                greetingEl.style.height = 'auto';
-                greetingEl.innerText = `${timeGreeting}, ${name}님`;
+                if(greetingEl) {
+                    greetingEl.classList.remove('skeleton');
+                    greetingEl.style.width = 'auto'; 
+                    greetingEl.style.height = 'auto';
+                    greetingEl.innerText = `${timeGreeting}, ${name}님`;
+                }
                 
                 loadHomeData(user.uid);
                 listenForParentDecision(user.uid); 
@@ -476,42 +484,46 @@
 
             const maxVal = Math.max(thisMonthExpense, lastMonthExpense) || 1;
             setTimeout(() => {
-                document.getElementById('bar-prev').style.width = `${(lastMonthExpense / maxVal) * 100}%`;
-                document.getElementById('bar-curr').style.width = `${(thisMonthExpense / maxVal) * 100}%`;
+                const barPrev = document.getElementById('bar-prev');
+                const barCurr = document.getElementById('bar-curr');
+                if(barPrev) barPrev.style.width = `${(lastMonthExpense / maxVal) * 100}%`;
+                if(barCurr) barCurr.style.width = `${(thisMonthExpense / maxVal) * 100}%`;
             }, 100);
 
             removeSkeleton('trend-text');
             const trendEl = document.getElementById('trend-text');
             const diff = thisMonthExpense - lastMonthExpense;
-            if (diff > 0) trendEl.innerHTML = `지난달보다 <span class="highlight-bad">${Math.abs(diff).toLocaleString()}원</span> 더 썼어요.`;
-            else if (diff < 0) trendEl.innerHTML = `지난달보다 <span class="highlight-good">${Math.abs(diff).toLocaleString()}원</span> 절약했어요!`;
-            else trendEl.innerText = "지난달과 지출이 비슷해요.";
-            if (thisMonthExpense === 0 && lastMonthExpense === 0) trendEl.innerText = "아직 지출 내역이 없어요.";
+            if(trendEl) {
+                if (diff > 0) trendEl.innerHTML = `지난달보다 <span class="highlight-bad">${Math.abs(diff).toLocaleString()}원</span> 더 썼어요.`;
+                else if (diff < 0) trendEl.innerHTML = `지난달보다 <span class="highlight-good">${Math.abs(diff).toLocaleString()}원</span> 절약했어요!`;
+                else trendEl.innerText = "지난달과 지출이 비슷해요.";
+                if (thisMonthExpense === 0 && lastMonthExpense === 0) trendEl.innerText = "아직 지출 내역이 없어요.";
+            }
 
             const sortedCats = Object.keys(categoryMap).map(key => ({ name: key, amount: categoryMap[key] })).sort((a, b) => b.amount - a.amount).slice(0, 3);
             const rankListEl = document.getElementById('rank-list');
-            rankListEl.innerHTML = '';
+            if(rankListEl) rankListEl.innerHTML = '';
             
-            document.getElementById('donut-chart').classList.remove('skeleton');
+            const donutChart = document.getElementById('donut-chart');
+            if(donutChart) donutChart.classList.remove('skeleton');
 
             if (sortedCats.length > 0) {
                 const colors = ['#f04452', '#ff8c00', '#ffc107'];
                 let gradientStr = "", currentDeg = 0;
                 sortedCats.forEach((cat, idx) => {
-                    rankListEl.innerHTML += `<div class="rank-item"><div class="rank-name"><div class="rank-dot" style="background-color: ${colors[idx]}"></div>${cat.name}</div><div class="rank-amt">${cat.amount.toLocaleString()}원</div></div>`;
+                    if(rankListEl) rankListEl.innerHTML += `<div class="rank-item"><div class="rank-name"><div class="rank-dot" style="background-color: ${colors[idx]}"></div>${cat.name}</div><div class="rank-amt">${cat.amount.toLocaleString()}원</div></div>`;
                     const deg = (cat.amount / thisMonthExpense) * 360; 
                     gradientStr += `${colors[idx]} ${currentDeg}deg ${currentDeg + deg}deg, `;
                     currentDeg += deg;
                 });
                 
-                // 차트 트랙 색상을 현재 테마에서 가져오기
                 const trackColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-track').trim();
                 gradientStr += `${trackColor} ${currentDeg}deg 360deg`;
                 
-                document.getElementById('donut-chart').style.background = `conic-gradient(${gradientStr})`;
+                if(donutChart) donutChart.style.background = `conic-gradient(${gradientStr})`;
             } else {
-                rankListEl.innerHTML = '<div class="rank-item" style="color:var(--text-sub);justify-content:center;">내역이 없습니다.</div>';
-                document.getElementById('donut-chart').style.background = 'var(--chart-track)';
+                if(rankListEl) rankListEl.innerHTML = '<div class="rank-item" style="color:var(--text-sub);justify-content:center;">내역이 없습니다.</div>';
+                if(donutChart) donutChart.style.background = 'var(--chart-track)';
             }
 
             removeSkeleton('daily-avg');
@@ -522,4 +534,36 @@
         function createRipple(event) {
             const button = event.currentTarget; const oldRipple = button.querySelector('.ripple'); if(oldRipple) oldRipple.remove();
             const circle = document.createElement('span'); const diameter = Math.max(button.clientWidth, button.clientHeight); const radius = diameter / 2; const rect = button.getBoundingClientRect();
-            circle.style.width = circle.style.height = `${diame
+            circle.style.width = circle.style.height = `${diameter}px`; circle.style.left = `${event.clientX - rect.left - radius}px`; circle.style.top = `${event.clientY - rect.top - radius}px`; circle.classList.add('ripple');
+            button.appendChild(circle); setTimeout(() => circle.remove(), 500);
+        }
+        document.querySelectorAll('.ripple-target').forEach(btn => btn.addEventListener('click', createRipple));
+
+        function listenForParentDecision(uid) {
+            db.collection('shared_reports').where('uid','==',uid).where('status','in',['승인','반려'])
+            .onSnapshot(ss => {
+                ss.docChanges().forEach(c => {
+                    if(c.type==='added' || c.type==='modified') {
+                        let d = c.doc.data(); pendingReportDocId = c.doc.id;
+                        document.getElementById('alert-title').innerText = `부모님 ${d.status}`;
+                        document.getElementById('alert-icon').innerText = d.status==='승인'?'check_circle':'cancel';
+                        document.getElementById('alert-icon').style.color = d.status==='승인'?'#3182f6':'#f04452';
+                        if(d.parentComment) {
+                            document.getElementById('alert-comment').innerText = d.parentComment;
+                            document.getElementById('alert-comment').style.display='block';
+                        } else {
+                            document.getElementById('alert-comment').style.display='none';
+                        }
+                        document.getElementById('alert-overlay').style.display='flex';
+                    }
+                });
+            });
+        }
+        function confirmAlert() {
+            if(pendingReportDocId) db.collection('shared_reports').doc(pendingReportDocId).delete().then(()=>{
+                document.getElementById('alert-overlay').style.display='none';
+            });
+        }
+    </script>
+</body>
+</html>
