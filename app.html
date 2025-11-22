@@ -3,134 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PWA 설치하기</title>
-    <!-- Tailwind CSS 로드 -->
+    <title>PWA 설치 페이지</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter 폰트 설정 -->
     <style>
-        /* 커스텀 스타일 (폰트 및 배경) */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0d1117; /* GitHub Dark Theme 배경 */
-        }
-        .container-card {
-            background-color: #161b22; /* 카드 배경 */
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 6px 6px -3px rgba(0, 0, 0, 0.3);
+            background-color: #f7f7f9;
         }
     </style>
+
+    <!-- PWA 관련 메타 태그 (실제 PWA 기능을 위해 manifest.json과 Service Worker가 필요합니다) -->
+    <!-- 여기서는 UI만 제공하지만, 실제 PWA는 이 메타 태그와 함께 작동합니다. -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="MyPWAApp">
+    <link rel="apple-touch-icon" href="https://placehold.co/180x180/000000/FFFFFF?text=PWA">
+    
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="container-card max-w-lg w-full p-8 rounded-xl space-y-6 text-center">
-        <!-- 제목 및 설명 -->
-        <h1 class="text-3xl font-bold text-white mb-2">
-            앱을 설치하세요!
-        </h1>
-        <p class="text-gray-400 mb-6">
-            이 웹사이트를 모바일이나 데스크톱에 앱처럼 설치하고 더 빠르게 이용해보세요.
-        </p>
+    <!-- 메인 컨테이너 -->
+    <div class="w-full max-w-md bg-white p-8 rounded-xl shadow-2xl border border-gray-100 transform transition-all duration-300 hover:shadow-3xl">
+        <div class="text-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 mx-auto text-indigo-600 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20h-7.5"></path>
+                <path d="m2 15 2 2 2-2"></path>
+                <path d="m2 11 2 2 2-2"></path>
+            </svg>
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-2">프로그레시브 웹 앱</h1>
+            <p class="text-lg text-gray-500 mb-6">
+                이 앱을 설치하여 더 빠르고 오프라인에서도 사용할 수 있는 경험을 즐기세요.
+            </p>
+        </div>
 
-        <!-- 설치 버튼 -->
+        <!-- 설치 버튼 (초기에 숨겨져 있음) -->
         <button id="installButton"
-            class="hidden w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200 transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-600 disabled:cursor-not-allowed"
-            aria-label="앱 설치 버튼">
-            <span id="buttonText">앱 설치하기</span>
+                class="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200 transform scale-100 hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+                style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            앱 설치
         </button>
 
-        <!-- 메시지 영역 -->
-        <div id="message" class="text-sm text-gray-500 mt-4">
-            설치 기능 지원 여부를 확인 중입니다...
+        <!-- 정보 메시지 -->
+        <div id="infoMessage" class="mt-4 p-4 bg-indigo-50 text-indigo-700 rounded-lg text-sm text-center">
+            브라우저가 PWA 설치를 지원할 때 설치 버튼이 자동으로 나타납니다.
+        </div>
+        
+        <!-- 설치 완료 메시지 (PWA로 실행 중일 때) -->
+        <div id="installedMessage" class="mt-4 p-4 bg-green-50 text-green-700 rounded-lg text-sm text-center font-semibold" style="display: none;">
+            앱이 이미 설치되어 있습니다! 홈 화면에서 실행해 보세요.
         </div>
 
-        <!-- PWA 아이콘 자리 (예시) -->
-        <div class="mt-8">
-            <svg class="mx-auto h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-        </div>
     </div>
 
     <script>
-        // 전역 변수 설정
-        let deferredPrompt; // PWA 설치 프롬프트 이벤트를 저장할 변수
+        // PWA 설치 프롬프트를 저장할 변수
+        let deferredPrompt;
         const installButton = document.getElementById('installButton');
-        const messageElement = document.getElementById('message');
-        const buttonText = document.getElementById('buttonText');
+        const infoMessage = document.getElementById('infoMessage');
+        const installedMessage = document.getElementById('installedMessage');
+        
+        // ************************************************************
+        // 1. PWA 설치 가능 여부 확인 (beforeinstallprompt 이벤트)
+        // ************************************************************
 
-        /**
-         * PWA 설치 버튼 상태를 업데이트하는 함수
-         * @param {string} state - 'hidden', 'visible', 'installed' 중 하나
-         * @param {string} msg - 사용자에게 표시할 메시지
-         */
-        function updateUI(state, msg) {
-            messageElement.textContent = msg;
-
-            if (state === 'visible') {
-                installButton.classList.remove('hidden');
-                installButton.disabled = false;
-                buttonText.textContent = '앱 설치하기';
-            } else if (state === 'installed') {
-                installButton.classList.add('hidden');
-            } else if (state === 'hidden') {
-                installButton.classList.add('hidden');
-            }
-        }
-
-        // 1. 'beforeinstallprompt' 이벤트 리스너: 설치 프롬프트 이벤트를 가로채어 저장합니다.
         window.addEventListener('beforeinstallprompt', (e) => {
-            // 브라우저의 기본 프롬프트 노출을 막습니다.
+            // 브라우저의 기본 설치 프롬프트 표시를 막습니다.
             e.preventDefault();
-            // 이벤트 객체를 저장하여 나중에 수동으로 호출할 수 있게 합니다.
+            // 이벤트 객체를 저장합니다. 사용자가 버튼을 클릭하면 나중에 이 객체를 사용합니다.
             deferredPrompt = e;
+            
+            // 버튼을 보여주고 안내 메시지를 숨깁니다.
+            installButton.style.display = 'flex';
+            infoMessage.style.display = 'none';
 
-            // 사용자 지정 설치 버튼을 보여줍니다.
-            updateUI('visible', '설치 버튼이 활성화되었습니다. 클릭하여 설치하세요.');
+            console.log('beforeinstallprompt event fired. Install button is now visible.');
         });
 
+        // ************************************************************
         // 2. 설치 버튼 클릭 이벤트 핸들러
+        // ************************************************************
+        
         installButton.addEventListener('click', async () => {
+            // 버튼을 비활성화하고 로딩 상태를 표시할 수 있습니다.
+            installButton.disabled = true;
+            installButton.textContent = '설치 요청 중...';
+
             if (deferredPrompt) {
-                // 버튼을 비활성화하여 중복 클릭을 막습니다.
-                installButton.disabled = true;
-                buttonText.textContent = '설치 요청 중...';
-                
-                // 저장해 둔 프롬프트 이벤트의 prompt() 메서드를 호출합니다.
+                // 저장된 프롬프트를 실행합니다.
                 deferredPrompt.prompt();
-
-                // 사용자의 선택 결과를 기다립니다.
-                const { outcome } = await deferredPrompt.userChoice;
                 
-                // 사용자 선택에 따른 피드백을 제공합니다.
-                if (outcome === 'accepted') {
-                    updateUI('installed', '성공적으로 설치되었습니다! 🎉');
-                } else {
-                    updateUI('installed', '설치가 취소되었습니다. 원할 때 다시 시도할 수 있습니다.');
-                }
+                // 사용자가 프롬프트에 응답할 때까지 기다립니다.
+                const { outcome } = await deferredPrompt.userChoice;
 
-                // 프롬프트는 한 번만 사용할 수 있으므로 null로 초기화합니다.
+                console.log(`User response to the install prompt: ${outcome}`);
+
+                // 프롬프트는 한 번만 사용할 수 있으므로 null로 재설정합니다.
                 deferredPrompt = null;
-
+                
+                if (outcome === 'accepted') {
+                    // 설치가 수락됨. 버튼을 숨기고 완료 메시지를 표시합니다.
+                    console.log('PWA installation accepted.');
+                    installButton.style.display = 'none';
+                    installedMessage.style.display = 'block';
+                } else {
+                    // 설치가 거부됨. 버튼을 다시 활성화하고 메시지를 업데이트합니다.
+                    console.log('PWA installation dismissed.');
+                    installButton.disabled = false;
+                    installButton.textContent = '앱 설치'; // 버튼 텍스트를 원래대로 복원
+                }
             } else {
-                updateUI('hidden', '이 브라우저는 PWA 설치를 지원하지 않거나 이미 설치되었습니다. (beforeinstallprompt 이벤트가 발생하지 않았습니다)');
+                // deferredPrompt가 없으면 설치 불가능 상태이거나 이미 설치가 시도되었음을 의미합니다.
+                console.warn('Install prompt not available.');
+                // 사용자에게 브라우저 설정에서 설치를 시도해 보라고 안내할 수 있습니다.
+                installButton.textContent = '설치 불가 (수동 시도)';
             }
         });
+        
+        // ************************************************************
+        // 3. 앱이 PWA 모드로 실행 중인지 확인
+        // ************************************************************
 
-        // 3. 앱 설치 상태 확인 (선택 사항)
-        if (window.matchMedia('(display-mode: standalone)').matches || document.referrer.includes('?utm_source=pwa')) {
-            updateUI('installed', '이 앱은 이미 설치된 상태입니다.');
-        } else if (!('BeforeInstallPromptEvent' in window)) {
-            // beforeinstallprompt 이벤트 자체가 없는 경우 (대부분의 데스크톱 브라우저에서는 이 이벤트가 발생하지 않음)
-            updateUI('hidden', '이 브라우저는 PWA 설치 기능을 지원하지 않습니다.');
-        } else {
-            // beforeinstallprompt 이벤트를 기다리는 중
-            updateUI('hidden', 'PWA 설치 지원 여부를 확인 중입니다...');
+        // 앱이 독립형 모드(standalone, PWA 모드)로 실행 중인지 확인합니다.
+        function checkStandaloneMode() {
+            const isStandalone = (window.matchMedia('(display-mode: standalone)').matches) || 
+                                 (navigator.standalone); // iOS용
+            
+            if (isStandalone) {
+                // 이미 PWA로 실행 중이면 설치 버튼과 정보 메시지를 숨기고 설치 완료 메시지를 표시합니다.
+                installButton.style.display = 'none';
+                infoMessage.style.display = 'none';
+                installedMessage.style.display = 'block';
+                console.log('App is running in standalone (PWA) mode.');
+            }
         }
 
-        // 4. 앱이 설치된 후 'appinstalled' 이벤트 처리 (선택 사항)
+        // 페이지 로드 시 확인
+        checkStandaloneMode();
+
+        // PWA가 설치된 후 실행 모드가 변경될 때를 대비해 이벤트 리스너를 추가할 수 있습니다.
         window.addEventListener('appinstalled', () => {
-            // 설치 후 UI를 업데이트합니다.
-            updateUI('installed', '앱 설치가 완료되었습니다. 감사합니다!');
-            // deferredPrompt를 null로 재설정합니다.
-            deferredPrompt = null;
+            console.log('PWA was successfully installed.');
+            // 설치 후에는 프롬프트가 더 이상 필요 없으므로 숨깁니다.
+            installButton.style.display = 'none';
+            installedMessage.style.display = 'block';
         });
 
     </script>
