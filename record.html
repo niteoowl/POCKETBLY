@@ -40,10 +40,10 @@
             --header-bg: rgba(255, 255, 255, 0.95);
             --card-bg: #ffffff;
             
-            --text-main: #191f28; /* 기존 --text-dark */
-            --text-sub: #8b95a1;  /* 기존 --text-gray */
+            --text-main: #191f28; 
+            --text-sub: #8b95a1;
             
-            --border-color: #e5e8eb; /* 기존 --border-light */
+            --border-color: #e5e8eb; 
             
             --nav-bg: rgba(255, 255, 255, 0.85);
             --nav-border: #e5e8eb;
@@ -53,7 +53,7 @@
             --skeleton-base: #f2f4f6;
             --skeleton-highlight: rgba(255, 255, 255, 0.5);
             
-            --popup-comment: #f9fafb; /* .result-link-box, .alert-comment */
+            --popup-comment: #f9fafb; 
             
             --primary-blue: #3b82f6;
             --income-color: #2c92ff;   
@@ -83,32 +83,31 @@
             
             --popup-comment: #1c1c24;
             
-            /* 다크 모드에서는 primary-blue를 Home 페이지와 통일 */
             --primary-blue: #3182f6; 
-            --income-color: #4da5ff; /* 다크 모드에서 더 잘 보이도록 조정 */
-            --expense-color: #f04452; /* 동일하게 유지 */
+            --income-color: #4da5ff; 
+            --expense-color: #f04452; 
             --ripple-color: rgba(255, 255, 255, 0.1);
         }
         [data-theme="dark"] .header { backdrop-filter: none; }
         [data-theme="dark"] .bottom-nav { backdrop-filter: none; }
+        .skeleton * { opacity: 0; } /* 스켈레톤의 내부 요소 숨김 */
 
         body {
             font-family: 'Pretendard', sans-serif;
-            background-color: var(--bg-color); /* 적용 */
+            background-color: var(--bg-color); 
             margin: 0; padding: 0;
             display: flex; flex-direction: column; align-items: center;
             overflow-y: scroll; 
             padding-top: var(--header-height); 
             padding-bottom: 110px; 
-            color: var(--text-main); /* 적용 */
+            color: var(--text-main); 
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         /* 메인 컨테이너 */
         .container {
-            width: 95%;
-            max-width: 1024px; 
-            background-color: var(--bg-color); /* 적용 */
+            width: 95%; max-width: 1024px; 
+            background-color: var(--bg-color); 
             padding: 0 24px 24px 24px; 
         }
 
@@ -116,208 +115,168 @@
         .header {
             position: fixed; top: 0; left: 50%; transform: translateX(-50%);
             width: 95%; max-width: 1024px; z-index: 1005;
-            background-color: var(--header-bg); /* 적용 */
+            background-color: var(--header-bg); 
             backdrop-filter: blur(5px);
             height: var(--header-height); 
             display: flex; align-items: center; justify-content: space-between;
             padding: 16px 24px;
         }
-        .header h1 { font-size: 26px; font-weight: 800; color: var(--text-main); margin: 0; } /* 적용 */
+        .header h1 { font-size: 26px; font-weight: 800; color: var(--text-main); margin: 0; } 
         .header-action { display: flex; gap: 8px; }
         
         .icon-button {
-            background: none; border: none; color: var(--text-main); cursor: pointer; /* 적용 */
+            background: none; border: none; color: var(--text-main); cursor: pointer; 
             padding: 8px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center;
             position: relative; overflow: hidden;
             transition: background-color 0.2s;
         }
-        .icon-button:hover { background-color: var(--nav-active-bg); } /* 적용 */
+        .icon-button:hover { background-color: var(--nav-active-bg); } 
 
         /* [수정된 검색창 스타일] */
-        .search-bar-container {
-            width: 100%; margin-bottom: 16px; display: none; 
-            animation: slideDown 0.3s ease-out; margin-top: 10px;
-        }
         .search-box-wrapper {
             display: flex; align-items: center; width: 100%;
-            background-color: var(--card-bg); /* 적용 */
-            border: 1px solid var(--text-main); /* 어두운 색상 테두리 적용 */
+            background-color: var(--card-bg); 
+            border: 1px solid var(--text-main); 
             border-radius: 12px; padding: 6px 12px;
         }
         .search-input {
             flex-grow: 1; border: none; background: transparent; font-size: 15px;
-            padding: 8px 0; outline: none; color: var(--text-main); /* 적용 */
+            padding: 8px 0; outline: none; color: var(--text-main); 
         }
-        .search-input::placeholder { color: var(--text-sub); } /* 적용 */
+        .search-input::placeholder { color: var(--text-sub); } 
 
         .search-submit-btn {
-            background: none; border: none; color: var(--text-main); /* 적용 */
-            cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;
+            background: none; border: none; color: var(--text-main); 
         }
 
         /* [요약 카드] */
-        .summary-label { font-size: 15px; font-weight: 700; color: var(--text-main); } /* 적용 */
+        .summary-label { color: var(--text-main); } 
         .toggle-btn { 
-            background-color: var(--nav-active-bg); /* 적용: #f2f4f6 -> var(--nav-active-bg) */
-            border: none; border-radius: 12px; padding: 6px 12px; font-size: 12px; 
-            font-weight: 600; color: var(--text-sub); /* 적용 */
-            cursor: pointer; transition: all 0.2s; 
+            background-color: var(--nav-active-bg); 
+            color: var(--text-sub); 
         }
-        .toggle-btn.active { background-color: var(--text-main); color: var(--bg-color); } /* 적용: --text-dark -> var(--text-main), #fff -> var(--bg-color) */
+        .toggle-btn.active { background-color: var(--text-main); color: var(--bg-color); } 
         
         .summary-card { 
-            background-color: var(--card-bg); /* 적용 */
-            border: 1px solid var(--border-color); /* 적용 */
-            padding: 16px 12px; border-radius: 16px; display: flex; flex-direction: column; 
-            justify-content: center; min-height: 80px; 
+            background-color: var(--card-bg); 
+            border: 1px solid var(--border-color); 
         }
-        .summary-card-title { font-size: 13px; font-weight: 500; color: var(--text-sub); } /* 적용 */
-        .summary-card-value { font-size: 17px; font-weight: 700; color: var(--text-main); } /* 적용 */
+        .summary-card-title { color: var(--text-sub); } 
+        .summary-card-value { color: var(--text-main); } 
         .val-income { color: var(--income-color); } 
         .val-expense { color: var(--expense-color); } 
-        .val-net { color: var(--text-main); } /* 적용 */
+        .val-net { color: var(--text-main); } 
 
         /* 날짜 탐색 */
-        .date-display { font-size: 18px; font-weight: 700; color: var(--text-main); } /* 적용 */
-        .nav-arrow { background: none; border: none; color: var(--text-main); cursor: pointer; } /* 적용 */
-        .nav-arrow:hover { background-color: var(--nav-active-bg); } /* 적용 */
+        .date-display { color: var(--text-main); } 
+        .nav-arrow { color: var(--text-main); } 
+        .nav-arrow:hover { background-color: var(--nav-active-bg); } 
 
         /* 리스트 */
-        .transaction-list-section h2 { font-size: 16px; font-weight: 600; color: var(--text-main); } /* 적용 */
-        .daily-header { padding: 24px 0 10px 0; font-size: 15px; font-weight: 700; color: var(--text-sub); border-bottom: 1px solid transparent; } /* 적용: #6b7684 -> var(--text-sub) */
+        .transaction-list-section h2 { color: var(--text-main); } 
+        .daily-header { color: var(--text-sub); } 
         
         .transaction-item { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 14px 0; 
-            border-bottom: 1px solid var(--nav-active-bg); /* 경계선: #f2f4f6 -> var(--nav-active-bg) (더 부드러운 구분) */
-            cursor: pointer; position: relative; overflow: hidden; 
+            /* [개선] 카드와 일관되게 border-color 사용 */
+            border-bottom: 1px solid var(--border-color); 
         }
-        .trans-usage { font-size: 16px; font-weight: 600; color: var(--text-main); } /* 적용 */
-        .trans-meta { font-size: 13px; color: var(--text-sub); font-weight: 400; } /* 적용 */
+        .trans-usage { color: var(--text-main); } 
+        .trans-meta { color: var(--text-sub); } 
         
         /* [스켈레톤 UI] */
         .skeleton {
-            background: var(--skeleton-base); /* 적용 */
-            color: transparent !important;
-            border-radius: 4px; user-select: none; position: relative; overflow: hidden;
+            background: var(--skeleton-base); 
         }
         .skeleton::after {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); /* 적용 */
-            transform: translateX(-100%); animation: shimmer 1.5s infinite;
+            background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); 
         }
         
         /* 하단 내비게이션 */
         .bottom-nav { 
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
-            width: 75%; max-width: 450px; height: 75px; 
-            background-color: var(--nav-bg); /* 적용 */
-            backdrop-filter: blur(10px); display: flex; justify-content: space-around; 
-            align-items: center; z-index: 1000; 
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); 
-            border: 1px solid var(--nav-border); /* 적용: --border-light -> var(--nav-border) */
-            border-radius: 50px; padding: 0 10px; 
+            background-color: var(--nav-bg); 
+            border: 1px solid var(--nav-border); 
         }
         .nav-item { 
-            text-decoration: none; color: var(--nav-inactive); /* 적용: #b0b8c1 -> var(--nav-inactive) */
-            font-size: 11px; font-weight: 500; flex-grow: 1; height: 60px; 
-            position: relative; border-radius: 25px; 
+            color: var(--nav-inactive); 
         }
-        .nav-item.active { color: var(--text-main); font-weight: 600; } /* 적용 */
+        .nav-item.active { color: var(--text-main); } 
         .nav-item.active::before { 
-            content: ''; position: absolute; top: 50%; left: 50%; 
-            width: 100px; height: 55px; 
-            background-color: var(--nav-active-bg); /* 적용: #f2f4f6 -> var(--nav-active-bg) */
-            border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; 
+            background-color: var(--nav-active-bg); 
         }
 
         /* 모달 및 기타 스타일 */
-        .modal { background-color: var(--bg-color); z-index: 2000; } /* 적용 */
+        .modal { background-color: var(--bg-color); } 
         .modal-header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 16px 24px; 
-            border-bottom: 1px solid var(--border-color); /* 적용 */
-            flex-shrink: 0; 
+            border-bottom: 1px solid var(--border-color); 
         }
 
-        .transfer-label { font-size: 14px; color: var(--text-sub); } /* 적용 */
+        .transfer-label { color: var(--text-sub); } 
         .transfer-input { 
-            width: 100%; border: none; border-bottom: 2px solid var(--border-color); /* 적용 */
-            font-size: 28px; font-weight: 700; text-align: center; padding: 10px 0; 
-            background-color: transparent; color: var(--text-main); outline: none; 
-            border-radius: 0; transition: border-color 0.3s; 
+            border-bottom: 2px solid var(--border-color); 
+            color: var(--text-main); 
         }
-        .transfer-input:focus { border-bottom-color: var(--text-main); } /* 적용 */
+        .transfer-input:focus { border-bottom-color: var(--text-main); } 
         .result-link-box { 
-            margin-top: 20px; padding: 16px; 
-            background-color: var(--popup-comment); /* 적용 */
-            border-radius: 12px; 
-            border: 1px solid var(--border-color); /* 적용 */
-            text-align: center; display: none; width: 100%; 
+            background-color: var(--popup-comment); 
+            border: 1px solid var(--border-color); 
         }
-        .result-link-title { font-size: 12px; color: var(--text-sub); } /* 적용 */
-        .result-link-url { font-size: 14px; font-weight: 600; color: var(--primary-blue); } /* 적용 */
+        .result-link-title { color: var(--text-sub); } 
+        .result-link-url { color: var(--primary-blue); } 
 
-        .ripple { background-color: var(--ripple-color); pointer-events: none; } /* 적용 */
+        .ripple { background-color: var(--ripple-color); } 
 
         /* 기타 팝업 스타일 */
         .edit-modal-sheet { 
-            width: 100%; max-width: 600px; 
-            background-color: var(--card-bg); /* 적용 */
-            border-radius: 24px 24px 0 0; padding: 24px; animation: slideUp 0.3s ease-out; 
+            background-color: var(--card-bg); 
         }
-        .edit-label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px; } /* 적용: #999 -> var(--text-sub) */
+        .edit-label { color: var(--text-sub); } 
         .edit-input { 
-            width: 100%; border: none; 
-            border-bottom: 1px solid var(--border-color); /* 적용: #eee -> var(--border-color) */
-            padding: 10px 0; font-size: 16px; outline: none; background: transparent; 
+            border-bottom: 1px solid var(--border-color); 
             color: var(--text-main);
         }
-        .edit-buttons { display: flex; gap: 10px; margin-top: 30px; }
-        .btn-edit { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: 700; font-size: 15px; cursor: pointer; }
+        .edit-modal-sheet h3 { color: var(--text-main); }
+        .edit-modal-sheet .material-icons { color: var(--text-main); }
+
         .btn-delete { 
             background-color: #ffebeb; 
             color: var(--expense-color); 
         }
         [data-theme="dark"] .btn-delete {
-            background-color: #452c2c; /* 다크모드에 맞는 삭제 배경색 */
+            background-color: #452c2c; 
             color: var(--expense-color);
         }
-        .btn-save { background-color: var(--text-main); color: var(--bg-color); } /* 적용 */
+        .btn-save { background-color: var(--text-main); color: var(--bg-color); } 
         
         .alert-box { 
-            width: 85%; max-width: 320px; 
-            background-color: var(--card-bg); /* 적용 */
-            border-radius: 20px; padding: 24px; text-align: center; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+            background-color: var(--card-bg); 
         }
         .alert-btn { 
-            width: 100%; padding: 14px; border-radius: 12px; border: none; 
-            font-size: 16px; font-weight: 700; color: white; cursor: pointer; 
-            background-color: var(--text-main); /* 적용 */
-            margin-top: 20px; 
+            background-color: var(--text-main); 
         }
-        .alert-box h3 { color: var(--text-main); }
         .alert-box p { color: var(--text-sub); }
         .alert-box #alert-comment { 
-            background: var(--popup-comment); /* 적용: #f5f5f5 -> var(--popup-comment) */
-            padding:12px; border-radius:10px; margin-top:15px; font-size:14px; text-align:left; 
-            color: var(--text-main); /* 적용: #333 -> var(--text-main) */
+            background: var(--popup-comment); 
+            color: var(--text-main); 
         }
 
         .global-dialog-box { 
-            width: 80%; max-width: 300px; 
-            background: var(--card-bg); /* 적용 */
-            border-radius: 20px; padding: 24px; text-align: center; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
-            animation: popIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            background: var(--card-bg); 
         }
-        .global-dialog-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text-main); } /* 적용 */
-        .global-dialog-msg { font-size: 14px; color: var(--text-sub); margin-bottom: 20px; line-height: 1.4; } /* 적용: #6b7684 -> var(--text-sub) */
-        .global-dialog-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .btn-cancel { background-color: var(--nav-active-bg); color: var(--text-sub); } /* 적용 */
-        .btn-confirm { background-color: var(--text-main); color: var(--bg-color); } /* 적용 */
+        .global-dialog-title { color: var(--text-main); } 
+        .global-dialog-msg { color: var(--text-sub); } 
+        .btn-cancel { background-color: var(--nav-active-bg); color: var(--text-sub); } 
+        .btn-confirm { background-color: var(--text-main); color: var(--bg-color); } 
+
+        /* [모바일 최적화] */
+        @media (max-width: 600px) {
+            .header { width: 100%; padding: 0 16px; } 
+            .container { padding: 0 5px 20px 5px; } 
+            .summary-card { padding: 14px 10px; min-height: auto; } 
+            
+            .bottom-nav { width: 93%; bottom: 20px; }
+            .nav-item.active::before { width: 90px; height: 60px; border-radius: 30px; }
+        }
     </style>
 </head>
 <body>
@@ -331,6 +290,7 @@
             <button class="icon-button ripple-target" title="검색" onclick="toggleSearchBar()">
                 <span class="material-icons">search</span>
             </button>
+            <!-- 테마 토글 버튼 추가 -->
             <button class="icon-button ripple-target" title="테마 설정" onclick="toggleTheme()">
                 <span class="material-icons">settings</span>
             </button>
@@ -341,7 +301,6 @@
     </header>
 
     <div class="container">
-        <!-- [수정됨] 검색창이 container 내부로 이동되었습니다 -->
         <div id="search-bar-container" class="search-bar-container">
             <div class="search-box-wrapper">
                 <input type="text" id="search-input" class="search-input" placeholder="사용처 또는 내용을 검색하세요..." onkeyup="handleSearch()">
@@ -372,13 +331,13 @@
         <section class="transaction-list-section">
             <ul class="transaction-list" id="transaction-list-container">
                 <!-- 초기 스켈레톤 로딩 UI -->
-                <li style="padding: 14px 0; border-bottom: 1px solid var(--nav-active-bg);">
+                <li style="padding: 14px 0; border-bottom: 1px solid var(--border-color);">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="width: 100px; height: 20px;" class="skeleton"></div>
                         <div style="width: 60px; height: 20px;" class="skeleton"></div>
                     </div>
                 </li>
-                <li style="padding: 14px 0; border-bottom: 1px solid var(--nav-active-bg);">
+                <li style="padding: 14px 0; border-bottom: 1px solid var(--border-color);">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div style="width: 120px; height: 20px;" class="skeleton"></div>
                         <div style="width: 50px; height: 20px;" class="skeleton"></div>
@@ -484,8 +443,8 @@
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
-            // 테마 변경 시 UI를 다시 렌더링할 필요는 없지만, 혹시 모를 대비
-            if(firebase.auth().currentUser) renderUI();
+            // 테마 변경 시 UI를 다시 렌더링하여 색상 관련 요소를 업데이트
+            if(firebase.auth().currentUser) renderUI(); 
         }
 
         document.addEventListener('contextmenu', event => event.preventDefault());
@@ -668,6 +627,7 @@
             listContainer.innerHTML = '';
             
             if (filteredData.length === 0) { 
+                // [수정] 텍스트 색상을 var(--text-sub)로 설정
                 listContainer.innerHTML = '<li style="text-align:center; padding:60px 0; color:var(--text-sub); font-size:14px;">거래 내역이 없습니다.</li>'; 
                 return; 
             }
@@ -757,111 +717,4 @@
                 const docRef = await db.collection('shared_reports').add(reportData);
                 const shareUrl = `https://mo.nmate.kr/view?id=${docRef.id}`;
                 
-                linkArea.style.display = 'block'; urlText.textContent = shareUrl;
-                const message = `[용돈 기입장] ${month+1}월 사용 내역입니다.\n확인해주세요: ${shareUrl}`;
-                const ua = navigator.userAgent.toLowerCase();
-                let smsScheme = `sms:${phoneInput}?body=${encodeURIComponent(message)}`;
-                if (ua.indexOf('iphone') > -1 || ua.indexOf('ipad') > -1) { smsScheme = `sms:${phoneInput}&body=${encodeURIComponent(message)}`; }
-                
-                sendBtn.textContent = '전송 창 여는 중...';
-                setTimeout(() => { window.location.href = smsScheme; sendBtn.textContent = '다시 보내기'; sendBtn.disabled = false; }, 800);
-            } catch (error) { console.error(error); showGlobalDialog('alert', '오류가 발생했습니다.'); sendBtn.disabled = false; sendBtn.textContent = '보내기'; }
-        }
-
-        function createRipple(event) {
-            const button = event.currentTarget; const oldRipple = button.querySelector('.ripple'); if(oldRipple) oldRipple.remove();
-            const circle = document.createElement('span'); const diameter = Math.max(button.clientWidth, button.clientHeight); const radius = diameter / 2; const rect = button.getBoundingClientRect();
-            circle.style.width = circle.style.height = `${diameter}px`; circle.style.left = `${event.clientX - rect.left - radius}px`; circle.style.top = `${event.clientY - rect.top - radius}px`; circle.classList.add('ripple');
-            button.appendChild(circle); setTimeout(() => circle.remove(), 500);
-        }
-        document.querySelectorAll('.ripple-target').forEach(btn => { if(!btn.onclick) btn.addEventListener('click', createRipple); });
-
-        function toDatetimeLocal(date) {
-            const ten = (i) => (i < 10 ? '0' : '') + i;
-            const YYYY = date.getFullYear();
-            const MM = ten(date.getMonth() + 1);
-            const DD = ten(date.getDate());
-            const HH = ten(date.getHours());
-            const II = ten(date.getMinutes());
-            return `${YYYY}-${MM}-${DD}T${HH}:${II}`;
-        }
-
-        function openEditModal(id, usage, amount, memo, timeMs) {
-            document.getElementById('edit-doc-id').value = id;
-            document.getElementById('edit-usage').value = usage;
-            document.getElementById('edit-amount').value = Math.abs(amount);
-            document.getElementById('edit-memo').value = memo;
-            
-            const d = new Date(timeMs);
-            document.getElementById('edit-date').value = toDatetimeLocal(d);
-            
-            document.getElementById('edit-modal').style.display = 'flex';
-        }
-        function closeEditModal() { document.getElementById('edit-modal').style.display = 'none'; }
-
-        function deleteTransaction() {
-            showGlobalDialog('confirm', "정말 삭제하시겠습니까?", () => {
-                const id = document.getElementById('edit-doc-id').value;
-                db.collection('users').doc(currentUserId).collection('transaction_list').doc(id).delete()
-                .then(() => { 
-                    closeEditModal(); 
-                    showGlobalDialog('alert', "삭제되었습니다."); 
-                });
-            });
-        }
-
-        function updateTransaction() {
-            const id = document.getElementById('edit-doc-id').value;
-            const usage = document.getElementById('edit-usage').value;
-            const amountInput = parseInt(document.getElementById('edit-amount').value);
-            const memo = document.getElementById('edit-memo').value;
-            
-            const dateVal = document.getElementById('edit-date').value;
-            const newDate = dateVal ? new Date(dateVal) : new Date();
-
-            db.collection('users').doc(currentUserId).collection('transaction_list').doc(id).get().then(doc => {
-                const oldData = doc.data();
-                const isIncome = oldData.type === '수입' || oldData.amount > 0;
-                const newAmount = isIncome ? Math.abs(amountInput) : -Math.abs(amountInput);
-                
-                doc.ref.update({ 
-                    usage: usage, 
-                    amount: newAmount, 
-                    memo: memo,
-                    createdAt: firebase.firestore.Timestamp.fromDate(newDate) 
-                })
-                .then(() => { 
-                    closeEditModal(); 
-                    showGlobalDialog('alert', "수정되었습니다."); 
-                });
-            });
-        }
-
-        function listenForParentDecision(uid) {
-            db.collection('shared_reports').where('uid','==',uid).where('status','in',['승인','반려'])
-            .onSnapshot(ss => {
-                ss.docChanges().forEach(c => {
-                    if(c.type==='added' || c.type==='modified') {
-                        let d = c.doc.data(); pendingReportDocId = c.doc.id;
-                        document.getElementById('alert-title').innerText = `부모님 ${d.status}`;
-                        document.getElementById('alert-icon').innerText = d.status==='승인'?'check_circle':'cancel';
-                        document.getElementById('alert-icon').style.color = d.status==='승인'?'var(--income-color)':'var(--expense-color)';
-                        if(d.parentComment) {
-                            document.getElementById('alert-comment').innerText = d.parentComment;
-                            document.getElementById('alert-comment').style.display='block';
-                        } else {
-                            document.getElementById('alert-comment').style.display='none';
-                        }
-                        document.getElementById('alert-overlay').style.display='flex';
-                    }
-                });
-            });
-        }
-        function confirmAlert() {
-            if(pendingReportDocId) db.collection('shared_reports').doc(pendingReportDocId).delete().then(()=>{
-                document.getElementById('alert-overlay').style.display='none';
-            });
-        }
-    </script>
-</body>
-</html>
+                linkArea.style.display = 'block'; urlText.
