@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>POCKETBLY - 홈</title>
     
-    <!-- [핵심] 다크모드 깜빡임 방지 스크립트 (무조건 최상단 위치) -->
+    <!-- [깜빡임 방지 스크립트] -->
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme');
             const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            // 저장된 테마가 'dark'이거나, 저장된 게 없고 시스템이 다크모드라면
             if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
                 document.documentElement.setAttribute('data-theme', 'dark');
             } else {
@@ -19,64 +18,79 @@
         })();
     </script>
 
-    <!-- Google Material Icons -->
+    <!-- Icons & Fonts -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <!-- Pretendard Font -->
     <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
     
-    <!-- Firebase SDK -->
+    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     
     <style>
-        /* [공통] 스타일 리셋 & 복사 방지 */
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease; /* 부드러운 테마 전환 */ }
-        body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
-        input, textarea { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
+        /* 초기화 */
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; }
+        body { -webkit-user-select: none; user-select: none; }
+        input, textarea { -webkit-user-select: text; user-select: text; }
 
-        /* [CSS 변수 시스템] 다크모드 대응을 위한 색상 추상화 */
+        /* [색상 팔레트 정의] */
         :root {
-            /* 라이트 모드 (기본) */
-            --primary-blue: #3b82f6;
+            /* --- [Light Mode] --- */
             --bg-color: #ffffff;
+            --header-bg: rgba(255, 255, 255, 0.95); /* 라이트는 살짝 투명 */
             --card-bg: #ffffff;
+            
             --text-main: #191f28;
             --text-sub: #8b95a1;
+            
             --border-color: #e5e8eb;
-            --nav-bg: rgba(255, 255, 255, 0.85);
+            --nav-bg: rgba(255, 255, 255, 0.9);
             --nav-active-bg: #f2f4f6;
             --nav-inactive: #b0b8c1;
-            --ripple-color: rgba(0, 0, 0, 0.08);
-            --income-color: #2c92ff;   
-            --expense-color: #f04452;
+            
             --chart-track: #f2f4f6;
             --chart-fill-prev: #d1d6db;
+            
             --skeleton-base: #f2f4f6;
-            --skeleton-highlight: rgba(255, 255, 255, 0.5);
+            --skeleton-highlight: rgba(255, 255, 255, 0.6);
+            
             --popup-bg: #ffffff;
             --popup-comment: #f5f5f5;
             
+            /* 공통 컬러 */
+            --primary-blue: #3182f6; /* 토스 블루 */
+            --income-color: #3182f6;
+            --expense-color: #f04452;
+            --ripple-color: rgba(0, 0, 0, 0.05);
             --header-height: 80px; 
         }
 
-        /* 다크 모드 오버라이드 */
+        /* --- [Dark Mode: 토스 스타일] --- */
         [data-theme="dark"] {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-main: #f1f5f9;
-            --text-sub: #94a3b8;
-            --border-color: #333333;
-            --nav-bg: rgba(30, 30, 30, 0.85);
-            --nav-active-bg: #333333;
-            --nav-inactive: #64748b;
-            --ripple-color: rgba(255, 255, 255, 0.1);
-            --chart-track: #333333;
-            --chart-fill-prev: #475569;
-            --skeleton-base: #2d2d2d;
-            --skeleton-highlight: rgba(255, 255, 255, 0.05);
-            --popup-bg: #2d2d2d;
-            --popup-comment: #3d3d3d;
+            /* 푸른기 뺀 딥 다크 그레이 (토스 느낌) */
+            --bg-color: #17171c; 
+            --header-bg: #17171c; /* 배경과 완벽하게 동일한 색상 (투명도 X) */
+            --card-bg: #202027;   /* 카드만 아주 살짝 밝게 */
+            
+            --text-main: #eff1f3; /* 쨍한 화이트 대신 부드러운 화이트 */
+            --text-sub: #6c7680;  /* 어두운 배경용 회색 */
+            
+            --border-color: #2c2c35; /* 아주 어두운 경계선 */
+            
+            --nav-bg: #17171c;    /* 하단 탭도 배경과 동일 */
+            --nav-active-bg: #2c2c35;
+            --nav-inactive: #596370;
+            
+            --chart-track: #2c2c35;
+            --chart-fill-prev: #4e5968;
+            
+            --skeleton-base: #2c2c35;
+            --skeleton-highlight: rgba(255, 255, 255, 0.08);
+            
+            --popup-bg: #202027;
+            --popup-comment: #2c2c35;
+            
+            --ripple-color: rgba(255, 255, 255, 0.05);
         }
 
         body {
@@ -90,10 +104,9 @@
             color: var(--text-main);
         }
 
-        /* 메인 컨테이너 */
+        /* 레이아웃 */
         .container {
-            width: 95%;
-            max-width: 1024px; 
+            width: 95%; max-width: 1024px; 
             background-color: var(--bg-color);
             padding: 0 24px 24px 24px; 
         }
@@ -102,11 +115,12 @@
         .header {
             position: fixed; top: 0; left: 50%; transform: translateX(-50%);
             width: 95%; max-width: 1024px; z-index: 1005;
-            background-color: var(--nav-bg); /* 변수 적용 */
-            backdrop-filter: blur(5px);
+            background-color: var(--header-bg);
+            backdrop-filter: blur(10px); /* 라이트모드에서만 유효하게 보임 */
             height: var(--header-height); 
             display: flex; align-items: center; justify-content: space-between;
             padding: 16px 24px;
+            /* 헤더 경계선 제거 (더 깔끔하게) */
         }
         .header h1 { font-size: 26px; font-weight: 800; color: var(--text-main); margin: 0; }
         .header-action { display: flex; gap: 8px; }
@@ -115,24 +129,25 @@
             background: none; border: none; color: var(--text-main); cursor: pointer;
             padding: 8px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center;
-            position: relative; overflow: hidden;
             transition: background-color 0.2s;
         }
         .icon-button:hover { background-color: var(--nav-active-bg); }
 
-        /* [홈 전용 스타일] */
+        /* 히어로 */
         .hero-section { margin-top: 10px; margin-bottom: 30px; }
         .hero-greeting { font-size: 16px; color: var(--text-sub); font-weight: 500; margin-bottom: 8px; }
         .hero-balance { font-size: 32px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
 
+        /* 카드 공통 */
         .insight-card {
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 20px;
+            border-radius: 24px; /* 토스 스타일: 둥근 모서리 강조 */
             padding: 24px;
             margin-bottom: 16px;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02); /* 아주 은은한 그림자 */
         }
         
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
@@ -140,6 +155,7 @@
         .card-desc { font-size: 14px; color: var(--text-sub); font-weight: 400; line-height: 1.4; }
         .card-icon { color: var(--nav-inactive); font-size: 24px; }
 
+        /* 막대 그래프 */
         .bar-chart-container { display: flex; flex-direction: column; gap: 12px; }
         .bar-row { display: flex; align-items: center; gap: 10px; }
         .bar-label { width: 50px; font-size: 13px; color: var(--text-sub); font-weight: 500; }
@@ -153,6 +169,7 @@
         .highlight-bad { color: var(--expense-color); }
         .highlight-good { color: var(--primary-blue); }
 
+        /* 도넛 차트 */
         .ranking-container { display: flex; align-items: center; gap: 20px; }
         .donut-chart {
             width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
@@ -162,10 +179,9 @@
         .donut-chart::after {
             content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 50px; height: 50px; 
-            background-color: var(--card-bg); /* 카드 배경과 동일하게 */
+            background-color: var(--card-bg);
             border-radius: 50%;
         }
-
         .rank-list { flex-grow: 1; display: flex; flex-direction: column; gap: 8px; }
         .rank-item { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
         .rank-name { display: flex; align-items: center; gap: 6px; color: var(--text-main); font-weight: 500; }
@@ -174,7 +190,7 @@
 
         .daily-val { font-size: 24px; font-weight: 800; color: var(--text-main); }
 
-        /* [스켈레톤 UI 스타일 - 다크모드 대응] */
+        /* 스켈레톤 */
         .skeleton {
             background: var(--skeleton-base);
             color: transparent !important;
@@ -198,11 +214,20 @@
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             width: 75%; max-width: 450px; 
             height: 75px;
-            background-color: var(--nav-bg); backdrop-filter: blur(10px); 
+            background-color: var(--nav-bg); 
+            /* 다크모드일 땐 블러 효과 제거하여 배경과 일체화 */
+            backdrop-filter: blur(10px); 
             display: flex; justify-content: space-around; align-items: center;
-            z-index: 1000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); 
-            border: 1px solid var(--border-color); border-radius: 50px; padding: 0 10px;
+            z-index: 1000; 
+            border: 1px solid var(--border-color); 
+            border-radius: 50px; padding: 0 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
+        [data-theme="dark"] .bottom-nav {
+            backdrop-filter: none; /* 다크모드는 블러 끔 */
+            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+        }
+
         .nav-item {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             text-decoration: none; color: var(--nav-inactive); font-size: 11px; font-weight: 500;
@@ -217,24 +242,19 @@
         }
         .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
 
-        /* 알림 팝업 스타일 */
+        /* 팝업 */
         .alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; display: none; justify-content: center; align-items: center; }
-        .alert-box { width: 85%; max-width: 320px; background-color: var(--popup-bg); border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        .alert-box { width: 85%; max-width: 320px; background-color: var(--popup-bg); border-radius: 24px; padding: 24px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
         .alert-box h3 { color: var(--text-main); }
         .alert-box p { color: var(--text-sub); }
-        .alert-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; color: white; cursor: pointer; background-color: var(--text-main); margin-top: 20px; }
+        .alert-btn { width: 100%; padding: 15px; border-radius: 16px; border: none; font-size: 16px; font-weight: 700; color: white; cursor: pointer; background-color: var(--primary-blue); margin-top: 20px; }
         
-        /* 다크모드에서 버튼 텍스트 가독성 */
-        [data-theme="dark"] .alert-btn { color: #000; background-color: var(--primary-blue); }
-
-        /* 리플 효과 */
         .ripple {
             position: absolute; border-radius: 50%; transform: scale(0);
             animation: ripple-anim 0.5s linear; background-color: var(--ripple-color); pointer-events: none; 
         }
         @keyframes ripple-anim { to { transform: scale(2.8); opacity: 0; } }
 
-        /* [모바일 최적화] */
         @media (max-width: 600px) {
             .header { width: 100%; padding: 0 16px; } 
             .container { padding: 0 5px 20px 5px; } 
@@ -251,7 +271,6 @@
             <button class="icon-button ripple-target">
                 <span class="material-icons">notifications</span>
             </button>
-            <!-- 설정 버튼에 다크모드 토글 기능 연결 (테스트용) -->
             <button class="icon-button ripple-target" onclick="toggleTheme()">
                 <span class="material-icons">settings</span>
             </button>
@@ -338,19 +357,32 @@
         <div class="alert-box">
             <span class="material-icons" id="alert-icon" style="font-size:48px; margin-bottom:10px;">check_circle</span>
             <h3 id="alert-title" style="margin:0 0 10px 0; font-size:18px;">승인 완료</h3>
-            <p id="alert-msg" style="color:var(--text-sub); margin:0; font-size:14px; line-height:1.4;">부모님이 확인하셨습니다.</p>
+            <p id="alert-msg" style="margin:0; font-size:14px; line-height:1.4;">부모님이 확인하셨습니다.</p>
             <div id="alert-comment" style="background:var(--popup-comment); padding:12px; border-radius:10px; margin-top:15px; font-size:14px; text-align:left; color:var(--text-main);"></div>
             <button class="alert-btn" onclick="confirmAlert()">확인</button>
         </div>
     </div>
 
     <script>
-        // [다크모드 토글 기능] - 설정 버튼 클릭 시 실행됨
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme); // 설정 저장
+            localStorage.setItem('theme', newTheme);
+            // 차트 배경색 즉시 다시 계산을 위해 리로드 대신 간단한 스타일 업데이트 트리거가 좋지만, 
+            // 여기서는 차트가 CSS 변수를 참조하지 못하는 Gradient 문제 때문에 리로드가 가장 깔끔합니다.
+            // 하지만 사용자 경험을 위해 리로드 없이 적용되도록 아래 로직 추가.
+            updateChartColors(); 
+        }
+
+        function updateChartColors() {
+            // 도넛 차트 배경색이 그라디언트라 CSS 변수 직접 적용이 안됨 -> JS 재계산 필요
+            const donut = document.getElementById('donut-chart');
+            // 데이터가 있을 때만 재계산 (전역 변수나 캐싱된 데이터 필요하나 여기선 간단히 처리)
+            // *실제 구현시엔 loadHomeData 내부 로직이 다시 돌도록 하는 것이 좋음.
+            // 여기서는 편의상 새로고침을 권장하거나, 데이터 로드 함수를 재호출.
+            const uid = firebase.auth().currentUser?.uid;
+            if(uid) loadHomeData(uid);
         }
 
         document.addEventListener('contextmenu', event => event.preventDefault());
@@ -475,9 +507,7 @@
                     currentDeg += deg;
                 });
                 
-                // 나머지 부분을 차트 트랙 색상으로 채움 (다크모드 대응을 위해 CSS 변수 직접 사용 불가하므로 계산 필요하나, 간단히 처리)
-                // *중요* JS에서 CSS 변수값을 가져와서 처리하도록 로직 수정이 필요하나, 
-                // 여기서는 일단 기본 배경색과 유사한 색으로 처리. 완벽한 다크모드 차트를 위해선 CSS 변수 getPropertyValue 필요.
+                // JS에서 CSS 변수값 가져오기 (다크모드 대응)
                 const trackColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-track').trim();
                 gradientStr += `${trackColor} ${currentDeg}deg 360deg`;
                 
@@ -508,7 +538,7 @@
                         let d = c.doc.data(); pendingReportDocId = c.doc.id;
                         document.getElementById('alert-title').innerText = `부모님 ${d.status}`;
                         document.getElementById('alert-icon').innerText = d.status==='승인'?'check_circle':'cancel';
-                        document.getElementById('alert-icon').style.color = d.status==='승인'?'#2c92ff':'#f04452';
+                        document.getElementById('alert-icon').style.color = d.status==='승인'?'#3182f6':'#f04452';
                         if(d.parentComment) {
                             document.getElementById('alert-comment').innerText = d.parentComment;
                             document.getElementById('alert-comment').style.display='block';
