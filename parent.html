@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>POCKETBLY - 부모님 대시보드</title>
+    
+    <!-- [깜빡임 방지 스크립트] (자녀 앱과 동일) -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Pretendard Font -->
+    <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <style>
+        /* [공통 스타일] (자녀 앱과 통일) */
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        body { -webkit-user-select: none; user-select: none; }
+        input, textarea { -webkit-user-select: text; user-select: text; }
+
+        /* [중요] 전체 트랜지션 -> 배경과 글자색에만 적용 */
+        body, .container, .header, .card, .child-item, .modal-sheet, .tab-button {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* [색상 팔레트] (자녀 앱과 통일) */
+        :root {
+            /* === Light Mode === */
+            --bg-color: #ffffff;
+            --header-bg: rgba(255, 255, 255, 0.92);
+            --card-bg: #ffffff;
+            
+            --text-main: #191f28;
+            --text-sub: #8b95a1;
+            
+            --border-color: #e5e8eb;
+            --nav-active-bg: #f2f4f6;
+
+            --primary-blue: #3182f6;
+            --expense-color: #f04452;
+            --income-color: #2c92ff;
+            --ripple-color: rgba(0, 0, 0, 0.05);
+            --header-height: 80px; 
+            --shadow-card: 0 4px 20px rgba(0,0,0,0.02);
+        }
+
+        /* === Dark Mode === */
+        [data-theme="dark"] {
+            --bg-color: #18171e;
+            --header-bg: #18171e;
+            --card-bg: #24232b;
+            
+            --text-main: #eff1f3;
+            --text-sub: #8b95a1;
+            
+            --border-color: #2c2b33; 
+            --nav-active-bg: #35343d;
+
+            --shadow-card: none;
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0; padding: 0;
+            display: flex; flex-direction: column; align-items: center;
+            overflow-y: scroll; 
+            padding-top: var(--header-height); 
+            color: var(--text-main);
+        }
+
+        /* 레이아웃 */
+        .container {
+            width: 95%; max-width: 1024px; 
+            background-color: var(--bg-color);
+            padding: 0 24px 24px 24px; 
+        }
+
+        /* 헤더 */
+        .header {
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 95%; max-width: 1024px; z-index: 1005;
+            background-color: var(--header-bg);
+            backdrop-filter: blur(10px);
+            height: var(--header-height); 
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 24px;
+        }
+        [data-theme="dark"] .header { backdrop-filter: none; }
+
+        .header h1 { font-size: 26px; font-weight: 800; color: var(--text-main); margin: 0; }
+        .header-action { display: flex; gap: 8px; }
+        
+        .icon-button {
+            background: none; border: none; color: var(--text-main); cursor: pointer;
+            padding: 8px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center;
+            transition: background-color 0.2s;
+        }
+        .icon-button:hover { background-color: var(--nav-active-bg); }
+
+        /* 카드 스타일 */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-card);
+        }
+
+        /* 자녀 리스트 */
+        .child-list { list-style: none; padding: 0; margin: 0; }
+        .child-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 0; border-bottom: 1px solid var(--nav-active-bg);
+            cursor: pointer;
+        }
+        .child-item:last-child { border-bottom: none; }
+        .child-info { display: flex; align-items: center; gap: 12px; }
+        .child-avatar { width: 40px; height: 40px; border-radius: 50%; background-color: var(--nav-active-bg); color: var(--text-main); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .child-name { font-weight: 600; color: var(--text-main); }
+        .child-status { font-size: 13px; color: var(--text-sub); }
+        .child-action-btn { padding: 8px 12px; border: none; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; background-color: var(--primary-blue); color: white; }
+        .child-action-btn.danger { background-color: var(--expense-color); }
+        .child-action-btn.disabled { background-color: var(--nav-active-bg); color: var(--text-sub); cursor: default; }
+
+        /* 탭 메뉴 */
+        .tab-menu { display: flex; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+        .tab-button { flex: 1; padding: 12px 0; text-align: center; font-weight: 600; cursor: pointer; border: none; background: none; color: var(--text-sub); border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .tab-button.active { color: var(--text-main); border-bottom-color: var(--text-main); }
+
+        /* 리포트 리스트 */
+        .report-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--nav-active-bg); cursor: pointer; }
+        .report-info { display: flex; flex-direction: column; gap: 4px; }
+        .report-title { font-weight: 600; color: var(--text-main); }
+        .report-date { font-size: 13px; color: var(--text-sub); }
+        .report-status-badge { padding: 4px 8px; border-radius: 10px; font-size: 12px; font-weight: 700; }
+        .badge-pending { background-color: #ffc107; color: var(--text-main); }
+        .badge-approved { background-color: #00c73c; color: white; }
+        .badge-rejected { background-color: var(--expense-color); color: white; }
+
+        /* 모달 (리포트 상세) */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 2500; display: none; align-items: flex-end; justify-content: center; }
+        .modal-sheet { width: 100%; max-width: 600px; background-color: var(--card-bg); border-radius: 24px 24px 0 0; padding: 24px; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-title { font-size: 20px; font-weight: 700; color: var(--text-main); }
+        .report-summary-box { display: flex; justify-content: space-around; padding: 15px; border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 20px; }
+        .summary-item { text-align: center; }
+        .summary-label { font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
+        .summary-value { font-size: 16px; font-weight: 700; color: var(--text-main); }
+        .value-income { color: var(--income-color); }
+        .value-expense { color: var(--expense-color); }
+        
+        .transaction-list-simple { list-style: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 12px; padding: 10px; margin-bottom: 20px; }
+        .transaction-item-simple { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 14px; border-bottom: 1px dashed var(--nav-active-bg); }
+        .transaction-item-simple:last-child { border-bottom: none; }
+        .trans-usage-simple { font-weight: 500; color: var(--text-main); }
+        .trans-amount-simple { font-weight: 700; }
+        
+        .comment-input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 20px; resize: none; background-color: var(--nav-active-bg); color: var(--text-main); }
+        .modal-actions { display: flex; gap: 10px; }
+        .modal-btn { flex: 1; padding: 14px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; }
+        .btn-approve { background-color: var(--primary-blue); color: white; }
+        .btn-reject { background-color: var(--expense-color); color: white; }
+
+        /* 기타 */
+        .ripple { position: absolute; border-radius: 50%; transform: scale(0); animation: ripple-anim 0.5s linear; background-color: var(--ripple-color); pointer-events: none; }
+        @keyframes ripple-anim { to { transform: scale(2.8); opacity: 0; } }
+        
+        @media (max-width: 600px) {
+            .header { width: 100%; padding: 0 16px; } 
+            .container { padding: 0 5px 20px 5px; } 
+        }
+    </style>
+</head>
+<body>
+    
+    <header class="header">
+        <h1>부모님 대시보드</h1>
+        <div class="header-action">
+            <button class="icon-button ripple-target" title="자녀 추가" onclick="openAddChildModal()">
+                <span class="material-icons">person_add</span>
+            </button>
+            <button class="icon-button ripple-target" title="로그아웃" onclick="logout()">
+                <span class="material-icons">logout</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- 1. 자녀 목록 카드 -->
+        <div class="card">
+            <h2 style="font-size: 18px; font-weight: 700; margin-bottom: 15px;">연결된 자녀</h2>
+            <ul class="child-list" id="child-list">
+                <!-- 자녀 항목이 여기에 동적으로 추가됩니다. -->
+                <li style="text-align:center; padding:20px 0; color:var(--text-sub);">로딩 중...</li>
+            </ul>
+        </div>
+
+        <!-- 2. 탭 메뉴 -->
+        <div class="tab-menu">
+            <button class="tab-button active" id="tab-pending" onclick="changeReportTab('pending')">승인 대기</button>
+            <button class="tab-button" id="tab-history" onclick="changeReportTab('history')">처리 내역</button>
+        </div>
+
+        <!-- 3. 리포트 목록 -->
+        <div class="report-list" id="report-list">
+            <!-- 리포트 항목이 여기에 동적으로 추가됩니다. -->
+            <div style="text-align:center; padding:40px 0; color:var(--text-sub);">선택된 탭의 리포트가 없습니다.</div>
+        </div>
+
+    </div>
+
+    <!-- 자녀 추가 모달 -->
+    <div id="add-child-modal" class="modal-overlay" onclick="if(event.target===this) closeAddChildModal()">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <h3 class="modal-title">자녀 연결</h3>
+                <span class="material-icons icon-button" onclick="closeAddChildModal()">close</span>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="font-size: 14px; color: var(--text-sub); display: block; margin-bottom: 8px;">자녀 앱에서 생성된 6자리 코드를 입력하세요.</label>
+                <input type="text" id="invite-code-input" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; font-size: 18px; text-align: center; letter-spacing: 4px; background-color: var(--nav-active-bg); color: var(--text-main);" maxlength="6" placeholder="------">
+            </div>
+            <button class="modal-btn btn-approve" onclick="connectChild()">자녀 연결</button>
+        </div>
+    </div>
+
+    <!-- 리포트 상세 모달 -->
+    <div id="report-modal" class="modal-overlay" onclick="if(event.target===this) closeReportModal()">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <h3 class="modal-title" id="report-modal-title">자녀의 월간 리포트</h3>
+                <span class="material-icons icon-button" onclick="closeReportModal()">close</span>
+            </div>
+            
+            <div class="report-summary-box">
+                <div class="summary-item">
+                    <div class="summary-label">총 수입</div>
+                    <div class="summary-value value-income" id="summary-income">0원</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">총 지출</div>
+                    <div class="summary-value value-expense" id="summary-expense">0원</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">순자산 변화</div>
+                    <div class="summary-value" id="summary-net">0원</div>
+                </div>
+            </div>
+
+            <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 10px;">상세 내역 (최근 5건)</h4>
+            <ul class="transaction-list-simple" id="report-transaction-list">
+                <!-- 상세 내역이 여기에 동적으로 추가됩니다. -->
+                <li style="text-align:center; color:var(--text-sub);">내역 없음</li>
+            </ul>
+
+            <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 10px;">부모님 의견 (선택)</h4>
+            <textarea id="parent-comment" class="comment-input" rows="3" placeholder="자녀에게 전달할 의견을 작성해주세요."></textarea>
+
+            <div class="modal-actions" id="report-actions">
+                <button class="modal-btn btn-reject" onclick="processReport('반려')">반려</button>
+                <button class="modal-btn btn-approve" onclick="processReport('승인')">승인</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        const firebaseConfig = { apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI", authDomain: "pocketbly.firebaseapp.com", projectId: "pocketbly", storageBucket: "pocketbly.firebasestorage.app", messagingSenderId: "535063683428", appId: "1:535063683428:web:4729815738bee4f8305a71", measurementId: "G-RE71JXSNR3" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        let currentParentId = null;
+        let connectedChildren = []; // { uid, name, email }
+        let currentReports = []; // { docId, ...data }
+        let currentTab = 'pending';
+        let selectedReportDocId = null;
+
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentParentId = user.uid;
+                loadConnectedChildren(user.uid);
+            } else {
+                // 부모용 페이지이므로 로그인 페이지로 리다이렉트
+                window.location.href = '/auth'; 
+            }
+        });
+
+        function logout() {
+            auth.signOut().then(() => { window.location.href = '/auth'; });
+        }
+
+        // ------------------ 자녀 관리 로직 ------------------
+
+        function loadConnectedChildren(parentId) {
+            db.collection('parents').doc(parentId).collection('children')
+                .onSnapshot(snapshot => {
+                    connectedChildren = [];
+                    snapshot.forEach(doc => {
+                        connectedChildren.push({ id: doc.id, ...doc.data() });
+                    });
+                    renderChildList();
+                    loadReports(); // 자녀 목록 로드 후 리포트 로드 시작
+                });
+        }
+
+        function renderChildList() {
+            const listEl = document.getElementById('child-list');
+            listEl.innerHTML = '';
+
+            if (connectedChildren.length === 0) {
+                listEl.innerHTML = `<li style="text-align:center; padding:20px 0; color:var(--text-sub);">연결된 자녀가 없습니다.</li>`;
+                return;
+            }
+
+            connectedChildren.forEach(child => {
+                const li = document.createElement('li');
+                li.className = 'child-item ripple-target';
+                li.innerHTML = `
+                    <div class="child-info">
+                        <div class="child-avatar"><span class="material-icons">person</span></div>
+                        <div>
+                            <div class="child-name">${child.name || '이름 없음'}</div>
+                            <div class="child-status">${child.email || '이메일 없음'}</div>
+                        </div>
+                    </div>
+                    <button class="child-action-btn danger" onclick="disconnectChild(event, '${child.id}', '${child.name}')">연결 해제</button>
+                `;
+                listEl.appendChild(li);
+            });
+        }
+
+        function openAddChildModal() {
+            document.getElementById('add-child-modal').style.display = 'flex';
+        }
+
+        function closeAddChildModal() {
+            document.getElementById('add-child-modal').style.display = 'none';
+            document.getElementById('invite-code-input').value = '';
+        }
+
+        async function connectChild() {
+            const code = document.getElementById('invite-code-input').value.trim();
+            if (code.length !== 6) { alert('6자리 코드를 입력해주세요.'); return; }
+
+            const btn = document.querySelector('#add-child-modal .btn-approve');
+            btn.disabled = true; btn.textContent = '연결 중...';
+
+            try {
+                // 1. invite_codes 컬렉션에서 코드 검색
+                const codeSnapshot = await db.collection('invite_codes').where('code', '==', code).get();
+                if (codeSnapshot.empty) {
+                    alert('유효하지 않거나 만료된 코드입니다.');
+                    return;
+                }
+
+                const inviteDoc = codeSnapshot.docs[0];
+                const inviteData = inviteDoc.data();
+                const childUid = inviteData.uid;
+
+                // 2. 이미 연결된 자녀인지 확인
+                const existingChild = connectedChildren.find(c => c.id === childUid);
+                if (existingChild) {
+                    alert(`${inviteData.name}님은 이미 연결되어 있습니다.`);
+                    return;
+                }
+
+                // 3. 연결 정보 저장 (Parent -> Child)
+                await db.collection('parents').doc(currentParentId).collection('children').doc(childUid).set({
+                    name: inviteData.name,
+                    email: inviteData.email || '이메일 없음',
+                    connectedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // 4. 연결 정보 저장 (Child -> Parent, 양방향 연결)
+                await db.collection('users').doc(childUid).collection('parents').doc(currentParentId).set({
+                    name: auth.currentUser.displayName || '부모님',
+                    email: auth.currentUser.email || '이메일 없음',
+                    connectedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // 5. 초대 코드 삭제 (1회용)
+                await inviteDoc.ref.delete();
+
+                alert(`${inviteData.name}님과 연결되었습니다!`);
+                closeAddChildModal();
+            } catch (error) {
+                console.error("Error connecting child: ", error);
+                alert('연결 중 오류가 발생했습니다.');
+            } finally {
+                btn.disabled = false; btn.textContent = '자녀 연결';
+            }
+        }
+
+        function disconnectChild(event, childUid, childName) {
+            event.stopPropagation(); // 리플 방지
+            if (!confirm(`${childName}님과의 연결을 정말 해제하시겠습니까?`)) return;
+
+            // 1. Parent -> Child 연결 해제
+            db.collection('parents').doc(currentParentId).collection('children').doc(childUid).delete()
+                .then(() => {
+                    // 2. Child -> Parent 연결 해제
+                    return db.collection('users').doc(childUid).collection('parents').doc(currentParentId).delete();
+                })
+                .then(() => {
+                    alert(`${childName}님과의 연결이 해제되었습니다.`);
+                    loadConnectedChildren(currentParentId); // 목록 새로고침
+                })
+                .catch(error => {
+                    console.error("Error disconnecting child: ", error);
+                    alert('연결 해제 중 오류가 발생했습니다.');
+                });
+        }
+
+        // ------------------ 리포트 관리 로직 ------------------
+
+        function loadReports() {
+            if (connectedChildren.length === 0) {
+                document.getElementById('report-list').innerHTML = `<div style="text-align:center; padding:40px 0; color:var(--text-sub);">연결된 자녀가 없습니다.</div>`;
+                return;
+            }
+
+            const childUids = connectedChildren.map(c => c.id);
+
+            db.collection('shared_reports').where('uid', 'in', childUids)
+                .orderBy('createdAt', 'desc')
+                .onSnapshot(snapshot => {
+                    currentReports = [];
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        data.docId = doc.id;
+                        data.childName = connectedChildren.find(c => c.id === data.uid)?.name || '알 수 없음';
+                        currentReports.push(data);
+                    });
+                    renderReportList();
+                });
+        }
+
+        function changeReportTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            renderReportList();
+        }
+
+        function renderReportList() {
+            const listEl = document.getElementById('report-list');
+            listEl.innerHTML = '';
+
+            const filteredReports = currentReports.filter(r => {
+                if (currentTab === 'pending') return r.status === 'pending';
+                if (currentTab === 'history') return r.status !== 'pending';
+                return false;
+            });
+
+            if (filteredReports.length === 0) {
+                listEl.innerHTML = `<div style="text-align:center; padding:40px 0; color:var(--text-sub);">표시할 리포트가 없습니다.</div>`;
+                return;
+            }
+
+            filteredReports.forEach(report => {
+                const li = document.createElement('li');
+                li.className = 'report-item ripple-target';
+                li.onclick = () => openReportModal(report);
+
+                const statusClass = report.status === 'pending' ? 'badge-pending' : (report.status === '승인' ? 'badge-approved' : 'badge-rejected');
+                const statusText = report.status === 'pending' ? '대기' : report.status;
+                const dateStr = report.createdAt ? report.createdAt.toDate().toLocaleDateString('ko-KR') : '날짜 없음';
+
+                li.innerHTML = `
+                    <div class="report-info">
+                        <div class="report-title">${report.childName}님의 ${report.month}월 리포트</div>
+                        <div class="report-date">${dateStr} 요청</div>
+                    </div>
+                    <span class="report-status-badge ${statusClass}">${statusText}</span>
+                `;
+                listEl.appendChild(li);
+            });
+        }
+
+        function openReportModal(report) {
+            selectedReportDocId = report.docId;
+
+            document.getElementById('report-modal-title').innerText = `${report.childName}님의 ${report.month}월 리포트`;
+            document.getElementById('summary-income').innerText = `${report.totalIncome.toLocaleString()}원`;
+            document.getElementById('summary-expense').innerText = `${report.totalExpense.toLocaleString()}원`;
+            document.getElementById('summary-net').innerText = `${report.totalAsset.toLocaleString()}원`;
+            document.getElementById('summary-net').style.color = report.totalAsset >= 0 ? 'var(--income-color)' : 'var(--expense-color)';
+            
+            const listEl = document.getElementById('report-transaction-list');
+            listEl.innerHTML = '';
+
+            // 최근 5개만 표시
+            const transactions = report.transactions.sort((a, b) => b.dateObj.getTime() - a.dateObj.getTime()).slice(0, 5);
+            if (transactions.length === 0) {
+                listEl.innerHTML = `<li style="text-align:center; color:var(--text-sub); padding:10px;">내역 없음</li>`;
+            } else {
+                transactions.forEach(t => {
+                    const isIncome = t.type === '수입' || t.amount > 0;
+                    const color = isIncome ? 'var(--income-color)' : 'var(--expense-color)';
+                    const sign = isIncome ? '+' : '-';
+                    const amtAbs = Math.abs(t.amount).toLocaleString();
+                    const li = document.createElement('li');
