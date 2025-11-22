@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>POCKETBLY - MY</title>
     
+    <!-- [깜빡임 방지 스크립트] (홈 화면에서 가져옴) -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- Pretendard Font -->
@@ -20,45 +33,108 @@
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
         input, textarea { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
+        
+        /* [중요] 전체 트랜지션 -> 배경과 글자색에만 적용 (홈 화면과 통일) */
+        body, .container, .header, .menu-item, .edit-modal-sheet, .bottom-nav, .nav-item, .btn-edit-profile {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
 
+        /* [색상 팔레트] (홈/기록/도전 화면과 통일) */
         :root {
+            /* === Light Mode === */
+            --bg-color: #ffffff;
+            --header-bg: rgba(255, 255, 255, 0.95);
+            --card-bg: #ffffff;
+            
+            --text-main: #191f28;
+            --text-sub: #8b95a1;
+            
+            --border-color: #e5e8eb;
+            
+            --nav-bg: rgba(255, 255, 255, 0.85);
+            --nav-border: #e5e8eb;
+            --nav-active-bg: #f2f4f6;
+            --nav-inactive: #b0b8c1;
+            --nav-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+
+            --skeleton-base: #f2f4f6;
+            --skeleton-highlight: rgba(255, 255, 255, 0.5);
+
+            --popup-bg: #ffffff;
+            
             --primary-blue: #3b82f6;
-            --text-dark: #191f28;
-            --text-gray: #8b95a1;
-            --border-light: #e5e8eb;
-            --header-height: 80px; 
-            --ripple-color: rgba(0, 0, 0, 0.08);
             --expense-color: #f04452;
+            --ripple-color: rgba(0, 0, 0, 0.08);
+            --header-height: 80px; 
+            
+            --avatar-bg: var(--nav-active-bg);
+            --avatar-icon: var(--nav-inactive);
+            --menu-item-border: var(--nav-active-bg);
+            --chevron-color: #d1d6db;
+            --code-box-bg: #f9fafb;
+        }
+
+        /* === Dark Mode === */
+        [data-theme="dark"] {
+            --bg-color: #18171e;
+            --header-bg: #18171e;
+            
+            --card-bg: #24232b;
+            
+            --text-main: #eff1f3;
+            --text-sub: #8b95a1;
+            
+            --border-color: #2c2b33; 
+            
+            --nav-bg: #25242c;
+            --nav-border: #33323a;
+            --nav-active-bg: #35343d;
+            --nav-inactive: #686d77;
+            --nav-shadow: 0 4px 25px rgba(0, 0, 0, 0.4);
+            
+            --skeleton-base: #24232b;
+            --skeleton-highlight: rgba(255, 255, 255, 0.08);
+
+            --popup-bg: #24232b;
+            
+            --ripple-color: rgba(255, 255, 255, 0.1);
+            
+            --avatar-bg: var(--nav-active-bg);
+            --avatar-icon: var(--text-sub);
+            --menu-item-border: var(--nav-active-bg);
+            --chevron-color: #4b525a;
+            --code-box-bg: var(--nav-active-bg);
         }
 
         body {
             font-family: 'Pretendard', sans-serif;
-            background-color: #ffffff;
+            background-color: var(--bg-color); /* 변수 사용 */
             margin: 0; padding: 0;
             display: flex; flex-direction: column; align-items: center;
             overflow-y: scroll; 
             padding-top: var(--header-height); 
             padding-bottom: 110px; 
-            color: var(--text-dark);
+            color: var(--text-main); /* 변수 사용 */
         }
 
         /* 헤더 */
         .header {
             position: fixed; top: 0; left: 50%; transform: translateX(-50%);
             width: 95%; max-width: 1024px; z-index: 1005;
-            background-color: rgba(255, 255, 255, 0.95);
+            background-color: var(--header-bg); /* 변수 사용 */
             backdrop-filter: blur(5px);
             height: var(--header-height); 
             display: flex; align-items: center; justify-content: space-between;
             padding: 16px 24px;
         }
-        .header h1 { font-size: 26px; font-weight: 800; color: var(--text-dark); margin: 0; }
+        [data-theme="dark"] .header { backdrop-filter: none; }
+        .header h1 { font-size: 26px; font-weight: 800; color: var(--text-main); margin: 0; }
 
         /* 컨테이너 */
         .container {
             width: 95%;
             max-width: 1024px; 
-            background-color: #ffffff;
+            background-color: var(--bg-color); /* 변수 사용 */
             padding: 0 24px 24px 24px; 
         }
 
@@ -71,25 +147,25 @@
         }
         .avatar-circle {
             width: 80px; height: 80px;
-            background-color: #f2f4f6;
+            background-color: var(--avatar-bg); /* 변수 사용 */
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             margin-bottom: 16px;
-            color: #b0b8c1;
+            color: var(--avatar-icon); /* 변수 사용 */
         }
         .avatar-icon { font-size: 40px; }
         
         .profile-name {
-            font-size: 22px; font-weight: 700; color: var(--text-dark);
+            font-size: 22px; font-weight: 700; color: var(--text-main); /* 변수 사용 */
             margin-bottom: 6px;
         }
         .profile-email {
-            font-size: 14px; color: var(--text-gray);
+            font-size: 14px; color: var(--text-sub); /* 변수 사용 */
             margin-bottom: 20px;
         }
         .btn-edit-profile {
-            background-color: #f2f4f6;
-            color: var(--text-dark);
+            background-color: var(--nav-active-bg); /* 변수 사용 */
+            color: var(--text-main); /* 변수 사용 */
             border: none;
             padding: 8px 16px;
             border-radius: 20px;
@@ -101,24 +177,27 @@
         /* 메뉴 리스트 */
         .menu-group { margin-bottom: 30px; }
         .menu-group-title {
-            font-size: 13px; font-weight: 600; color: var(--text-gray);
+            font-size: 13px; font-weight: 600; color: var(--text-sub); /* 변수 사용 */
             margin-bottom: 10px; padding-left: 4px;
         }
         .menu-list {
             list-style: none; padding: 0; margin: 0;
-            background-color: #fff;
+            background-color: var(--card-bg); /* 변수 사용 */
+            border-radius: 16px;
+            border: 1px solid var(--border-color); /* 테두리 추가 */
+            overflow: hidden;
         }
         .menu-item {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 18px 4px;
-            border-bottom: 1px solid #f2f4f6;
+            padding: 18px 16px; /* 좌우 패딩 수정 */
+            border-bottom: 1px solid var(--menu-item-border); /* 변수 사용 */
             cursor: pointer;
-            font-size: 16px; font-weight: 500; color: var(--text-dark);
+            font-size: 16px; font-weight: 500; color: var(--text-main); /* 변수 사용 */
         }
         .menu-item:last-child { border-bottom: none; }
         .menu-left { display: flex; align-items: center; gap: 12px; }
-        .menu-icon { color: var(--text-dark); font-size: 22px; }
-        .chevron { color: #d1d6db; font-size: 20px; }
+        .menu-icon { color: var(--text-main); font-size: 22px; } /* 변수 사용 */
+        .chevron { color: var(--chevron-color); font-size: 20px; } /* 변수 사용 */
 
         .text-danger { color: var(--expense-color) !important; }
 
@@ -126,20 +205,25 @@
         .bottom-nav {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             width: 75%; max-width: 450px; height: 75px;
-            background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); 
+            background-color: var(--nav-bg); 
+            backdrop-filter: blur(10px); 
             display: flex; justify-content: space-around; align-items: center;
-            z-index: 1000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); 
-            border: 1px solid var(--border-light); border-radius: 50px; padding: 0 10px;
+            z-index: 1000; 
+            border: 1px solid var(--nav-border); 
+            box-shadow: var(--nav-shadow);
+            border-radius: 50px; padding: 0 10px;
         }
+        [data-theme="dark"] .bottom-nav { backdrop-filter: none; }
+
         .nav-item {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-decoration: none; color: #b0b8c1; font-size: 11px; font-weight: 500;
+            text-decoration: none; color: var(--nav-inactive); font-size: 11px; font-weight: 500;
             flex-grow: 1; height: 60px; position: relative; border-radius: 25px; 
         }
-        .nav-item.active { color: var(--text-dark); font-weight: 600; }
+        .nav-item.active { color: var(--text-main); font-weight: 600; }
         .nav-item.active::before {
             content: ''; position: absolute; top: 50%; left: 50%;
-            width: 100px; height: 55px; background-color: #f2f4f6; 
+            width: 100px; height: 55px; background-color: var(--nav-active-bg); 
             border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; 
         }
         .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
@@ -153,12 +237,13 @@
 
         /* 스켈레톤 UI */
         .skeleton {
-            background: #f2f4f6; color: transparent !important;
+            background: var(--skeleton-base); 
+            color: transparent !important;
             border-radius: 4px; user-select: none; position: relative; overflow: hidden;
         }
         .skeleton::after {
             content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
             transform: translateX(-100%); animation: shimmer 1.5s infinite;
         }
         @keyframes shimmer { 100% { transform: translateX(100%); } }
@@ -170,17 +255,24 @@
             display: none; align-items: flex-end; justify-content: center;
         }
         .edit-modal-sheet {
-            width: 100%; max-width: 600px; background-color: #fff;
+            width: 100%; max-width: 600px; background-color: var(--popup-bg); /* 변수 사용 */
             border-radius: 24px 24px 0 0; padding: 24px;
             animation: slideUp 0.3s ease-out;
         }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .edit-input { width: 100%; border: none; border-bottom: 1px solid #eee; padding: 12px 0; font-size: 18px; outline: none; margin-top: 10px; }
-        .edit-btn-save { width: 100%; padding: 16px; background-color: #191f28; color: #fff; border: none; border-radius: 16px; font-weight: 700; margin-top: 24px; cursor: pointer; }
+        .edit-input { 
+            width: 100%; border: none; border-bottom: 1px solid var(--border-color); /* 변수 사용 */
+            padding: 12px 0; font-size: 18px; outline: none; margin-top: 10px;
+            background-color: transparent; color: var(--text-main);
+        }
+        .edit-btn-save { 
+            width: 100%; padding: 16px; background-color: var(--text-main); /* 변수 사용 */
+            color: var(--popup-bg); border: none; border-radius: 16px; font-weight: 700; margin-top: 24px; cursor: pointer; 
+        }
 
         /* [추가] 코드 표시 모달 */
         .code-display-box {
-            background-color: #f9fafb; border: 1px solid #e5e8eb;
+            background-color: var(--code-box-bg); border: 1px solid var(--border-color); /* 변수 사용 */
             border-radius: 16px; padding: 24px; text-align: center;
             margin-top: 20px; margin-bottom: 10px;
         }
@@ -188,7 +280,7 @@
             font-size: 32px; font-weight: 800; letter-spacing: 4px;
             color: var(--primary-blue); margin: 10px 0;
         }
-        .code-desc { font-size: 14px; color: #8b95a1; line-height: 1.5; }
+        .code-desc { font-size: 14px; color: var(--text-sub); line-height: 1.5; } /* 변수 사용 */
 
         /* 다이얼로그 */
         .global-dialog-overlay {
@@ -197,18 +289,25 @@
             display: none; align-items: center; justify-content: center;
         }
         .global-dialog-box {
-            width: 80%; max-width: 300px; background: #fff;
+            width: 80%; max-width: 300px; background: var(--popup-bg); /* 변수 사용 */
             border-radius: 20px; padding: 24px; text-align: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             animation: popIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .global-dialog-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: #191f28; }
-        .global-dialog-msg { font-size: 14px; color: #6b7684; margin-bottom: 20px; line-height: 1.4; }
+        .global-dialog-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text-main); } /* 변수 사용 */
+        .global-dialog-msg { font-size: 14px; color: var(--text-sub); margin-bottom: 20px; line-height: 1.4; } /* 변수 사용 */
         .global-dialog-actions { display: flex; gap: 10px; }
         .global-dialog-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .btn-cancel { background-color: #f2f4f6; color: #8b95a1; }
-        .btn-confirm { background-color: #191f28; color: #fff; }
+        .btn-cancel { background-color: var(--nav-active-bg); color: var(--text-sub); } /* 변수 사용 */
+        .btn-confirm { background-color: var(--text-main); color: var(--popup-bg); } /* 변수 사용 */
+
+        /* 기타 */
+        .app-footer {
+            text-align:center; margin-top: 30px; margin-bottom: 30px; 
+            font-size: 12px; color: var(--chevron-color); /* 색상 통일 */
+        }
+
 
         /* [모바일 최적화] */
         @media (max-width: 600px) {
@@ -275,12 +374,12 @@
             <ul class="menu-list">
                 <li class="menu-item" style="cursor: default;">
                     <div class="menu-left"><span class="material-icons menu-icon">info</span>버전</div>
-                    <div style="font-size: 14px; color: #8b95a1;">v1.0.2</div>
+                    <div style="font-size: 14px; color: var(--text-sub);">v1.0.2</div>
                 </li>
             </ul>
         </div>
         
-        <div style="text-align:center; margin-top: 30px; margin-bottom: 30px; font-size: 12px; color: #d1d6db;">
+        <div class="app-footer">
             POCKETBLY<br>Designed for Family
         </div>
     </div>
@@ -305,11 +404,11 @@
     <div id="name-modal" class="edit-modal-overlay" onclick="if(event.target===this) closeNameModal()">
         <div class="edit-modal-sheet">
             <div style="display:flex; justify-content:space-between; align-items: center;">
-                <h3 style="margin:0; font-size:18px;">이름 변경</h3>
-                <span class="material-icons" style="cursor:pointer;" onclick="closeNameModal()">close</span>
+                <h3 style="margin:0; font-size:18px; color:var(--text-main);">이름 변경</h3>
+                <span class="material-icons" style="cursor:pointer; color:var(--text-sub);" onclick="closeNameModal()">close</span>
             </div>
             <div style="margin-top: 20px;">
-                <label style="font-size: 12px; color: #8b95a1;">새로운 이름</label>
+                <label style="font-size: 12px; color: var(--text-sub);">새로운 이름</label>
                 <input type="text" id="new-name-input" class="edit-input" placeholder="이름을 입력하세요">
             </div>
             <button class="edit-btn-save ripple-target" onclick="updateProfileName()">저장하기</button>
@@ -320,8 +419,8 @@
     <div id="code-modal" class="edit-modal-overlay" onclick="if(event.target===this) closeCodeModal()">
         <div class="edit-modal-sheet">
             <div style="display:flex; justify-content:space-between; align-items: center;">
-                <h3 style="margin:0; font-size:18px;">부모님 연결</h3>
-                <span class="material-icons" style="cursor:pointer;" onclick="closeCodeModal()">close</span>
+                <h3 style="margin:0; font-size:18px; color:var(--text-main);">부모님 연결</h3>
+                <span class="material-icons" style="cursor:pointer; color:var(--text-sub);" onclick="closeCodeModal()">close</span>
             </div>
             
             <div class="code-display-box">
@@ -468,7 +567,18 @@
                     if (snapshot.empty) { return showGlobalDialog('alert', '삭제할 데이터가 없습니다.'); }
                     const batch = db.batch();
                     snapshot.docs.forEach(doc => { batch.delete(doc.ref); });
-                    batch.commit().then(() => { showGlobalDialog('alert', '모든 데이터가 초기화되었습니다.'); })
+                    batch.commit().then(() => { 
+                        // 도전 목록도 함께 삭제 (Challenge 목록 추가)
+                        db.collection('users').doc(currentUser.uid).collection('challenges').get().then(chalSnapshot => {
+                            if (!chalSnapshot.empty) {
+                                const chalBatch = db.batch();
+                                chalSnapshot.docs.forEach(doc => { chalBatch.delete(doc.ref); });
+                                chalBatch.commit().then(() => { showGlobalDialog('alert', '모든 데이터가 초기화되었습니다.'); });
+                            } else {
+                                showGlobalDialog('alert', '모든 데이터가 초기화되었습니다.');
+                            }
+                        });
+                    })
                     .catch(err => { showGlobalDialog('alert', '초기화 중 오류가 발생했습니다.'); });
                 });
             });
