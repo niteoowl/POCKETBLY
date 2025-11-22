@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>POCKETBLY - 홈</title>
     
-    <!-- [깜빡임 방지 스크립트] -->
+    <!-- [핵심] 다크모드 깜빡임 방지 (렌더링 전 실행) -->
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme');
@@ -18,32 +18,34 @@
         })();
     </script>
 
-    <!-- Icons & Fonts -->
+    <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Pretendard Font -->
     <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
     
-    <!-- Firebase -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     
     <style>
-        /* 초기화 */
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; }
+        /* 초기화 및 트랜지션 설정 */
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease, color 0.3s ease; }
         body { -webkit-user-select: none; user-select: none; }
         input, textarea { -webkit-user-select: text; user-select: text; }
 
-        /* [색상 팔레트 정의] */
+        /* [컬러 시스템 정의] */
         :root {
-            /* --- [Light Mode] --- */
+            /* === Light Mode (기본) === */
             --bg-color: #ffffff;
-            --header-bg: rgba(255, 255, 255, 0.95); /* 라이트는 살짝 투명 */
+            --header-bg: rgba(255, 255, 255, 0.92);
             --card-bg: #ffffff;
             
             --text-main: #191f28;
             --text-sub: #8b95a1;
             
             --border-color: #e5e8eb;
+            
             --nav-bg: rgba(255, 255, 255, 0.9);
             --nav-active-bg: #f2f4f6;
             --nav-inactive: #b0b8c1;
@@ -57,40 +59,43 @@
             --popup-bg: #ffffff;
             --popup-comment: #f5f5f5;
             
-            /* 공통 컬러 */
-            --primary-blue: #3182f6; /* 토스 블루 */
-            --income-color: #3182f6;
+            --primary-blue: #3182f6;
             --expense-color: #f04452;
             --ripple-color: rgba(0, 0, 0, 0.05);
             --header-height: 80px; 
+            --shadow-card: 0 4px 20px rgba(0,0,0,0.02);
         }
 
-        /* --- [Dark Mode: 토스 스타일] --- */
+        /* === Dark Mode (Custom #18171e Base) === */
         [data-theme="dark"] {
-            /* 푸른기 뺀 딥 다크 그레이 (토스 느낌) */
-            --bg-color: #17171c; 
-            --header-bg: #17171c; /* 배경과 완벽하게 동일한 색상 (투명도 X) */
-            --card-bg: #202027;   /* 카드만 아주 살짝 밝게 */
+            /* 요청하신 #18171e 베이스 */
+            --bg-color: #18171e;
+            --header-bg: #18171e; /* 헤더와 배경 색상 완전 일치 */
             
-            --text-main: #eff1f3; /* 쨍한 화이트 대신 부드러운 화이트 */
-            --text-sub: #6c7680;  /* 어두운 배경용 회색 */
+            /* 카드: 배경보다 미세하게 밝은 톤 (#18171e + 5% Lightness) */
+            --card-bg: #24232b;
             
-            --border-color: #2c2c35; /* 아주 어두운 경계선 */
+            --text-main: #eff1f3; /* 눈이 편안한 화이트 */
+            --text-sub: #7b828e;  /* 쿨 그레이 */
             
-            --nav-bg: #17171c;    /* 하단 탭도 배경과 동일 */
-            --nav-active-bg: #2c2c35;
-            --nav-inactive: #596370;
+            --border-color: #302f38; /* 카드보다 살짝 밝은 경계선 */
             
-            --chart-track: #2c2c35;
-            --chart-fill-prev: #4e5968;
+            /* 네비게이션: 카드 색상과 통일하여 깔끔하게 */
+            --nav-bg: #24232b;
+            --nav-active-bg: #302f38;
+            --nav-inactive: #5b616a;
             
-            --skeleton-base: #2c2c35;
-            --skeleton-highlight: rgba(255, 255, 255, 0.08);
+            --chart-track: #302f38;
+            --chart-fill-prev: #4b4a54;
             
-            --popup-bg: #202027;
-            --popup-comment: #2c2c35;
+            --skeleton-base: #24232b;
+            --skeleton-highlight: rgba(255, 255, 255, 0.06);
             
-            --ripple-color: rgba(255, 255, 255, 0.05);
+            --popup-bg: #24232b;
+            --popup-comment: #1c1c24;
+            
+            --ripple-color: rgba(255, 255, 255, 0.08);
+            --shadow-card: none; /* 다크모드에선 그림자 제거하고 면으로 승부 */
         }
 
         body {
@@ -116,12 +121,15 @@
             position: fixed; top: 0; left: 50%; transform: translateX(-50%);
             width: 95%; max-width: 1024px; z-index: 1005;
             background-color: var(--header-bg);
-            backdrop-filter: blur(10px); /* 라이트모드에서만 유효하게 보임 */
+            backdrop-filter: blur(10px);
             height: var(--header-height); 
             display: flex; align-items: center; justify-content: space-between;
             padding: 16px 24px;
-            /* 헤더 경계선 제거 (더 깔끔하게) */
+            /* 경계선 제거 */
         }
+        /* 다크모드일 때 헤더 블러 제거 (완벽한 일체감을 위해) */
+        [data-theme="dark"] .header { backdrop-filter: none; }
+
         .header h1 { font-size: 26px; font-weight: 800; color: var(--text-main); margin: 0; }
         .header-action { display: flex; gap: 8px; }
         
@@ -133,21 +141,21 @@
         }
         .icon-button:hover { background-color: var(--nav-active-bg); }
 
-        /* 히어로 */
+        /* 히어로 섹션 */
         .hero-section { margin-top: 10px; margin-bottom: 30px; }
         .hero-greeting { font-size: 16px; color: var(--text-sub); font-weight: 500; margin-bottom: 8px; }
         .hero-balance { font-size: 32px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
 
-        /* 카드 공통 */
+        /* 카드 공통 스타일 */
         .insight-card {
             background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 24px; /* 토스 스타일: 둥근 모서리 강조 */
+            border: 1px solid var(--border-color); /* 경계선은 미세하게 */
+            border-radius: 24px;
             padding: 24px;
             margin-bottom: 16px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.02); /* 아주 은은한 그림자 */
+            box-shadow: var(--shadow-card);
         }
         
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
@@ -190,7 +198,7 @@
 
         .daily-val { font-size: 24px; font-weight: 800; color: var(--text-main); }
 
-        /* 스켈레톤 */
+        /* 스켈레톤 로딩 */
         .skeleton {
             background: var(--skeleton-base);
             color: transparent !important;
@@ -215,7 +223,6 @@
             width: 75%; max-width: 450px; 
             height: 75px;
             background-color: var(--nav-bg); 
-            /* 다크모드일 땐 블러 효과 제거하여 배경과 일체화 */
             backdrop-filter: blur(10px); 
             display: flex; justify-content: space-around; align-items: center;
             z-index: 1000; 
@@ -223,10 +230,8 @@
             border-radius: 50px; padding: 0 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
-        [data-theme="dark"] .bottom-nav {
-            backdrop-filter: none; /* 다크모드는 블러 끔 */
-            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
-        }
+        /* 다크모드일 땐 Nav도 블러 제거하고 카드처럼 표현 */
+        [data-theme="dark"] .bottom-nav { backdrop-filter: none; box-shadow: 0 4px 30px rgba(0,0,0,0.4); }
 
         .nav-item {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -242,13 +247,14 @@
         }
         .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
 
-        /* 팝업 */
+        /* 알림 팝업 */
         .alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; display: none; justify-content: center; align-items: center; }
         .alert-box { width: 85%; max-width: 320px; background-color: var(--popup-bg); border-radius: 24px; padding: 24px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
         .alert-box h3 { color: var(--text-main); }
         .alert-box p { color: var(--text-sub); }
         .alert-btn { width: 100%; padding: 15px; border-radius: 16px; border: none; font-size: 16px; font-weight: 700; color: white; cursor: pointer; background-color: var(--primary-blue); margin-top: 20px; }
         
+        /* 리플 효과 */
         .ripple {
             position: absolute; border-radius: 50%; transform: scale(0);
             animation: ripple-anim 0.5s linear; background-color: var(--ripple-color); pointer-events: none; 
@@ -271,6 +277,7 @@
             <button class="icon-button ripple-target">
                 <span class="material-icons">notifications</span>
             </button>
+            <!-- 테마 토글 버튼 -->
             <button class="icon-button ripple-target" onclick="toggleTheme()">
                 <span class="material-icons">settings</span>
             </button>
@@ -369,18 +376,8 @@
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
-            // 차트 배경색 즉시 다시 계산을 위해 리로드 대신 간단한 스타일 업데이트 트리거가 좋지만, 
-            // 여기서는 차트가 CSS 변수를 참조하지 못하는 Gradient 문제 때문에 리로드가 가장 깔끔합니다.
-            // 하지만 사용자 경험을 위해 리로드 없이 적용되도록 아래 로직 추가.
-            updateChartColors(); 
-        }
-
-        function updateChartColors() {
-            // 도넛 차트 배경색이 그라디언트라 CSS 변수 직접 적용이 안됨 -> JS 재계산 필요
-            const donut = document.getElementById('donut-chart');
-            // 데이터가 있을 때만 재계산 (전역 변수나 캐싱된 데이터 필요하나 여기선 간단히 처리)
-            // *실제 구현시엔 loadHomeData 내부 로직이 다시 돌도록 하는 것이 좋음.
-            // 여기서는 편의상 새로고침을 권장하거나, 데이터 로드 함수를 재호출.
+            
+            // 차트 색상 업데이트를 위해 데이터 로드 재실행
             const uid = firebase.auth().currentUser?.uid;
             if(uid) loadHomeData(uid);
         }
@@ -507,7 +504,7 @@
                     currentDeg += deg;
                 });
                 
-                // JS에서 CSS 변수값 가져오기 (다크모드 대응)
+                // 차트 트랙 색상을 현재 테마에서 가져오기
                 const trackColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-track').trim();
                 gradientStr += `${trackColor} ${currentDeg}deg 360deg`;
                 
@@ -525,36 +522,4 @@
         function createRipple(event) {
             const button = event.currentTarget; const oldRipple = button.querySelector('.ripple'); if(oldRipple) oldRipple.remove();
             const circle = document.createElement('span'); const diameter = Math.max(button.clientWidth, button.clientHeight); const radius = diameter / 2; const rect = button.getBoundingClientRect();
-            circle.style.width = circle.style.height = `${diameter}px`; circle.style.left = `${event.clientX - rect.left - radius}px`; circle.style.top = `${event.clientY - rect.top - radius}px`; circle.classList.add('ripple');
-            button.appendChild(circle); setTimeout(() => circle.remove(), 500);
-        }
-        document.querySelectorAll('.ripple-target').forEach(btn => btn.addEventListener('click', createRipple));
-
-        function listenForParentDecision(uid) {
-            db.collection('shared_reports').where('uid','==',uid).where('status','in',['승인','반려'])
-            .onSnapshot(ss => {
-                ss.docChanges().forEach(c => {
-                    if(c.type==='added' || c.type==='modified') {
-                        let d = c.doc.data(); pendingReportDocId = c.doc.id;
-                        document.getElementById('alert-title').innerText = `부모님 ${d.status}`;
-                        document.getElementById('alert-icon').innerText = d.status==='승인'?'check_circle':'cancel';
-                        document.getElementById('alert-icon').style.color = d.status==='승인'?'#3182f6':'#f04452';
-                        if(d.parentComment) {
-                            document.getElementById('alert-comment').innerText = d.parentComment;
-                            document.getElementById('alert-comment').style.display='block';
-                        } else {
-                            document.getElementById('alert-comment').style.display='none';
-                        }
-                        document.getElementById('alert-overlay').style.display='flex';
-                    }
-                });
-            });
-        }
-        function confirmAlert() {
-            if(pendingReportDocId) db.collection('shared_reports').doc(pendingReportDocId).delete().then(()=>{
-                document.getElementById('alert-overlay').style.display='none';
-            });
-        }
-    </script>
-</body>
-</html>
+            circle.style.width = circle.style.height = `${diame
