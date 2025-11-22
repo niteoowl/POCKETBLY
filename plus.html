@@ -5,6 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>추가</title>
    
+    <!-- [깜빡임 방지 스크립트] (홈 화면에서 가져옴) -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+    
     <!-- Pretendard 폰트 불러오기 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <!-- Google Material Symbols (아이콘) 불러오기 -->
@@ -16,21 +29,64 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 
     <style>
-        /* CSS 초기화 및 기본 설정 (원래 디자인 유지) */
+        /* CSS 초기화 및 기본 설정 */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             font-family: 'Pretendard', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* [색상 팔레트] (홈/기록/도전/MY 화면과 통일) */
+        :root {
+            /* === Light Mode === */
+            --bg-color: #ffffff;
+            --text-main: #191f28;
+            --text-sub: #8b95a1;
+            --border-color: #e5e8eb;
+            --toggle-active-bg: #ffffff;
+            --toggle-inactive-bg: #f7f7f7;
+            --button-primary-bg: #1a1a1a;
+            --button-primary-color: #ffffff;
+            --button-disabled-bg: #ccc;
+            --button-disabled-color: #888;
+            --input-border-focus: #1a1a1a;
+            --input-border-default: #ccc;
+            --category-bg-default: #fff;
+            --category-bg-selected: #f0f0f0;
+            --message-box-bg: #333;
+            --message-box-color: #ffffff;
+        }
+
+        /* === Dark Mode === */
+        [data-theme="dark"] {
+            --bg-color: #18171e;
+            --text-main: #eff1f3;
+            --text-sub: #8b95a1;
+            --border-color: #2c2b33;
+            --toggle-active-bg: #24232b;
+            --toggle-inactive-bg: #1e1d23;
+            --button-primary-bg: #eff1f3;
+            --button-primary-color: #1a1a1a;
+            --button-disabled-bg: #35343d;
+            --button-disabled-color: #686d77;
+            --input-border-focus: #eff1f3;
+            --input-border-default: #35343d;
+            --category-bg-default: var(--toggle-active-bg);
+            --category-bg-selected: #35343d;
+            --message-box-bg: #eff1f3;
+            --message-box-color: #1a1a1a;
         }
 
         body, html {
             height: 100%;
-            background-color: #ffffff;
-            color: #1a1a1a;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         /* 1. 메인 컨테이너 */
@@ -42,7 +98,7 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            background: #ffffff;
+            background: var(--bg-color);
             z-index: 1000;
         }
 
@@ -67,7 +123,7 @@
             flex-shrink: 0;
             padding: 20px 16px;
             overflow-y: auto;
-            background-color: #ffffff;
+            background-color: var(--bg-color);
         }
        
         /* 3. 고정된 다음 버튼 영역 */
@@ -77,16 +133,20 @@
             left: 0;
             width: 100%;
             padding: 10px 16px;
-            background: #ffffff;
-            box-shadow: none;
+            background: var(--bg-color);
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.05); /* 라이트 모드 그림자 */
             z-index: 100;
+            transition: background-color 0.3s;
+        }
+        [data-theme="dark"] .next-button-fixed {
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3); /* 다크 모드 그림자 */
         }
 
         .next-button {
             width: 100%;
             padding: 15px;
-            background-color: #1a1a1a;
-            color: white;
+            background-color: var(--button-primary-bg);
+            color: var(--button-primary-color);
             border: none;
             border-radius: 12px;
             font-size: 1rem;
@@ -95,14 +155,21 @@
             transition: background-color 0.2s, transform 0.1s;
         }
         .next-button:disabled {
-            background-color: #ccc;
-            color: #888;
+            background-color: var(--button-disabled-bg);
+            color: var(--button-disabled-color);
             cursor: not-allowed;
         }
         .next-button:active:not(:disabled) {
             transform: scale(0.98);
-            background-color: #333;
+            /* 하이라이트 대신 살짝 어두운 색상 유지 */
+            background-color: var(--text-main); 
+            opacity: 0.9;
         }
+        [data-theme="dark"] .next-button:active:not(:disabled) {
+            background-color: var(--button-primary-bg); 
+            opacity: 0.9;
+        }
+
 
         /* 4. 입력 필드 스타일 */
         .input-group {
@@ -112,21 +179,27 @@
             display: block;
             font-weight: 500;
             margin-bottom: 5px;
-            color: #555;
+            color: var(--text-sub);
             font-size: 1.1rem;
         }
         .text-input {
             width: 100%;
             padding: 12px 10px;
             border: none;
-            border-bottom: 2px solid #ccc;
+            border-bottom: 2px solid var(--input-border-default);
             font-size: 1.2rem;
             font-weight: 600;
             transition: border-bottom-color 0.2s;
+            background-color: transparent;
+            color: var(--text-main);
         }
         .text-input:focus {
             outline: none;
-            border-bottom-color: #1a1a1a;
+            border-bottom-color: var(--input-border-focus);
+        }
+        .text-input::placeholder {
+            color: var(--text-sub);
+            opacity: 0.6;
         }
        
         /* 금액 입력 스타일 */
@@ -145,19 +218,19 @@
         .type-btn {
             flex-grow: 1;
             padding: 12px;
-            border: 1px solid #eee;
+            border: 1px solid var(--border-color);
             border-radius: 10px;
             text-align: center;
             font-weight: 600;
             cursor: pointer;
-            color: #1a1a1a;
-            background-color: #f7f7f7;
+            color: var(--text-main);
+            background-color: var(--toggle-inactive-bg);
             transition: all 0.2s;
         }
         .type-btn.selected-type {
-            color: #1a1a1a;
-            background-color: #ffffff;
-            border-color: #1a1a1a;
+            color: var(--text-main);
+            background-color: var(--toggle-active-bg);
+            border-color: var(--text-main);
             font-weight: 700;
         }
         .type-btn:active {
@@ -173,19 +246,37 @@
         }
         .category-btn {
             padding: 15px 10px;
-            border: 1px solid #eee;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            background-color: #fff;
+            background-color: var(--category-bg-default);
             text-align: center;
             cursor: pointer;
             font-size: 0.9rem;
+            color: var(--text-main);
             transition: all 0.2s;
         }
         .category-btn.selected {
-            background-color: #f0f0f0;
-            border-color: #1a1a1a;
-            color: #1a1a1a;
+            background-color: var(--category-bg-selected);
+            border-color: var(--text-main);
+            color: var(--text-main);
             font-weight: 600;
+        }
+
+        /* 7. 메세지 박스 스타일 */
+        #custom-message {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            background-color: var(--message-box-bg);
+            color: var(--message-box-color);
+            border-radius: 8px;
+            z-index: 2000;
+            opacity: 0;
+            transition: bottom 0.3s ease-out, opacity 0.3s;
+            text-align: center;
+            max-width: 80%;
         }
     </style>
 </head>
@@ -202,7 +293,7 @@
                 <!-- Step 1: 금액 입력 -->
                 <div class="step-page" id="step1">
                     <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 10px;">어떤 항목을 기록할까요?</h3>
-                    <p style="color: #888; margin-bottom: 30px;">수입인지 지출인지 먼저 선택해주세요.</p>
+                    <p style="color: var(--text-sub); margin-bottom: 30px;">수입인지 지출인지 먼저 선택해주세요.</p>
                    
                     <div class="type-toggle">
                         <div class="type-btn selected-type" id="typeExpense" onclick="selectType('expense')">지출</div>
@@ -219,7 +310,7 @@
                 <div class="step-page" id="step2">
                     <!-- 텍스트 동적 변경을 위해 ID 부여 -->
                     <h3 id="step2-title" style="font-size: 1.5rem; font-weight: 700; margin-bottom: 10px;">어디에, 무엇을 위해 사용했나요?</h3>
-                    <p id="step2-desc" style="color: #888; margin-bottom: 30px;">거래 내용을 기록해주세요.</p>
+                    <p id="step2-desc" style="color: var(--text-sub); margin-bottom: 30px;">거래 내용을 기록해주세요.</p>
                    
                     <div class="input-group">
                         <label for="usageInput" id="usage-label">사용처</label>
@@ -235,7 +326,7 @@
                 <!-- Step 3: 카테고리 선택 -->
                 <div class="step-page" id="step3">
                     <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 10px;">카테고리를 선택하세요.</h3>
-                    <p id="amountDisplay" style="font-size: 1.2rem; font-weight: 700; margin-bottom: 30px; color: #1a1a1a;">
+                    <p id="amountDisplay" style="font-size: 1.2rem; font-weight: 700; margin-bottom: 30px; color: var(--text-main);">
                         <!-- 금액 표시 영역 -->
                     </p>
 
@@ -253,21 +344,7 @@
     </div>
    
     <!-- Custom Message Box -->
-    <div id="custom-message" style="
-        position: fixed;
-        bottom: -100px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 10px 20px;
-        background-color: #333;
-        color: white;
-        border-radius: 8px;
-        z-index: 2000;
-        opacity: 0;
-        transition: bottom 0.3s ease-out, opacity 0.3s;
-        text-align: center;
-        max-width: 80%;
-    "></div>
+    <div id="custom-message"></div>
 
     <script>
         // ---------------- Firebase 초기화 ----------------
@@ -305,9 +382,9 @@
             isExpense: true
         };
 
-        // [수정됨] 카테고리 분리
+        // [수정됨] 청소년용 앱 카테고리 업데이트: '급여' 삭제, '용돈' 맨 앞으로
         const EXPENSE_CATEGORIES = ['식비/간식', '교통', '쇼핑', '문화생활', '편의점/마트', '학용품', '기타'];
-        const INCOME_CATEGORIES = ['용돈', '급여', '보너스', '중고거래', '금융수입', '기타'];
+        const INCOME_CATEGORIES = ['용돈', '보너스', '중고거래', '금융수입', '기타'];
        
         window.onload = function() {
             renderStep();
@@ -340,9 +417,12 @@
                 const absAmount = Math.abs(transactionState.amount).toLocaleString('ko-KR');
                 const signText = transactionState.type === 'expense' ? '지출' : '수입';
                 
+                // 배경색을 변수로 처리하여 다크모드 대응
+                const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--nav-active-bg').trim() || '#f0f0f0';
+
                 $('amountDisplay').innerHTML = `
-                    <span style="color: #1a1a1a; font-size: 1.5rem; font-weight: 700;">${signText}</span>
-                    <span style="color: #1a1a1a; font-size: 1.5rem; font-weight: 700; padding: 4px 8px; border-radius: 6px; background-color: #f0f0f0; margin-left: 8px;">
+                    <span style="color: var(--text-main); font-size: 1.5rem; font-weight: 700;">${signText}</span>
+                    <span style="color: var(--text-main); font-size: 1.5rem; font-weight: 700; padding: 4px 8px; border-radius: 6px; background-color: ${bgColor}; margin-left: 8px;">
                         ${absAmount}원
                     </span>
                 `;
