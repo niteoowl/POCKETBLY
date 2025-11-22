@@ -2,813 +2,137 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Google Play Store</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA 설치하기</title>
+    <!-- Tailwind CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 기본 설정 */
-        * {
-            box-sizing: border-box;
-            outline: none;
-            -webkit-tap-highlight-color: transparent;
-ㄷ        }
-
+        /* 커스텀 스타일 (폰트 및 배경) */
         body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Roboto', sans-serif;
-            background-color: #ffffff;
-            color: #202124;
-            overflow-x: hidden;
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117; /* GitHub Dark Theme 배경 */
         }
-
-        /* 상단 헤더 (검색창 등) */
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 24px;
-            position: sticky;
-            top: 0;
-            background: #fff;
-            z-index: 100;
+        .container-card {
+            background-color: #161b22; /* 카드 배경 */
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 6px 6px -3px rgba(0, 0, 0, 0.3);
         }
-
-        .header-icon {
-            width: 24px;
-            height: 24px;
-            fill: #5f6368;
-        }
-
-        /* 메인 컨텐츠 */
-        .main-content {
-            padding-bottom: 80px;
-        }
-
-        /* 앱 헤더 정보 (아이콘, 제목) */
-        .app-header {
-            display: flex;
-            padding: 0 24px;
-            margin-bottom: 20px;
-        }
-
-        .app-icon {
-            width: 72px;
-            height: 72px;
-            border-radius: 15px; /* Google Play 스타일 라운딩 */
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-            margin-right: 20px;
-            object-fit: cover;
-            flex-shrink: 0;
-        }
-
-        .app-info {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .app-title {
-            font-size: 24px;
-            font-weight: 500;
-            margin: 0 0 2px 0;
-            color: #202124;
-            line-height: 1.2;
-        }
-
-        .dev-name {
-            font-size: 14px;
-            font-weight: 500;
-            color: #01875f; /* Play Store Green */
-            margin-bottom: 4px;
-        }
-
-        .ad-label {
-            font-size: 12px;
-            color: #5f6368;
-        }
-
-        /* 통계 바 (평점, 다운로드 등) */
-        .stats-bar {
-            display: flex;
-            justify-content: space-between;
-            padding: 0 24px;
-            margin-bottom: 24px;
-            align-items: center;
-        }
-
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            position: relative;
-        }
-
-        .stat-item:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            height: 24px;
-            width: 1px;
-            background-color: #e8eaed;
-        }
-
-        .stat-value {
-            font-weight: 500;
-            font-size: 14px;
-            color: #202124;
-            display: flex;
-            align-items: center;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #5f6368;
-            margin-top: 4px;
-        }
-
-        .star-icon {
-            width: 12px;
-            height: 12px;
-            fill: #202124;
-            margin-left: 2px;
-        }
-
-        .age-icon {
-            border: 1px solid #5f6368;
-            border-radius: 3px;
-            padding: 0 3px;
-            font-size: 10px;
-            font-weight: bold;
-            height: 16px;
-            line-height: 14px;
-            display: inline-block;
-        }
-
-        /* 설치 버튼 영역 */
-        .install-section {
-            padding: 0 24px;
-            margin-bottom: 24px;
-        }
-
-        .btn-install {
-            width: 100%;
-            height: 40px; /* Play Store 표준 높이 */
-            background-color: #01875f;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-install:active {
-            background-color: #016d4d;
-        }
-
-        .btn-install.open {
-            background-color: #ffffff;
-            color: #01875f;
-            border: 1px solid #dadce0;
-        }
-        
-        .btn-install.cancel {
-            background-color: #ffffff;
-            color: #01875f;
-            border: 1px solid #dadce0;
-        }
-
-        /* 다운로드 프로그레스 효과 */
-        .progress-bg {
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            background-color: #016d4d; /* 어두운 녹색 배경 */
-            width: 0%;
-            z-index: 0;
-            transition: width 0.2s linear;
-        }
-
-        .btn-text {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* 스크린샷 캐러셀 */
-        .screenshots-container {
-            display: flex;
-            overflow-x: auto;
-            padding: 0 24px;
-            gap: 12px;
-            margin-bottom: 24px;
-            scrollbar-width: none; /* Firefox 스크롤바 숨김 */
-            -ms-overflow-style: none;
-        }
-
-        .screenshots-container::-webkit-scrollbar {
-            display: none;
-        }
-
-        .screenshot {
-            width: 100px; /* 세로형 스크린샷 비율 */
-            height: 180px;
-            border-radius: 8px;
-            object-fit: cover;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            flex-shrink: 0;
-        }
-        
-        .screenshot-landscape {
-            width: 280px;
-            height: 157px;
-            border-radius: 8px;
-            object-fit: cover;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            flex-shrink: 0;
-        }
-
-        /* 앱 정보 텍스트 */
-        .about-section {
-            padding: 0 24px;
-            margin-bottom: 24px;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: 500;
-            color: #202124;
-        }
-
-        .arrow-icon {
-            width: 20px;
-            height: 20px;
-            fill: #5f6368;
-        }
-
-        .about-text {
-            font-size: 14px;
-            color: #5f6368;
-            line-height: 1.5;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        /* 평가 및 리뷰 */
-        .ratings-section {
-            padding: 0 24px;
-            margin-bottom: 30px;
-        }
-
-        .rating-large {
-            font-size: 48px;
-            font-weight: 500;
-            color: #202124;
-        }
-        
-        .rating-sub {
-             font-size: 12px;
-             color: #5f6368;
-        }
-
-        /* 스켈레톤 로딩 효과 (이미지 로드 전) */
-        .skeleton {
-            background-color: #f0f0f0;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
-        }
-
     </style>
 </head>
-<body>
+<body class="flex items-center justify-center min-h-screen p-4">
 
-    <!-- 헤더 -->
-    <div class="header">
-        <svg class="header-icon" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-        <div style="flex-grow:1"></div>
-        <svg class="header-icon" viewBox="0 0 24 24" style="margin-right: 20px;"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-        <svg class="header-icon" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-    </div>
-
-    <div class="main-content">
-        <!-- 앱 정보 -->
-        <div class="app-header">
-            <img src="https://i.postimg.cc/cH9Br0N4/jemog-eul-iblyeoghaejuseyo-004.png" alt="App Icon" class="app-icon skeleton">
-            <div class="app-info">
-                <h1 class="app-title">Pocketbly - 용돈 기입장</h1>
-                <div class="dev-name">MateNet Inc.</div>
-                <div class="ad-label">광고 포함</div>
-            </div>
-        </div>
-
-        <!-- 통계 바 -->
-        <div class="stats-bar">
-            <div class="stat-item">
-                <div class="stat-value">4.7 <svg class="star-icon" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></div>
-                <div class="stat-label">리뷰 79개</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-vaarrow7천 +</div>
-                <div class="stat-label">다운로드</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value"><span class="age-icon">3+</span></div>
-                <div class="stat-label">만 3세 이상</div>
-            </div>
-        </div>
+    <div class="container-card max-w-lg w-full p-8 rounded-xl space-y-6 text-center">
+        <!-- 제목 및 설명 -->
+        <h1 class="text-3xl font-bold text-white mb-2">
+            앱을 설치하세요!
+        </h1>
+        <p class="text-gray-400 mb-6">
+            이 웹사이트를 모바일이나 데스크톱에 앱처럼 설치하고 더 빠르게 이용해보세요.
+        </p>
 
         <!-- 설치 버튼 -->
-        <div class="install-section">
-            <button id="installBtn" class="btn-install">
-                <div class="progress-bg" id="progressBg"></div>
-                <span class="btn-text" id="btnText">설치</span>
-            </button>
+        <button id="installButton"
+            class="hidden w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200 transform hover:scale-105 active:scale-100 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50 disabled:bg-gray-600 disabled:cursor-not-allowed"
+            aria-label="앱 설치 버튼">
+            <span id="buttonText">앱 설치하기</span>
+        </button>
+
+        <!-- 메시지 영역 -->
+        <div id="message" class="text-sm text-gray-500 mt-4">
+            설치 기능 지원 여부를 확인 중입니다...
         </div>
 
-        <!-- 스크린샷 -->
-        <div class="screenshots-container">
-            <!-- 실제 이미지 대신 제공된 이미지를 crop하여 스크린샷처럼 활용 -->
-            <img src="https://i.postimg.cc/cH9Br0N4/jemog-eul-iblyeoghaejuseyo-004.png" class="screenshot-landscape skeleton" alt="Screenshot 1">
-            <img src="https://i.postimg.cc/cH9Br0N4/jemog-eul-iblyeoghaejuseyo-004.png" class="screenshot-landscape skeleton" alt="Screenshot 2">
-            <img src="https://i.postimg.cc/cH9Br0N4/jemog-eul-iblyeoghaejuseyo-004.png" class="screenshot-landscape skeleton" alt="Screenshot 3">
+        <!-- PWA 아이콘 자리 (예시) -->
+        <div class="mt-8">
+            <svg class="mx-auto h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
         </div>
-
-        <!-- 앱 정보 섹션 -->
-        <div class="about-section">
-            <div class="section-header">
-                <span class="section-title">앱 정보</span>
-                <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg>
-            </div>
-            <div class="about-text">
-                부모-자녀 연동형 용돈기입장<br><br>
-                주요 기능:<br>
-                - 직관적인 인터페이스<br>
-                - 실시간 클라우드 동기화
-            </div>
-        </div>
-
-        <!-- 데이터 보안 -->
-        <div class="about-section">
-            <div class="section-header">
-                <span class="section-title">데이터 보안</span>
-                <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg>
-            </div>
-            <div class="about-text" style="-webkit-line-clamp: 2;">
-                개발자가 데이터를 수집 및 공유하는 방식을 이해하는 것에서부터 보안이 시작됩니다. 데이터 개인 정보 보호 및 보안 관행은 사용자의 앱 사용, 지역, 연령에 따라 다를 수 있습니다.
-            </div>
-        </div>
-        
     </div>
 
     <script>
-        // 앱 설치 시뮬레이션 로직
-        const installBtn = document.getElementById('installBtn');
-        const btnText = document.getElementById('btnText');
-        const progressBg = document.getElementById('progressBg');
-        
-        const TARGET_URL = "https://pocketbly.netlify.app";
+        // 전역 변수 설정
+        let deferredPrompt; // PWA 설치 프롬프트 이벤트를 저장할 변수
+        const installButton = document.getElementById('installButton');
+        const messageElement = document.getElementById('message');
+        const buttonText = document.getElementById('buttonText');
 
-        let isInstalling = false;
-        let isInstalled = false;
+        /**
+         * PWA 설치 버튼 상태를 업데이트하는 함수
+         * @param {string} state - 'hidden', 'visible', 'installed' 중 하나
+         * @param {string} msg - 사용자에게 표시할 메시지
+         */
+        function updateUI(state, msg) {
+            messageElement.textContent = msg;
 
-        installBtn.addEventListener('click', () => {
-            if (isInstalled) {
-                // 이미 설치됨 -> 열기
-                window.location.href = TARGET_URL;
-                return;
+            if (state === 'visible') {
+                installButton.classList.remove('hidden');
+                installButton.disabled = false;
+                buttonText.textContent = '앱 설치하기';
+            } else if (state === 'installed') {
+                installButton.classList.add('hidden');
+            } else if (state === 'hidden') {
+                installButton.classList.add('hidden');
             }
+        }
 
-            if (isInstalling) {
-                // 설치 중 -> 취소 (이 예제에서는 구현 생략하거나 리셋)
-                return;
-            }
+        // 1. 'beforeinstallprompt' 이벤트 리스너: 설치 프롬프트 이벤트를 가로채어 저장합니다.
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // 브라우저의 기본 프롬프트 노출을 막습니다.
+            e.preventDefault();
+            // 이벤트 객체를 저장하여 나중에 수동으로 호출할 수 있게 합니다.
+            deferredPrompt = e;
 
-            // 설치 프로세스 시작
-            isInstalling = true;
-            
-            // 1. "대기 중..." 표시
-            installBtn.classList.add('cancel'); // 취소 스타일(흰색 배경)로 변경
-            btnText.textContent = "대기 중...";
-            
-            setTimeout(() => {
-                // 2. "설치 중..." + 프로그레스 바 시작
-                if(!isInstalling) return;
-                btnText.textContent = "45% ...";
-                
-                // 간단한 프로그레스 바 애니메이션 시뮬레이션
-                let width = 0;
-                const interval = setInterval(() => {
-                    if (width >= 100) {
-                        clearInterval(interval);
-                        finishInstall();
-                    } else {
-                        width += 2; // 속도 조절
-                        // 취소 스타일 위에서 텍스트만 변경하고 프로그레스는 시각적으로만 처리
-                        // 실제 Play Store는 원형 프로그레스지만, CSS 구현상 텍스트 %로 대체하거나
-                        // 버튼 내부 배경을 채우는 방식으로 구현
-                        // 여기서는 버튼을 다시 녹색으로 채우는 애니메이션보다는
-                        // 텍스트 % 증가로 표현하는 것이 더 자연스러움 (Play Store 최신 UX는 원형)
-                        
-                        // 하지만 텍스트로 % 보여주는게 가장 확실함
-                        btnText.textContent = Math.floor(width) + "%";
-                    }
-                }, 30);
-
-            }, 800); // 0.8초 대기 후 다운로드 시작
+            // 사용자 지정 설치 버튼을 보여줍니다.
+            updateUI('visible', '설치 버튼이 활성화되었습니다. 클릭하여 설치하세요.');
         });
 
-        function finishInstall() {
-            isInstalling = false;
-            isInstalled = true;
-            
-            // 버튼 스타일 '열기'로 변경
-            installBtn.classList.remove('cancel');
-            installBtn.classList.add('open'); // 열기 버튼 스타일 (흰색 배경, 녹색 글씨)
-            
-            // 애니메이션용 배경 제거
-            progressBg.style.width = '0%'; 
-            
-            btnText.textContent = "열기";
-            
-            console.log("설치 완료. '열기' 버튼 활성화.");
-        }
-    </script>
-</body>
-</html>            position: relative;
-        }
-
-        .stat-item:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            height: 24px;
-            width: 1px;
-            background-color: #e8eaed;
-        }
-
-        .stat-value {
-            font-weight: 500;
-            font-size: 14px;
-            color: #202124;
-            display: flex;
-            align-items: center;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #5f6368;
-            margin-top: 4px;
-        }
-
-        .star-icon {
-            width: 12px;
-            height: 12px;
-            fill: #202124;
-            margin-left: 2px;
-        }
-
-        .age-icon {
-            border: 1px solid #5f6368;
-            border-radius: 3px;
-            padding: 0 3px;
-            font-size: 10px;
-            font-weight: bold;
-            height: 16px;
-            line-height: 14px;
-            display: inline-block;
-        }
-
-        /* 설치 버튼 영역 */
-        .install-section {
-            padding: 0 24px;
-            margin-bottom: 24px;
-        }
-
-        .btn-install {
-            width: 100%;
-            height: 40px; /* Play Store 표준 높이 */
-            background-color: #01875f;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-install:active {
-            background-color: #016d4d;
-        }
-
-        .btn-install.open {
-            background-color: #ffffff;
-            color: #01875f;
-            border: 1px solid #dadce0;
-        }
-        
-        .btn-install.cancel {
-            background-color: #ffffff;
-            color: #01875f;
-            border: 1px solid #dadce0;
-        }
-
-        /* 다운로드 프로그레스 효과 */
-        .progress-bg {
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            background-color: #016d4d; /* 어두운 녹색 배경 */
-            width: 0%;
-            z-index: 0;
-            transition: width 0.2s linear;
-        }
-
-        .btn-text {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* 스크린샷 캐러셀 */
-        .screenshots-container {
-            display: flex;
-            overflow-x: auto;
-            padding: 0 24px;
-            gap: 12px;
-            margin-bottom: 24px;
-            scrollbar-width: none; /* Firefox 스크롤바 숨김 */
-            -ms-overflow-style: none;
-        }
-
-        .screenshots-container::-webkit-scrollbar {
-            display: none;
-        }
-
-        .screenshot {
-            width: 100px; /* 세로형 스크린샷 비율 */
-            height: 180px;
-            border-radius: 8px;
-            object-fit: cover;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            flex-shrink: 0;
-        }
-        
-        .screenshot-landscape {
-            width: 280px;
-            height: 157px;
-            border-radius: 8px;
-            object-fit: cover;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-            flex-shrink: 0;
-        }
-
-        /* 앱 정보 텍스트 */
-        .about-section {
-            padding: 0 24px;
-            margin-bottom: 24px;
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .section-title {
-            font-size: 18px;
-            font-weight: 500;
-            color: #202124;
-        }
-
-        .arrow-icon {
-            width: 20px;
-            height: 20px;
-            fill: #5f6368;
-        }
-
-        .about-text {
-            font-size: 14px;
-            color: #5f6368;
-            line-height: 1.5;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        /* 평가 및 리뷰 */
-        .ratings-section {
-            padding: 0 24px;
-            margin-bottom: 30px;
-        }
-
-        .rating-large {
-            font-size: 48px;
-            font-weight: 500;
-            color: #202124;
-        }
-        
-        .rating-sub {
-             font-size: 12px;
-             color: #5f6368;
-        }
-
-        /* 스켈레톤 로딩 효과 (이미지 로드 전) */
-        .skeleton {
-            background-color: #f0f0f0;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
-        }
-
-    </style>
-</head>
-<body>
-
-    <!-- 헤더 -->
-    <div class="header">
-        <svg class="header-icon" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-        <div style="flex-grow:1"></div>
-        <svg class="header-icon" viewBox="0 0 24 24" style="margin-right: 20px;"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-        <svg class="header-icon" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
-    </div>
-
-    <div class="main-content">
-        <!-- 앱 정보 -->
-        <div class="app-header">
-            <img src="https://i.postimg.cc/cH9Br0N4/jemog-eul-iblyeoghaejuseyo-004.png" alt="App Icon" class="app-icon skeleton">
-            <div class="app-info">
-                <h1 class="app-title">Pocketbly - 용돈 기입장</h1>
-                <div class="dev-name">MateNet Inc.</div>
-                <div class="ad-label">광고 포함</div>
-            </div>
-        </div>
-
-        <!-- 통계 바 -->
-        <div class="stats-bar">
-            <div class="stat-item">
-                <div class="stat-value">4.7 <svg class="star-icon" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></div>
-                <div class="stat-label">리뷰 5만개</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">1천 +</div>
-                <div class="stat-label">다운로드</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value"><span class="age-icon">3+</span></div>
-                <div class="stat-label">만 3세 이상</div>
-            </div>
-        </div>
-
-        <!-- 설치 버튼 -->
-        <div class="install-section">
-            <button id="installBtn" class="btn-install">
-                <div class="progress-bg" id="progressBg"></div>
-                <span class="btn-text" id="btnText">설치</span>
-            </button>
-        </div>
-
-        <!-- 스크린샷 -->
-        <div class="screenshots-container">
-            <!-- 실제 이미지 대신 제공된 이미지를 crop하여 스크린샷처럼 활용 -->
-            <img src="https://i.postimg.cc/cH9Br0N4/jemog-eul-iblyeoghaejuseyo-004.png" class="screenshot-landscape skeleton" alt="Screenshot 1">
-            <img src="https://i.postimg.cc/cH9Br0N4/jemog-eul-iblyeoghaejuseyo-004.png" class="screenshot-landscape skeleton" alt="Screenshot 2">
-            <img src="https://i.postimg.cc/cH9Br0N4/jemog-eul-iblyeoghaejuseyo-004.png" class="screenshot-landscape skeleton" alt="Screenshot 3">
-        </div>
-
-        <!-- 앱 정보 섹션 -->
-        <div class="about-section">
-            <div class="section-header">
-                <span class="section-title">앱 정보</span>
-                <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg>
-            </div>
-            <div class="about-text">
-                Pocketbly는 당신의 일상을 효율적으로 관리해주는 최고의 도구입니다. 간편한 메모, 일정 관리, 그리고 강력한 동기화 기능을 경험해보세요. 지금 바로 시작하세요.<br><br>
-                주요 기능:<br>
-                - 직관적인 인터페이스<br>
-                - 실시간 클라우드 동기화
-            </div>
-        </div>
-
-        <!-- 데이터 보안 -->
-        <div class="about-section">
-            <div class="section-header">
-                <span class="section-title">데이터 보안</span>
-                <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z"/></svg>
-            </div>
-            <div class="about-text" style="-webkit-line-clamp: 2;">
-                개발자가 데이터를 수집 및 공유하는 방식을 이해하는 것에서부터 보안이 시작됩니다. 데이터 개인 정보 보호 및 보안 관행은 사용자의 앱 사용, 지역, 연령에 따라 다를 수 있습니다.
-            </div>
-        </div>
-        
-    </div>
-
-    <script>
-        // 앱 설치 시뮬레이션 로직
-        const installBtn = document.getElementById('installBtn');
-        const btnText = document.getElementById('btnText');
-        const progressBg = document.getElementById('progressBg');
-        
-        const TARGET_URL = "https://pocketbly.netlify.app";
-
-        let isInstalling = false;
-        let isInstalled = false;
-
-        installBtn.addEventListener('click', () => {
-            if (isInstalled) {
-                // 이미 설치됨 -> 열기
-                window.location.href = TARGET_URL;
-                return;
-            }
-
-            if (isInstalling) {
-                // 설치 중 -> 취소 (이 예제에서는 구현 생략하거나 리셋)
-                return;
-            }
-
-            // 설치 프로세스 시작
-            isInstalling = true;
-            
-            // 1. "대기 중..." 표시
-            installBtn.classList.add('cancel'); // 취소 스타일(흰색 배경)로 변경
-            btnText.textContent = "대기 중...";
-            
-            setTimeout(() => {
-                // 2. "설치 중..." + 프로그레스 바 시작
-                if(!isInstalling) return;
-                btnText.textContent = "45% ...";
+        // 2. 설치 버튼 클릭 이벤트 핸들러
+        installButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // 버튼을 비활성화하여 중복 클릭을 막습니다.
+                installButton.disabled = true;
+                buttonText.textContent = '설치 요청 중...';
                 
-                // 간단한 프로그레스 바 애니메이션 시뮬레이션
-                let width = 0;
-                const interval = setInterval(() => {
-                    if (width >= 100) {
-                        clearInterval(interval);
-                        finishInstall();
-                    } else {
-                        width += 2; // 속도 조절
-                        // 취소 스타일 위에서 텍스트만 변경하고 프로그레스는 시각적으로만 처리
-                        // 실제 Play Store는 원형 프로그레스지만, CSS 구현상 텍스트 %로 대체하거나
-                        // 버튼 내부 배경을 채우는 방식으로 구현
-                        // 여기서는 버튼을 다시 녹색으로 채우는 애니메이션보다는
-                        // 텍스트 % 증가로 표현하는 것이 더 자연스러움 (Play Store 최신 UX는 원형)
-                        
-                        // 하지만 텍스트로 % 보여주는게 가장 확실함
-                        btnText.textContent = Math.floor(width) + "%";
-                    }
-                }, 30);
+                // 저장해 둔 프롬프트 이벤트의 prompt() 메서드를 호출합니다.
+                deferredPrompt.prompt();
 
-            }, 800); // 0.8초 대기 후 다운로드 시작
+                // 사용자의 선택 결과를 기다립니다.
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                // 사용자 선택에 따른 피드백을 제공합니다.
+                if (outcome === 'accepted') {
+                    updateUI('installed', '성공적으로 설치되었습니다! 🎉');
+                } else {
+                    updateUI('installed', '설치가 취소되었습니다. 원할 때 다시 시도할 수 있습니다.');
+                }
+
+                // 프롬프트는 한 번만 사용할 수 있으므로 null로 초기화합니다.
+                deferredPrompt = null;
+
+            } else {
+                updateUI('hidden', '이 브라우저는 PWA 설치를 지원하지 않거나 이미 설치되었습니다. (beforeinstallprompt 이벤트가 발생하지 않았습니다)');
+            }
         });
 
-        function finishInstall() {
-            isInstalling = false;
-            isInstalled = true;
-            
-            // 버튼 스타일 '열기'로 변경
-            installBtn.classList.remove('cancel');
-            installBtn.classList.add('open'); // 열기 버튼 스타일 (흰색 배경, 녹색 글씨)
-            
-            // 애니메이션용 배경 제거
-            progressBg.style.width = '0%'; 
-            
-            btnText.textContent = "열기";
-            
-            console.log("설치 완료. '열기' 버튼 활성화.");
+        // 3. 앱 설치 상태 확인 (선택 사항)
+        if (window.matchMedia('(display-mode: standalone)').matches || document.referrer.includes('?utm_source=pwa')) {
+            updateUI('installed', '이 앱은 이미 설치된 상태입니다.');
+        } else if (!('BeforeInstallPromptEvent' in window)) {
+            // beforeinstallprompt 이벤트 자체가 없는 경우 (대부분의 데스크톱 브라우저에서는 이 이벤트가 발생하지 않음)
+            updateUI('hidden', '이 브라우저는 PWA 설치 기능을 지원하지 않습니다.');
+        } else {
+            // beforeinstallprompt 이벤트를 기다리는 중
+            updateUI('hidden', 'PWA 설치 지원 여부를 확인 중입니다...');
         }
+
+        // 4. 앱이 설치된 후 'appinstalled' 이벤트 처리 (선택 사항)
+        window.addEventListener('appinstalled', () => {
+            // 설치 후 UI를 업데이트합니다.
+            updateUI('installed', '앱 설치가 완료되었습니다. 감사합니다!');
+            // deferredPrompt를 null로 재설정합니다.
+            deferredPrompt = null;
+        });
+
     </script>
 </body>
 </html>
