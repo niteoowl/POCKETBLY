@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>추가</title>
    
     <!-- Pretendard 폰트 불러오기 -->
@@ -17,205 +17,106 @@
 
     <style>
         /* CSS 초기화 및 기본 설정 */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Pretendard', sans-serif;
-        }
-
-        body, html {
-            height: 100%;
-            background-color: #ffffff;
-            color: #1a1a1a;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow: hidden;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body, html { height: 100%; background-color: #ffffff; color: #1a1a1a; overflow: hidden; }
 
         /* 1. 메인 컨테이너 */
         .transaction-app {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background: #ffffff;
-            z-index: 1000;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            display: flex; flex-direction: column; background: #ffffff; z-index: 1000;
         }
 
         /* 2. 단계별 화면 슬라이딩 컨테이너 */
         .step-wrapper {
-            flex-grow: 1;
-            width: 100%;
-            display: block;
-            overflow: hidden;
-            padding-bottom: 80px; /* 고정 버튼 공간 확보 */
+            flex-grow: 1; width: 100%; display: block; overflow: hidden; padding-bottom: 80px;
         }
-
         .step-container {
-            display: flex;
-            width: 300%;
-            height: 100%;
+            display: flex; width: 300%; height: 100%;
             transition: transform 0.3s cubic-bezier(0.3, 0.7, 0.4, 0.9);
         }
-
         .step-page {
-            width: calc(100% / 3);
-            flex-shrink: 0;
-            padding: 20px 16px;
-            overflow-y: auto;
-            background-color: #ffffff;
+            width: calc(100% / 3); flex-shrink: 0; padding: 20px 16px;
+            overflow-y: auto; background-color: #ffffff;
         }
        
         /* 3. 고정된 다음 버튼 영역 */
         .next-button-fixed {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            padding: 10px 16px;
-            background: #ffffff;
-            box-shadow: none;
-            z-index: 100;
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            padding: 10px 16px; background: #ffffff; z-index: 100;
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
         }
-
         .next-button {
-            width: 100%;
-            padding: 15px;
-            background-color: #1a1a1a;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
+            width: 100%; padding: 16px; background-color: #1a1a1a; color: white;
+            border: none; border-radius: 16px; font-size: 1.1rem; font-weight: 600;
+            cursor: pointer; transition: background-color 0.2s, transform 0.1s;
         }
-        .next-button:disabled {
-            background-color: #ccc;
-            color: #888;
-            cursor: not-allowed;
-        }
-        .next-button:active:not(:disabled) {
-            transform: scale(0.98);
-            background-color: #333;
-        }
+        .next-button:disabled { background-color: #e5e5e5; color: #999; cursor: not-allowed; }
+        .next-button:active:not(:disabled) { transform: scale(0.98); background-color: #333; }
 
         /* 4. 입력 필드 스타일 */
-        .input-group {
-            margin-bottom: 25px;
-        }
-        .input-group label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 5px;
-            color: #555;
-            font-size: 1.1rem;
-        }
+        .input-group { margin-bottom: 30px; }
+        .input-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #333; font-size: 1rem; }
         .text-input {
-            width: 100%;
-            padding: 12px 10px;
-            border: none;
-            border-bottom: 2px solid #ccc;
-            font-size: 1.2rem;
-            font-weight: 600;
-            transition: border-bottom-color 0.2s;
+            width: 100%; padding: 12px 0; border: none; border-bottom: 2px solid #eee;
+            font-size: 1.2rem; font-weight: 500; transition: border-bottom-color 0.2s;
+            border-radius: 0; /* iOS input radius 제거 */
         }
-        .text-input:focus {
-            outline: none;
-            border-bottom-color: #1a1a1a;
-        }
-       
-        /* 금액 입력 스타일 */
-        #amountInput {
-            font-size: 2.5rem;
-            text-align: right;
-            font-weight: 700;
-        }
+        .text-input:focus { outline: none; border-bottom-color: #1a1a1a; }
+        #amountInput { font-size: 2.5rem; text-align: right; font-weight: 700; letter-spacing: -1px; }
 
-        /* 5. 수입/지출 선택 토글 스타일 */
-        .type-toggle {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 30px;
-        }
+        /* 5. 수입/지출 선택 토글 */
+        .type-toggle { display: flex; gap: 10px; margin-bottom: 30px; background: #f2f4f6; padding: 4px; border-radius: 14px; }
         .type-btn {
-            flex-grow: 1;
-            padding: 12px;
-            border: 1px solid #eee;
-            border-radius: 10px;
-            text-align: center;
-            font-weight: 600;
-            cursor: pointer;
-            color: #1a1a1a;
-            background-color: #f7f7f7;
-            transition: all 0.2s;
+            flex-grow: 1; padding: 12px; border-radius: 10px; text-align: center;
+            font-weight: 600; cursor: pointer; color: #8b95a1; transition: all 0.2s;
         }
         .type-btn.selected-type {
-            color: #1a1a1a;
-            background-color: #ffffff;
-            border-color: #1a1a1a;
-            font-weight: 700;
+            color: #1a1a1a; background-color: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
-        .type-btn:active {
-            transform: scale(0.99);
-        }
+        /* 색상 포인트 */
+        .type-btn.selected-type[data-type="expense"] { color: #f04452; }
+        .type-btn.selected-type[data-type="income"] { color: #2c92ff; }
 
-        /* 6. 카테고리 버튼 스타일 */
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-top: 15px;
-        }
+        /* 6. 카테고리 버튼 */
+        .category-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 15px; }
         .category-btn {
-            padding: 15px 10px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            background-color: #fff;
-            text-align: center;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
+            padding: 16px 10px; border: 1px solid #eee; border-radius: 12px;
+            background-color: #fff; text-align: center; cursor: pointer;
+            font-size: 0.95rem; font-weight: 500; color: #555; transition: all 0.2s;
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
         }
         .category-btn.selected {
-            background-color: #f0f0f0;
-            border-color: #1a1a1a;
-            color: #1a1a1a;
-            font-weight: 600;
+            background-color: #1a1a1a; border-color: #1a1a1a; color: #fff; font-weight: 600;
         }
 
-        /* Google Icons 설정 */
-        .material-symbols-outlined {
-            font-variation-settings:
-                'FILL' 0,
-                'wght' 400,
-                'GRAD' 0,
-                'opsz' 24
+        /* 타이틀 스타일 */
+        .step-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 8px; line-height: 1.3; }
+        .step-desc { color: #8b95a1; margin-bottom: 40px; font-size: 0.95rem; }
+
+        /* 금액 표시 강조 */
+        .amount-summary {
+            background-color: #f9fafb; border-radius: 12px; padding: 20px;
+            text-align: center; margin-bottom: 30px;
         }
+        .summary-type { font-size: 1rem; font-weight: 600; margin-bottom: 4px; display: block; }
+        .summary-val { font-size: 1.8rem; font-weight: 700; color: #1a1a1a; }
     </style>
 </head>
 <body>
 
-    <!-- 1. 전체 화면 단계형 앱 컨테이너 -->
     <div id="transactionApp" class="transaction-app">
        
-        <!-- 단계별 페이지를 담는 래퍼 -->
         <div class="step-wrapper">
-            <!-- 내부 슬라이딩 컨테이너 -->
             <div id="stepContainer" class="step-container">
            
                 <!-- Step 1: 금액 입력 -->
                 <div class="step-page" id="step1">
-                    <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 10px;">어떤 항목을 기록할까요?</h3>
-                    <p style="color: #888; margin-bottom: 30px;">수입인지 지출인지 먼저 선택해주세요.</p>
+                    <div class="step-title">거래 종류와 금액을<br>입력해주세요</div>
+                    <div class="step-desc">수입인지 지출인지 선택해주세요</div>
                    
                     <div class="type-toggle">
-                        <div class="type-btn selected-type" id="typeExpense" onclick="selectType('expense')">지출</div>
-                        <div class="type-btn" id="typeIncome" onclick="selectType('income')">수입</div>
+                        <div class="type-btn selected-type" id="typeExpense" data-type="expense" onclick="selectType('expense')">지출</div>
+                        <div class="type-btn" id="typeIncome" data-type="income" onclick="selectType('income')">수입</div>
                     </div>
 
                     <div class="input-group">
@@ -224,58 +125,44 @@
                     </div>
                 </div>
                
-                <!-- Step 2: 사용처 및 내용 입력 -->
+                <!-- Step 2: 내용 입력 (동적 문구 변경) -->
                 <div class="step-page" id="step2">
-                    <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 10px;">어디에, 무엇을 위해 사용했나요?</h3>
-                    <p style="color: #888; margin-bottom: 30px;">거래 내용을 기록해주세요.</p>
+                    <div class="step-title" id="step2Title">어디에 사용했나요?</div>
+                    <div class="step-desc" id="step2Desc">내역을 상세히 기록해보세요</div>
                    
                     <div class="input-group">
-                        <label for="usageInput">사용처</label>
-                        <input type="text" id="usageInput" class="text-input" placeholder="사용처를 입력하세요" oninput="validateStep2()">
+                        <label for="usageInput" id="usageLabel">사용처</label>
+                        <input type="text" id="usageInput" class="text-input" placeholder="예: 편의점, 택시" oninput="validateStep2()">
                     </div>
 
                     <div class="input-group">
-                        <label for="memoInput">내용</label>
+                        <label for="memoInput">메모 (선택)</label>
                         <input type="text" id="memoInput" class="text-input" placeholder="내용을 입력하세요" oninput="validateStep2()">
                     </div>
                 </div>
                
                 <!-- Step 3: 카테고리 선택 -->
                 <div class="step-page" id="step3">
-                    <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 10px;">카테고리를 선택하세요.</h3>
-                    <p id="amountDisplay" style="font-size: 1.2rem; font-weight: 700; margin-bottom: 30px; color: #1a1a1a;">
-                        <!-- 금액 표시 영역 -->
-                    </p>
+                    <div class="step-title">카테고리를<br>선택해주세요</div>
+                    
+                    <div class="amount-summary">
+                        <span class="summary-type" id="summaryType">지출</span>
+                        <span class="summary-val" id="summaryAmount">0원</span>
+                    </div>
 
                     <div class="category-grid" id="categoryGrid">
-                        <!-- 카테고리 버튼이 여기에 동적으로 생성됩니다. -->
+                        <!-- JS로 동적 생성 -->
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 4. 하단 고정 버튼 영역 -->
         <div class="next-button-fixed">
             <button class="next-button" id="nextButton" onclick="nextStep()" disabled>다음</button>
         </div>
     </div>
    
-    <!-- Custom Message Box -->
-    <div id="custom-message" style="
-        position: fixed;
-        bottom: -100px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 10px 20px;
-        background-color: #333;
-        color: white;
-        border-radius: 8px;
-        z-index: 2000;
-        opacity: 0;
-        transition: bottom 0.3s ease-out, opacity 0.3s;
-        text-align: center;
-        max-width: 80%;
-    "></div>
+    <div id="custom-message" style="position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); padding: 12px 24px; background-color: rgba(0,0,0,0.85); color: white; border-radius: 30px; z-index: 2000; opacity: 0; transition: all 0.3s; font-size: 0.9rem; font-weight: 500;"></div>
 
     <script>
         // ---------------- Firebase 초기화 ----------------
@@ -292,117 +179,111 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
-
         let currentUserId = null;
 
-        // 로그인 상태 감지
         auth.onAuthStateChanged((user) => {
-            if (user) {
-                console.log("현재 사용자:", user.uid);
-                currentUserId = user.uid;
-            } else {
-                console.log("로그인된 사용자 없음");
-                currentUserId = null;
-            }
+            if (user) currentUserId = user.uid;
+            else window.location.href = '/auth'; // 로그인 안되어 있으면 리다이렉트 (선택사항)
         });
 
-        // ---------------- 앱 로직 시작 ----------------
+        // ---------------- 앱 로직 ----------------
         const $ = (id) => document.getElementById(id);
 
         let transactionState = {
             currentStep: 1,
-            type: 'expense',
+            type: 'expense', // expense | income
             amount: null,
             usage: '',
             memo: '',
-            category: null,
-            isExpense: true
+            category: null
         };
 
-        const CATEGORIES = [
-            '간식/식비', '교통', '용돈', '쇼핑', '문화생활', '학용품/교육', '저축/투자', '기타'
-        ];
-       
-        const STEP_TITLES = [
-            '금액 입력 (1/3)',
-            '내용 기록 (2/3)',
-            '카테고리 선택 (3/3)'
-        ];
+        // 카테고리 데이터 분리
+        const EXPENSE_CATEGORIES = ['식비', '교통', '쇼핑', '문화/여가', '교육', '의료', '통신/공과금', '경조사', '기타'];
+        const INCOME_CATEGORIES = ['용돈', '급여', '보너스', '금융수입', '중고거래', '기타'];
 
         window.onload = function() {
-            renderCategories();
             renderStep();
-            validateStep1();
             $('amountInput').focus();
         };
-       
-        // ------------------ 단계 관리 ------------------
 
+        // 화면 렌더링
         function renderStep() {
             const stepIndex = transactionState.currentStep - 1;
             $('stepContainer').style.transform = `translateX(-${stepIndex * (100 / 3)}%)`;
-            $('nextButton').textContent = transactionState.currentStep === 3 ? '완료 및 저장' : '다음';
-           
+            $('nextButton').textContent = transactionState.currentStep === 3 ? '저장하기' : '다음';
+            
+            // 각 단계별 UI 업데이트 로직
             if (transactionState.currentStep === 1) {
                 validateStep1();
-            } else if (transactionState.currentStep === 2) {
-                $('usageInput').value = transactionState.usage;
-                $('memoInput').value = transactionState.memo;
+            } 
+            else if (transactionState.currentStep === 2) {
+                updateStep2Text();
                 validateStep2();
-            } else if (transactionState.currentStep === 3) {
-                const absAmount = Math.abs(transactionState.amount).toLocaleString('ko-KR');
-                const signText = transactionState.isExpense ? '지출' : '수입';
-                
-                $('amountDisplay').innerHTML = `
-                    <span style="color: #1a1a1a; font-size: 1.5rem; font-weight: 700;">${signText}</span>
-                    <span style="color: #1a1a1a; font-size: 1.5rem; font-weight: 700; padding: 4px 8px; border-radius: 6px; background-color: #f0f0f0; margin-left: 8px;">
-                        ${absAmount}원
-                    </span>
-                `;
+                setTimeout(() => $('usageInput').focus(), 300);
+            } 
+            else if (transactionState.currentStep === 3) {
+                updateSummary();
+                renderCategories();
                 validateStep3();
             }
+        }
+
+        // 수입/지출에 따른 텍스트 변경 (핵심 수정 부분)
+        function updateStep2Text() {
+            const title = $('step2Title');
+            const desc = $('step2Desc');
+            const label = $('usageLabel');
+            const input = $('usageInput');
+
+            if (transactionState.type === 'expense') {
+                title.innerText = "어디에 사용했나요?";
+                desc.innerText = "상세 내역을 기록해주세요";
+                label.innerText = "사용처";
+                input.placeholder = "예: 편의점, 택시, 카페";
+            } else {
+                title.innerText = "어디서 생긴 돈인가요?";
+                desc.innerText = "수입의 출처를 기록해주세요";
+                label.innerText = "수입원";
+                input.placeholder = "예: 부모님 용돈, 알바비, 당근마켓";
+            }
+        }
+
+        function updateSummary() {
+            const isExpense = transactionState.type === 'expense';
+            const typeText = $('summaryType');
+            const amountText = $('summaryAmount');
+
+            typeText.innerText = isExpense ? '지출' : '수입';
+            typeText.style.color = isExpense ? '#f04452' : '#2c92ff';
+            
+            amountText.innerText = (transactionState.amount || 0).toLocaleString() + '원';
         }
 
         function nextStep() {
             if (transactionState.currentStep === 1) {
                 const rawAmount = $('amountInput').value.replace(/[^0-9]/g, '');
                 const amount = parseInt(rawAmount, 10);
-
-                if (isNaN(amount) || amount <= 0) {
-                    showMessage('금액을 올바르게 입력해주세요.');
-                    return;
-                }
+                if (isNaN(amount) || amount <= 0) return showMessage('금액을 입력해주세요.');
                 transactionState.amount = amount;
-                transactionState.isExpense = transactionState.type === 'expense';
 
             } else if (transactionState.currentStep === 2) {
                 const usage = $('usageInput').value.trim();
-                const memo = $('memoInput').value.trim();
-               
-                if (usage.length === 0) {
-                    showMessage("'사용처' 항목은 필수 입력입니다.");
-                    return;
-                }
-                if (memo.length === 0) {
-                    showMessage("'내용' 항목은 필수 입력입니다.");
-                    return;
-                }
+                // 수입원/사용처는 필수
+                if (usage.length === 0) return showMessage(transactionState.type === 'expense' ? '사용처를 입력해주세요.' : '수입원을 입력해주세요.');
+                
                 transactionState.usage = usage;
-                transactionState.memo = memo;
+                transactionState.memo = $('memoInput').value.trim();
 
             } else if (transactionState.currentStep === 3) {
                 saveTransaction();
                 return;
             }
 
-            if (transactionState.currentStep < STEP_TITLES.length) {
-                transactionState.currentStep++;
-                renderStep();
-            }
+            transactionState.currentStep++;
+            renderStep();
         }
 
-        // ------------------ UI 동작 ------------------
-       
         function selectType(type) {
             transactionState.type = type;
             const expenseBtn = $('typeExpense');
@@ -415,41 +296,33 @@
                 incomeBtn.classList.add('selected-type');
                 expenseBtn.classList.remove('selected-type');
             }
+            // 타입 변경 시 카테고리 초기화
+            transactionState.category = null; 
         }
 
-        function formatAmount(inputElement) {
-            let value = inputElement.value.replace(/[^0-9]/g, '');
-            if (value === '') {
-                inputElement.value = '';
-            } else {
-                const numberValue = parseInt(value, 10);
-                if (!isNaN(numberValue)) {
-                    if (numberValue > 100000000) {
-                        value = '100000000';
-                        showMessage('최대 금액은 1억원입니다.');
-                    }
-                    inputElement.value = parseInt(value, 10).toLocaleString('ko-KR');
-                } else {
-                    inputElement.value = '';
+        function formatAmount(el) {
+            let val = el.value.replace(/[^0-9]/g, '');
+            if (val) {
+                const num = parseInt(val, 10);
+                if (num > 1000000000) {
+                    val = '1000000000';
+                    showMessage('금액이 너무 큽니다.');
                 }
+                el.value = parseInt(val, 10).toLocaleString();
+            } else {
+                el.value = '';
             }
             validateStep1();
         }
 
-        // ------------------ 유효성 검사 ------------------
-
         function validateStep1() {
-            const rawAmount = $('amountInput').value.replace(/[^0-9]/g, '');
-            const amount = parseInt(rawAmount, 10);
-            $('nextButton').disabled = isNaN(amount) || amount <= 0;
+            const val = $('amountInput').value;
+            $('nextButton').disabled = !val || val === '0';
         }
 
         function validateStep2() {
             const usage = $('usageInput').value.trim();
-            const memo = $('memoInput').value.trim();
-            $('nextButton').disabled = usage.length === 0 || memo.length === 0;
-            transactionState.usage = usage;
-            transactionState.memo = memo;
+            $('nextButton').disabled = usage.length === 0;
         }
        
         function validateStep3() {
@@ -459,9 +332,14 @@
         function renderCategories() {
             const grid = $('categoryGrid');
             grid.innerHTML = '';
-            CATEGORIES.forEach(cat => {
+            // 타입에 맞는 카테고리 리스트 선택
+            const list = transactionState.type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+
+            list.forEach(cat => {
                 const btn = document.createElement('div');
                 btn.className = 'category-btn';
+                if (transactionState.category === cat) btn.classList.add('selected');
+                
                 btn.textContent = cat;
                 btn.onclick = () => selectCategory(cat, btn);
                 grid.appendChild(btn);
@@ -475,83 +353,70 @@
             validateStep3();
         }
 
-        // ------------------ 최종 저장 (개인 데이터 구조) ------------------
-
         async function saveTransaction() {
-            if (transactionState.category === null) {
-                showMessage('카테고리를 선택해야 저장이 가능합니다.');
-                return;
-            }
-
-            if (!currentUserId) {
-                showMessage('로그인 상태가 확인되지 않습니다. 다시 로그인해주세요.');
-                return;
-            }
+            if (!currentUserId) return showMessage('로그인이 필요합니다.');
 
             const btn = $('nextButton');
             btn.disabled = true;
             btn.textContent = '저장 중...';
            
-            const finalAmount = transactionState.isExpense ? -transactionState.amount : transactionState.amount;
+            // 지출이면 음수, 수입이면 양수로 저장
+            const finalAmount = transactionState.type === 'expense' ? -transactionState.amount : transactionState.amount;
             
-            const transactionData = {
-                uid: currentUserId, // 소유자 ID
+            const data = {
+                uid: currentUserId,
                 amount: finalAmount,
                 usage: transactionState.usage,
                 memo: transactionState.memo,
                 category: transactionState.category,
-                type: transactionState.isExpense ? '지출' : '수입',
+                type: transactionState.type === 'expense' ? '지출' : '수입',
                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                timestampStr: new Date().toLocaleString('ko-KR')
+                dateStr: new Date().toISOString().split('T')[0] // 검색용 날짜 문자열
             };
 
             try {
-                // [수정된 부분] 개인화된 경로에 저장: users/{UID}/transaction_list/{문서ID}
-                await db.collection('users')
-                        .doc(currentUserId)
-                        .collection('transaction_list')
-                        .add(transactionData);
-
-                console.log('--- 개인 장부 저장 완료 ---', transactionData);
-                showMessage(`✅ 저장되었습니다!`);
+                await db.collection('users').doc(currentUserId).collection('transaction_list').add(data);
+                showMessage('✅ 저장되었습니다!');
                 
+                // 저장 후 잠시 대기 후 초기화
                 setTimeout(() => {
                     resetForm();
-                }, 1000);
+                    btn.disabled = false;
+                    btn.textContent = '다음';
+                }, 800);
 
             } catch (error) {
-                console.error("Error adding document: ", error);
-                // 권한 오류일 경우 친절한 메시지 표시
-                if (error.code === 'permission-denied') {
-                    showMessage('권한이 없습니다. Firebase 규칙을 확인해주세요.');
-                } else {
-                    showMessage('저장 중 오류가 발생했습니다.');
-                }
+                console.error(error);
+                showMessage('저장에 실패했습니다.');
                 btn.disabled = false;
-                btn.textContent = '완료 및 저장';
             }
         }
 
         function resetForm() {
-            transactionState.currentStep = 1;
-            renderStep();
-            selectType('expense');
+            transactionState = {
+                currentStep: 1,
+                type: 'expense',
+                amount: null,
+                usage: '',
+                memo: '',
+                category: null
+            };
+            
             $('amountInput').value = '';
             $('usageInput').value = '';
-            $('memoInput').value = '';  
-            transactionState.category = null;
-            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('selected'));
-            validateStep1();
+            $('memoInput').value = '';
+            selectType('expense'); // 기본값 지출로 복귀
+            renderStep();
         }
        
-        function showMessage(message) {
-            const msgBox = $('custom-message');
-            msgBox.textContent = message;
-            msgBox.style.bottom = '20px';
-            msgBox.style.opacity = '1';
+        function showMessage(msg) {
+            const box = $('custom-message');
+            box.textContent = msg;
+            box.style.bottom = '90px'; // 버튼 위쪽에 표시
+            box.style.opacity = '1';
             setTimeout(() => {
-                msgBox.style.bottom = '-100px';
-                msgBox.style.opacity = '0';
+                box.style.bottom = '-100px';
+                box.style.opacity = '0';
             }, 2000);
         }
     </script>
