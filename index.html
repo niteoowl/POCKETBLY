@@ -28,6 +28,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     
+    <!-- AppBox SDK Declaration (필수) -->
+    <script src="https://www.appboxapp.com/app/script/appbox.js"></script>
+
     <style>
         /* 초기화 */
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -378,6 +381,29 @@
     </div>
 
     <script>
+        // [AppBox SDK] 네이티브 기능 결과 회신 함수 (필수)
+        function returnAppBoxFunction (obj) {
+            const retCode = obj["retCode"]; // 기능 코드
+            const result = obj["result"]; // 성공 여부
+            const retVal = obj["retVal"]; // 결과 데이터
+
+            switch (retCode) {
+                case "1021" : // 달력 기능 예시
+                    if (result == "success") {
+                        // 성공 했을때 로직 처리 ..
+                        console.log("AppBox 1021 Success:", retVal);
+                    } else if (result == "fail") {
+                        // 실패 했을때 ...
+                        console.log("AppBox 1021 Fail:", retVal);
+                    }
+                    break;
+                // 필요한 다른 기능 코드가 있다면 추가
+                default:
+                    console.log("AppBox Result Received:", obj);
+                    break;
+            }
+        }
+        
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -470,7 +496,7 @@
             
             const removeSkeleton = (id) => {
                 const el = document.getElementById(id);
-                if(el) { el.classList.remove('skeleton'); el.style.width='auto'; el.style.height='auto'; }
+                if(el) { el.classList.remove('skeleton'); el.style.width = 'auto'; el.style.height = 'auto'; }
             };
 
             removeSkeleton('total-asset');
