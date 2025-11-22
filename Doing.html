@@ -3,279 +3,367 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Doing! - 홈</title>
-    <!-- Google Material Icons (사용자 지정 아이콘으로 대체 가능하나, 여기서는 편의상 사용) -->
+    <title>Doing! - 나의 도전</title>
+    <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- Pretendard Font -->
     <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
     
+    <!-- Firebase SDK (디자인 유지를 위해 남겨둠) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
     <style>
-        /* [공통] 스타일 리셋 & 변수 설정 */
+        /* [공통] 스타일 리셋 & 복사 방지 */
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
         body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
         input, textarea { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
 
+        /* 색상 변수: 레드 톤으로 변경 */
         :root {
-            /* 2.2 브랜드 컬러 */
-            --soft-red: #E15C5C;
-            --background: #FFFFFF;
-            --gray-lightest: #F9F9F9;
-            --gray-light: #F2F2F2;
-            --gray-line: #E1E1E1;
-            --text-medium: #A8A8A8;
-            --text-dark: #676767;
-            --text-black: #191f28; /* 타이틀 및 강조 텍스트 */
+            --primary-red: #e53e3e; /* 도전/액션 강조색 */
+            --text-dark: #191f28;
+            --text-gray: #8b95a1;
+            --border-light: #e5e8eb;
             --header-height: 80px; 
-            --ripple-color: rgba(225, 92, 92, 0.1); /* Soft Red 10% 투명도 */
-            --shadow-2dp: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.08); /* 토스식 약한 그림자 */
+            --ripple-color: rgba(0, 0, 0, 0.08);
+            --goal-color: var(--primary-red);   /* 목표 달성/진행 색상 */
+            --sub-color: #ff8c00; /* 서브 색상 (예: 스탬프 vs 시간 모드) */
         }
 
         body {
             font-family: 'Pretendard', sans-serif;
-            background-color: var(--background);
+            background-color: #ffffff;
             margin: 0; padding: 0;
             display: flex; flex-direction: column; align-items: center;
             overflow-y: scroll; 
             padding-top: var(--header-height); 
-            color: var(--text-black);
+            padding-bottom: 110px; 
+            color: var(--text-dark);
         }
 
-        /* 메인 컨테이너 (3. UI 특징: 여백 충분히 사용) */
+        /* 메인 컨테이너 */
         .container {
-            width: 100%;
-            max-width: 600px; /* 모바일 네이티브 앱 기준 최대 너비 설정 */
+            width: 95%;
+            max-width: 1024px; 
+            background-color: #ffffff;
             padding: 0 24px 24px 24px; 
         }
 
-        /* 헤더 (7.1 헤더: 중앙 정렬 타이틀, 그림자 없음) */
+        /* 헤더 */
         .header {
             position: fixed; top: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 600px; z-index: 1005;
-            background-color: var(--background);
-            /* backdrop-filter: blur(5px); */ /* JS 불필요, 제외 */
+            width: 95%; max-width: 1024px; z-index: 1005;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(5px);
             height: var(--header-height); 
-            display: flex; align-items: center; justify-content: center; /* 중앙 정렬 */
+            display: flex; align-items: center; justify-content: space-between;
             padding: 16px 24px;
-            border-bottom: 0px solid transparent; /* 그림자 없음 명시 */
         }
-        .header h1 { font-size: 20px; font-weight: 700; color: var(--text-black); margin: 0; text-align: center; }
-        .header-action { position: absolute; right: 24px; top: 50%; transform: translateY(-50%); }
-        .header-back { position: absolute; left: 24px; top: 50%; transform: translateY(-50%); color: var(--text-medium); }
-
+        .header h1 { font-size: 26px; font-weight: 800; color: var(--primary-red); margin: 0; letter-spacing: -1px; } /* 앱 이름에 강조색 적용 */
+        .header-action { display: flex; gap: 8px; }
+        
         .icon-button {
-            background: none; border: none; color: var(--text-medium); cursor: pointer;
+            background: none; border: none; color: var(--text-dark); cursor: pointer;
             padding: 8px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center;
             position: relative; overflow: hidden;
             transition: background-color 0.2s;
         }
+        .icon-button:hover { background-color: #f2f4f6; }
 
         /* [홈 전용 스타일] */
-        .hero-section { margin-top: 16px; margin-bottom: 30px; }
-        .hero-greeting-title { font-size: 26px; font-weight: 800; color: var(--text-black); margin: 0 0 4px 0; }
-        .hero-greeting-sub { font-size: 15px; color: var(--text-medium); font-weight: 500; }
+        .hero-section { margin-top: 10px; margin-bottom: 30px; }
+        .hero-greeting { font-size: 16px; color: var(--text-gray); font-weight: 500; margin-bottom: 8px; }
+        .hero-balance { font-size: 32px; font-weight: 800; color: var(--text-dark); letter-spacing: -0.5px; } /* 도전 목표/시간 */
 
-        /* 모드 선택 카드 (4.2 UI 방향: 높이 여유, Soft Red 아이콘, 약한 shadow) */
-        .mode-card {
-            background-color: var(--background);
-            border: 1px solid var(--gray-line);
+        .insight-card {
+            background-color: #ffffff;
+            border: 1px solid var(--border-light);
             border-radius: 20px;
-            padding: 32px 24px; /* 높이 여유 있게 */
+            padding: 24px;
             margin-bottom: 16px;
             position: relative;
             overflow: hidden;
-            box-shadow: var(--shadow-2dp);
-            cursor: pointer;
-            transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        .mode-card:active { transform: scale(0.98); } /* 짧은 스프링 모션 (8.1) */
+        
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+        .card-title { font-size: 18px; font-weight: 700; color: var(--text-dark); margin-bottom: 4px; }
+        .card-desc { font-size: 14px; color: var(--text-gray); font-weight: 400; line-height: 1.4; }
+        .card-icon { color: var(--primary-red); font-size: 24px; } /* 아이콘 색상 변경 */
 
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-        .card-title { font-size: 16px; font-weight: 700; color: var(--text-black); margin-bottom: 4px; }
-        .card-subtext { font-size: 14px; color: var(--text-medium); font-weight: 500; line-height: 1.4; }
-        .card-icon { color: var(--soft-red); font-size: 24px; } /* Soft Red 아이콘 포인트 */
+        .bar-chart-container { display: flex; flex-direction: column; gap: 12px; }
+        .bar-row { display: flex; align-items: center; gap: 10px; }
+        .bar-label { width: 50px; font-size: 13px; color: var(--text-gray); font-weight: 500; }
+        .bar-track { flex-grow: 1; height: 10px; background-color: #f2f4f6; border-radius: 5px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 5px; width: 0%; transition: width 1s cubic-bezier(0.22, 1, 0.36, 1); }
+        .fill-prev { background-color: #d1d6db; } /* 이전 기록 (회색 유지) */
+        .fill-curr { background-color: var(--goal-color); } /* 현재 기록 (레드) */
+        .bar-value { width: 70px; text-align: right; font-size: 14px; font-weight: 600; color: var(--text-dark); }
 
-        /* 4.1.1 시간 모드 카드 */
-        .time-card-content { display: flex; justify-content: space-between; align-items: center; }
-        .time-display { 
-            font-size: 48px; /* 대형 숫자 UI */
-            font-weight: 800; 
-            letter-spacing: -2px; 
-            color: var(--text-black);
-            margin-bottom: 0px; 
+        .trend-message { margin-top: 16px; padding-top: 16px; border-top: 1px solid #f2f4f6; font-size: 15px; font-weight: 600; color: var(--text-dark); }
+        .highlight-bad { color: #8b95a1; } /* 부정적인 강조색은 조금 약하게 */
+        .highlight-good { color: var(--primary-red); } /* 긍정적인 강조색은 Red */
+
+        .ranking-container { display: flex; align-items: center; gap: 20px; }
+        .donut-chart {
+            width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
+            background: conic-gradient(#f2f4f6 0% 100%);
+            position: relative; transition: background 1s ease;
         }
-        .time-unit { font-size: 18px; font-weight: 600; color: var(--text-medium); margin-left: 4px; }
-
-        /* 4.1.2 도장판 모드 카드 */
-        .stamp-grid-preview {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            width: 170px; /* 3x48px + 2x12px = 168px */
-            padding: 10px;
-            background-color: var(--gray-lightest); /* 매트한 톤 카드 (5.2.2) */
-            border-radius: 12px;
+        .donut-chart::after {
+            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 50px; height: 50px; background-color: #fff; border-radius: 50%;
         }
 
-        /* 도장 UI (6.2.2) */
-        .stamp-dot {
-            width: 48px; 
-            height: 48px;
-            border-radius: 50%;
-            border: 0.5px solid var(--soft-red);
-            background-color: var(--background); /* 비어 있는 상태: White */
-            display: flex; align-items: center; justify-content: center;
-        }
+        .rank-list { flex-grow: 1; display: flex; flex-direction: column; gap: 8px; }
+        .rank-item { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .rank-name { display: flex; align-items: center; gap: 6px; color: var(--text-dark); font-weight: 500; }
+        .rank-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .rank-amt { font-weight: 700; }
 
-        .stamp-dot.filled {
-            background-color: var(--soft-red); /* 채워진 상태: Solid Soft Red */
+        .daily-val { font-size: 24px; font-weight: 800; color: var(--primary-red); } /* 강조색 적용 */
+
+        /* 하루 평균 섹션에 버튼 스타일 추가 */
+        .quick-start-btn {
+            background-color: var(--primary-red);
+            color: white;
             border: none;
+            padding: 12px 20px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
         }
+        .quick-start-btn:hover { background-color: #cc3333; }
+
+        /* [스켈레톤 UI 스타일] (유지) */
+        .skeleton {
+            background: #f2f4f6;
+            color: transparent !important;
+            border-radius: 4px;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .skeleton::after {
+            content: "";
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+            transform: translateX(-100%);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        .skeleton * { opacity: 0; }
+
+        /* 하단 내비게이션 (유지) */
+        .bottom-nav {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 75%; max-width: 450px; 
+            height: 75px;
+            background-color: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); 
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 1000; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); 
+            border: 1px solid var(--border-light); border-radius: 50px; padding: 0 10px;
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-decoration: none; color: #b0b8c1; font-size: 11px; font-weight: 500;
+            flex-grow: 1; height: 60px; position: relative; border-radius: 25px; 
+        }
+        /* 활성화된 네비게이션 아이템: 색상을 레드 톤으로 유지 */
+        .nav-item.active { color: var(--primary-red); font-weight: 600; }
         
-        .stamp-dot.filled::before {
-            content: '';
-            width: 96%; height: 96%;
-            border-radius: 50%;
-            /* 9. 접근성 가이드: 미세한 텍스처(2% 진한 단색) 대신, Soft Red의 살짝 어두운 톤을 사용 */
-            background-color: rgba(0, 0, 0, 0.02); 
-            opacity: 0.5; /* 매트 톤 강조 */
+        .nav-item.active::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 100px; height: 55px; background-color: #fee2e2; /* 아주 연한 빨강 */
+            border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; 
         }
-        
-        /* 리플 효과 (8.1 모션) */
-        .ripple {
-            position: absolute; border-radius: 50%; transform: scale(0);
-            animation: ripple-anim 0.5s cubic-bezier(0.22, 1, 0.36, 1); 
-            background-color: var(--ripple-color); 
-            pointer-events: none; 
-            z-index: 1;
-        }
-        @keyframes ripple-anim { to { transform: scale(2.5); opacity: 0; } }
+        .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
+
+        /* 알림 팝업 스타일 */
+        .alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; display: none; justify-content: center; align-items: center; }
+        .alert-box { width: 85%; max-width: 320px; background-color: white; border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+        .alert-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 16px; font-weight: 700; color: white; cursor: pointer; background-color: var(--primary-red); margin-top: 20px; } /* 버튼 색상 변경 */
 
         /* [모바일 최적화] */
         @media (max-width: 600px) {
-            .header { width: 100%; } 
-            .container { padding: 0 16px 20px 16px; } 
-            .header-action { right: 16px; }
-            .header-back { left: 16px; }
+            .header { width: 100%; padding: 0 16px; } 
+            .container { padding: 0 5px 20px 5px; } 
+            
+            .bottom-nav { width: 93%; bottom: 20px; }
+            
+            .nav-item.active::before { 
+                width: 90px; 
+                height: 60px; 
+                border-radius: 30px;
+            }
         }
     </style>
 </head>
 <body>
     
     <header class="header">
-        <!-- 7.1 헤더: 중앙 정렬 타이틀 -->
-        <span class="header-back icon-button ripple-target" style="visibility: hidden;">
-            <span class="material-icons">arrow_back</span>
-        </span>
         <h1>Doing!</h1>
         <div class="header-action">
             <button class="icon-button ripple-target">
-                <!-- 설정 아이콘 -->
+                <span class="material-icons">notifications</span>
+            </button>
+            <button class="icon-button ripple-target">
                 <span class="material-icons">settings</span>
             </button>
         </div>
     </header>
 
     <div class="container">
-        <!-- 4.1 상단 인사 영역 -->
+        <!-- 1. 히어로 섹션: 오늘의 집중 시간/목표 -->
         <section class="hero-section">
-            <div class="hero-greeting-title">오늘도 Doing!</div>
-            <div class="hero-greeting-sub">OO님의 루틴, 함께 가요</div>
+            <div class="hero-greeting skeleton" id="greeting-text" style="width:180px; height:20px;">오늘도 힘차게 시작해봐요!</div>
+            <div class="hero-balance skeleton" id="total-asset" style="width:200px; height:38px; margin-top:5px;">집중 시간: 120분</div>
         </section>
 
-        <!-- 4.1.1 시간 모드 카드 -->
-        <div class="mode-card ripple-target">
+        <!-- 2. 주간 목표 달성률 (바 차트) -->
+        <div class="insight-card ripple-target">
             <div class="card-header">
                 <div>
-                    <div class="card-title">금연</div>
-                    <div class="card-subtext">특정 행동을 얼마나 오래 참았는지 기록해요.</div>
+                    <div class="card-title">주간 목표 달성률</div>
+                    <div class="card-desc">이번 주 목표 5/7일 완료했어요</div>
                 </div>
-                <!-- 4.2 Soft Red 아이콘 포인트 -->
-                <span class="material-icons card-icon">hourglass_empty</span>
+                <span class="material-icons card-icon">track_changes</span>
             </div>
-            <div class="time-card-content">
-                <div>
-                    <!-- 5.2.1 상단 시간 표시 (요약 형태) -->
-                    <span class="time-display">12일</span><span class="time-unit">째</span>
-                    <span class="time-display">13시간</span>
+            <div class="bar-chart-container">
+                <div class="bar-row">
+                    <span class="bar-label">지난주</span>
+                    <div class="bar-track"><div class="bar-fill fill-prev" id="bar-prev" style="width: 70%;"></div></div>
+                    <span class="bar-value skeleton" id="prev-month-amt" style="border-radius:4px;">5/7일</span>
                 </div>
-                <!-- 4.1.1 서브 텍스트 & 아이콘 -->
-                <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                    <span class="card-subtext" style="color:var(--soft-red); font-weight:700;">기록 보기</span>
-                    <span class="material-icons card-icon" style="font-size:32px;">schedule</span>
+                <div class="bar-row">
+                    <span class="bar-label">이번주</span>
+                    <div class="bar-track"><div class="bar-fill fill-curr" id="bar-curr" style="width: 85%;"></div></div>
+                    <span class="bar-value skeleton" id="curr-month-amt" style="border-radius:4px;">6/7일</span>
+                </div>
+            </div>
+            <div class="trend-message skeleton" id="trend-text" style="width:80%; height:20px; margin-top:16px;">지난주보다 <span class="highlight-good">1일</span> 더 달성했어요!</div>
+        </div>
+
+        <!-- 3. 도전 유형 현황 (도넛 차트/랭킹) -->
+        <div class="insight-card ripple-target">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">도전 유형 현황</div>
+                    <div class="card-desc">시간 모드 vs 스탬프 모드</div>
+                </div>
+                <span class="material-icons card-icon">donut_large</span>
+            </div>
+            <div class="ranking-container">
+                <!-- 도넛 차트: Stamp(레드) vs Timer(오렌지) 비율을 보여줍니다. -->
+                <div class="donut-chart" id="donut-chart" style="background: conic-gradient(var(--primary-red) 0% 60%, var(--sub-color) 60% 100%);"></div>
+                <div class="rank-list" id="rank-list">
+                    <div class="rank-item">
+                        <div class="rank-name"><div class="rank-dot" style="background-color: var(--primary-red)"></div>스탬프 모드</div>
+                        <div class="rank-amt">3개</div>
+                    </div>
+                    <div class="rank-item">
+                        <div class="rank-name"><div class="rank-dot" style="background-color: var(--sub-color)"></div>시간 모드</div>
+                        <div class="rank-amt">2개</div>
+                    </div>
+                    <div class="rank-item">
+                        <div class="rank-name" style="color:var(--text-gray);">총 완료</div>
+                        <div class="rank-amt">5개</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- 4.1.2 도장판 모드 카드 -->
-        <div class="mode-card ripple-target">
-            <div class="card-header">
-                <div>
-                    <div class="card-title">운동하기</div>
-                    <div class="card-subtext">매일의 실천 여부를 도장으로 기록해요.</div>
-                </div>
-                <!-- 4.2 Soft Red 아이콘 포인트 -->
-                <span class="material-icons card-icon">calendar_today</span>
+        <!-- 4. 빠른 시작/시간 측정 (Call to Action) -->
+        <div class="insight-card ripple-target" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <div class="card-title" style="margin-bottom:4px;">시간 모드 시작</div>
+                <div class="card-desc">오늘의 목표를 측정해봐요</div>
             </div>
-            
-            <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                <!-- 4.1.2 3x3 미리보기 도장 UI -->
-                <div class="stamp-grid-preview">
-                    <!-- 6.2.2 도장 UI (채워짐/비어있음) -->
-                    <div class="stamp-dot filled"></div>
-                    <div class="stamp-dot filled"></div>
-                    <div class="stamp-dot filled"></div>
-                    <div class="stamp-dot filled"></div>
-                    <div class="stamp-dot filled"></div>
-                    <div class="stamp-dot"></div>
-                    <div class="stamp-dot"></div>
-                    <div class="stamp-dot"></div>
-                    <div class="stamp-dot"></div>
-                </div>
-                
-                <!-- 4.1.2 서브 텍스트 -->
-                <div style="display:flex; flex-direction:column; align-items:flex-end; padding-bottom:10px;">
-                    <span class="card-subtext" style="color:var(--soft-red); font-weight:700;">오늘 도장 찍기</span>
-                </div>
-            </div>
+            <button class="quick-start-btn ripple-target">
+                <span class="material-icons">timer</span>
+                시작
+            </button>
         </div>
-        
-        <!-- 7.2 버튼 (기본형: Soft Red) - 예시로 하나 추가 -->
-        <button class="mode-card" style="
-            background-color: var(--soft-red); 
-            border: none; 
-            padding: 16px; 
-            margin-top: 24px;
-            box-shadow: 0 4px 15px rgba(225, 92, 92, 0.4); /* Primary 버튼용 강한 그림자 */
-        ">
-            <div style="text-align:center; font-size:18px; font-weight:700; color:var(--background);">
-                새로운 Doing! 시작하기
-            </div>
-        </button>
+    </div>
+    
+    <nav class="bottom-nav">
+        <!-- 홈: 나의 도전 현황 -->
+        <a href="/" class="nav-item active">
+            <span class="material-icons">grid_view</span><span>홈</span>
+        </a>
+        <!-- 목록: 전체 도전 목록 -->
+        <a href="/list" class="nav-item">
+            <span class="material-icons">format_list_bulleted</span><span>목록</span>
+        </a>
+        <!-- 추가/시작: 새로운 도전 시작 (중앙 버튼 느낌) -->
+        <a href="/add" class="nav-item" style="color: var(--primary-red); font-size:14px; font-weight:700;">
+             <span class="material-icons" style="font-size:36px; color:var(--primary-red);">add_circle_outline</span>
+        </a>
+        <!-- 탐색: 도전 탐색/커뮤니티 -->
+        <a href="/explore" class="nav-item">
+            <span class="material-icons">explore</span><span>탐색</span>
+        </a>
+        <!-- MY: 마이 페이지 -->
+        <a href="/my" class="nav-item">
+            <span class="material-icons">person</span><span>MY</span>
+        </a>
+    </nav>
 
+    <!-- 알림 팝업 (디자인 유지를 위해 남겨둠) -->
+    <div id="alert-overlay" class="alert-overlay">
+        <div class="alert-box">
+            <span class="material-icons" id="alert-icon" style="font-size:48px; margin-bottom:10px; color:var(--primary-red);">celebration</span>
+            <h3 id="alert-title" style="margin:0 0 10px 0; font-size:18px;">도전 성공!</h3>
+            <p id="alert-msg" style="color:#666; margin:0; font-size:14px; line-height:1.4;">오늘의 목표를 달성했습니다!</p>
+            <div id="alert-comment" style="background:#fef2f2; padding:12px; border-radius:10px; margin-top:15px; font-size:14px; text-align:left; color:#333;">챌린지 완료! 내일도 화이팅!</div>
+            <button class="alert-btn" onclick="confirmAlert()">확인</button>
+        </div>
     </div>
 
     <script>
-        // 8.1 모션 가이드: 짧고 부드러운 스프링 기반 모션을 리플 효과로 대체
-        function createRipple(event) {
-            const button = event.currentTarget; 
-            const oldRipple = button.querySelector('.ripple'); 
-            if(oldRipple) oldRipple.remove();
+        document.addEventListener('contextmenu', event => event.preventDefault());
 
-            const circle = document.createElement('span'); 
-            const diameter = Math.max(button.clientWidth, button.clientHeight); 
-            const radius = diameter / 2; 
-            const rect = button.getBoundingClientRect();
-            
-            circle.style.width = circle.style.height = `${diameter * 2}px`; // 더 크게
-            circle.style.left = `${event.clientX - rect.left - radius}px`; 
-            circle.style.top = `${event.clientY - rect.top - radius}px`; 
-            circle.classList.add('ripple');
-            button.appendChild(circle); 
-            
-            setTimeout(() => circle.remove(), 500);
+        // 더미 데이터/초기화 함수 (디자인 시각화를 위한 최소한의 스크립트만 남김)
+        const timeGreeting = "오늘도 힘차게 시작해봐요!";
+        document.getElementById('greeting-text').classList.remove('skeleton');
+        document.getElementById('greeting-text').style.width = 'auto'; 
+        document.getElementById('greeting-text').style.height = 'auto';
+        document.getElementById('greeting-text').innerText = `${timeGreeting}`;
+        
+        document.getElementById('total-asset').classList.remove('skeleton');
+        document.getElementById('total-asset').style.width = 'auto'; 
+        document.getElementById('total-asset').style.height = 'auto';
+        
+        document.getElementById('prev-month-amt').classList.remove('skeleton');
+        document.getElementById('prev-month-amt').style.width = 'auto'; 
+        document.getElementById('prev-month-amt').style.height = 'auto';
+
+        document.getElementById('curr-month-amt').classList.remove('skeleton');
+        document.getElementById('curr-month-amt').style.width = 'auto'; 
+        document.getElementById('curr-month-amt').style.height = 'auto';
+
+        document.getElementById('trend-text').classList.remove('skeleton');
+        document.getElementById('trend-text').style.width = 'auto'; 
+        document.getElementById('trend-text').style.height = 'auto';
+
+        function createRipple(event) {
+            const button = event.currentTarget; const oldRipple = button.querySelector('.ripple'); if(oldRipple) oldRipple.remove();
+            const circle = document.createElement('span'); const diameter = Math.max(button.clientWidth, button.clientHeight); const radius = diameter / 2; const rect = button.getBoundingClientRect();
+            circle.style.width = circle.style.height = `${diameter}px`; circle.style.left = `${event.clientX - rect.left - radius}px`; circle.style.top = `${event.clientY - rect.top - radius}px`; circle.classList.add('ripple');
+            button.appendChild(circle); setTimeout(() => circle.remove(), 500);
         }
         document.querySelectorAll('.ripple-target').forEach(btn => btn.addEventListener('click', createRipple));
+
+        function confirmAlert() {
+             document.getElementById('alert-overlay').style.display='none';
+        }
     </script>
 </body>
 </html>
