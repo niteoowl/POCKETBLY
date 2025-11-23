@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>POCKETBLY - 홈</title>
     
-    <!-- [깜빡임 방지 스크립트] -->
+    <!-- [테마 설정] -->
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme');
@@ -18,9 +18,7 @@
         })();
     </script>
 
-    <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <!-- Pretendard Font -->
     <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
     
     <!-- Firebase SDK -->
@@ -28,153 +26,58 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     
-    <!-- AppBox SDK Declaration (필수) -->
+    <!-- AppBox SDK (필수 유지) -->
     <script src="https://www.appboxapp.com/app/script/appbox.js"></script>
 
     <style>
-        /* 초기화 */
+        /* 초기화 및 기본 스타일 */
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        
-        /* [중요] 전체 트랜지션 제거 -> 배경과 글자색에만 적용 (내용 안 뜨는 버그 해결) */
         body, .container, .header, .insight-card, .bottom-nav, .nav-item {
             transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
-
-        body { -webkit-user-select: none; user-select: none; }
+        body { -webkit-user-select: none; user-select: none; font-family: 'Pretendard', sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; overflow-y: scroll; padding-top: var(--header-height); padding-bottom: 110px; color: var(--text-main); }
         input, textarea { -webkit-user-select: text; user-select: text; }
 
         /* [색상 팔레트] */
         :root {
-            /* === Light Mode === */
-            --bg-color: #ffffff;
-            --header-bg: rgba(255, 255, 255, 0.92);
-            --card-bg: #ffffff;
-            
-            --text-main: #191f28;
-            --text-sub: #8b95a1;
-            
-            --border-color: #e5e8eb;
-            
-            --nav-bg: rgba(255, 255, 255, 0.95);
-            --nav-border: #e5e8eb;
-            --nav-active-bg: #f2f4f6;
-            --nav-inactive: #b0b8c1;
-            --nav-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
-
-            --chart-track: #f2f4f6;
-            --chart-fill-prev: #d1d6db;
-            
-            --skeleton-base: #f2f4f6;
-            --skeleton-highlight: rgba(255, 255, 255, 0.6);
-            
-            --popup-bg: #ffffff;
-            --popup-comment: #f5f5f5;
-            
-            --primary-blue: #3182f6;
-            --expense-color: #f04452;
-            --ripple-color: rgba(0, 0, 0, 0.05);
-            --header-height: 80px; 
-            --shadow-card: 0 4px 20px rgba(0,0,0,0.02);
+            --bg-color: #ffffff; --header-bg: rgba(255, 255, 255, 0.92); --card-bg: #ffffff;
+            --text-main: #191f28; --text-sub: #8b95a1; --border-color: #e5e8eb;
+            --nav-bg: rgba(255, 255, 255, 0.95); --nav-border: #e5e8eb; --nav-active-bg: #f2f4f6; --nav-inactive: #b0b8c1; --nav-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+            --chart-track: #f2f4f6; --chart-fill-prev: #d1d6db;
+            --skeleton-base: #f2f4f6; --skeleton-highlight: rgba(255, 255, 255, 0.6);
+            --popup-bg: #ffffff; --popup-comment: #f5f5f5;
+            --primary-blue: #3182f6; --expense-color: #f04452; --ripple-color: rgba(0, 0, 0, 0.05);
+            --header-height: 80px; --shadow-card: 0 4px 20px rgba(0,0,0,0.02);
         }
 
-        /* === Dark Mode (개선됨) === */
         [data-theme="dark"] {
-            /* 배경: 요청하신 #18171e */
-            --bg-color: #18171e;
-            --header-bg: #18171e;
-            
-            /* 카드: 배경보다 조금 밝게 */
-            --card-bg: #24232b;
-            
-            --text-main: #eff1f3;
-            --text-sub: #8b95a1;
-            
-            --border-color: #2c2b33; 
-            
-            /* [수정] 하단 내비게이션 확실한 구분 */
-            --nav-bg: #25242c;   /* 카드와 비슷하지만 아주 살짝 다르게 */
-            --nav-border: #33323a; /* 상단 경계선 추가 */
-            --nav-active-bg: #35343d;
-            --nav-inactive: #686d77;
-            --nav-shadow: 0 -4px 25px rgba(0, 0, 0, 0.4); /* 그림자로 깊이감 추가 */
-            
-            --chart-track: #35343d;
-            --chart-fill-prev: #504f58;
-            
-            --skeleton-base: #24232b;
-            --skeleton-highlight: rgba(255, 255, 255, 0.08);
-            
-            --popup-bg: #24232b;
-            --popup-comment: #1c1c24;
-            
-            --ripple-color: rgba(255, 255, 255, 0.1);
+            --bg-color: #18171e; --header-bg: #18171e; --card-bg: #24232b;
+            --text-main: #eff1f3; --text-sub: #8b95a1; --border-color: #2c2b33; 
+            --nav-bg: #25242c; --nav-border: #33323a; --nav-active-bg: #35343d; --nav-inactive: #686d77; --nav-shadow: 0 -4px 25px rgba(0, 0, 0, 0.4);
+            --chart-track: #35343d; --chart-fill-prev: #504f58;
+            --skeleton-base: #24232b; --skeleton-highlight: rgba(255, 255, 255, 0.08);
+            --popup-bg: #24232b; --popup-comment: #1c1c24; --ripple-color: rgba(255, 255, 255, 0.1);
             --shadow-card: none;
         }
 
-        body {
-            font-family: 'Pretendard', sans-serif;
-            background-color: var(--bg-color);
-            margin: 0; padding: 0;
-            display: flex; flex-direction: column; align-items: center;
-            overflow-y: scroll; 
-            padding-top: var(--header-height); 
-            padding-bottom: 110px; 
-            color: var(--text-main);
-        }
-
-        /* 레이아웃 */
-        .container {
-            width: 95%; max-width: 1024px; 
-            background-color: var(--bg-color);
-            padding: 0 24px 24px 24px; 
-        }
-
-        /* 헤더 */
-        .header {
-            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
-            width: 95%; max-width: 1024px; z-index: 1005;
-            background-color: var(--header-bg);
-            backdrop-filter: blur(10px);
-            height: var(--header-height); 
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 16px 24px;
-        }
+        .container { width: 95%; max-width: 1024px; background-color: var(--bg-color); padding: 0 24px 24px 24px; }
+        .header { position: fixed; top: 0; left: 50%; transform: translateX(-50%); width: 95%; max-width: 1024px; z-index: 1005; background-color: var(--header-bg); backdrop-filter: blur(10px); height: var(--header-height); display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; }
         [data-theme="dark"] .header { backdrop-filter: none; }
-
         .header h1 { font-size: 26px; font-weight: 800; color: var(--text-main); margin: 0; }
         .header-action { display: flex; gap: 8px; }
-        
-        .icon-button {
-            background: none; border: none; color: var(--text-main); cursor: pointer;
-            padding: 8px; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center;
-            transition: background-color 0.2s;
-        }
+        .icon-button { background: none; border: none; color: var(--text-main); cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
         .icon-button:hover { background-color: var(--nav-active-bg); }
 
-        /* 히어로 */
         .hero-section { margin-top: 10px; margin-bottom: 30px; }
         .hero-greeting { font-size: 16px; color: var(--text-sub); font-weight: 500; margin-bottom: 8px; }
         .hero-balance { font-size: 32px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
 
-        /* 카드 */
-        .insight-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 24px;
-            margin-bottom: 16px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow-card);
-        }
-        
+        .insight-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 24px; padding: 24px; margin-bottom: 16px; position: relative; overflow: hidden; box-shadow: var(--shadow-card); }
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
         .card-title { font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
         .card-desc { font-size: 14px; color: var(--text-sub); font-weight: 400; line-height: 1.4; }
         .card-icon { color: var(--nav-inactive); font-size: 24px; }
 
-        /* 차트 */
         .bar-chart-container { display: flex; flex-direction: column; gap: 12px; }
         .bar-row { display: flex; align-items: center; gap: 10px; }
         .bar-label { width: 50px; font-size: 13px; color: var(--text-sub); font-weight: 500; }
@@ -188,75 +91,27 @@
         .highlight-bad { color: var(--expense-color); }
         .highlight-good { color: var(--primary-blue); }
 
-        /* 도넛 */
         .ranking-container { display: flex; align-items: center; gap: 20px; }
-        .donut-chart {
-            width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0;
-            background: conic-gradient(var(--chart-track) 0% 100%);
-            position: relative; transition: background 1s ease;
-        }
-        .donut-chart::after {
-            content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 50px; height: 50px; 
-            background-color: var(--card-bg);
-            border-radius: 50%;
-        }
+        .donut-chart { width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0; background: conic-gradient(var(--chart-track) 0% 100%); position: relative; transition: background 1s ease; }
+        .donut-chart::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; background-color: var(--card-bg); border-radius: 50%; }
         .rank-list { flex-grow: 1; display: flex; flex-direction: column; gap: 8px; }
         .rank-item { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
         .rank-name { display: flex; align-items: center; gap: 6px; color: var(--text-main); font-weight: 500; }
         .rank-dot { width: 8px; height: 8px; border-radius: 50%; }
         .rank-amt { font-weight: 700; color: var(--text-main); }
-
         .daily-val { font-size: 24px; font-weight: 800; color: var(--text-main); }
 
-        /* 스켈레톤 */
-        .skeleton {
-            background: var(--skeleton-base);
-            color: transparent !important;
-            border-radius: 4px;
-            user-select: none;
-            position: relative;
-            overflow: hidden;
-        }
-        .skeleton::after {
-            content: "";
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
-            transform: translateX(-100%);
-            animation: shimmer 1.5s infinite;
-        }
+        .skeleton { background: var(--skeleton-base); color: transparent !important; border-radius: 4px; user-select: none; position: relative; overflow: hidden; }
+        .skeleton::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); transform: translateX(-100%); animation: shimmer 1.5s infinite; }
         @keyframes shimmer { 100% { transform: translateX(100%); } }
-        /* 전체 트랜지션 제거로 인해 이곳의 opacity 0 설정이 문제를 일으키지 않도록 수정 */
         .skeleton * { opacity: 0; }
 
-        /* 하단 내비게이션 (개선됨) */
-        .bottom-nav {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 75%; max-width: 450px; 
-            height: 75px;
-            background-color: var(--nav-bg); 
-            backdrop-filter: blur(10px); 
-            display: flex; justify-content: space-around; align-items: center;
-            z-index: 1000; 
-            /* 테두리와 그림자로 구분감 강화 */
-            border: 1px solid var(--nav-border); 
-            box-shadow: var(--nav-shadow);
-            border-radius: 50px; padding: 0 10px;
-        }
+        /* 하단 내비게이션 */
+        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 75%; max-width: 450px; height: 75px; background-color: var(--nav-bg); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; z-index: 1000; border: 1px solid var(--nav-border); box-shadow: var(--nav-shadow); border-radius: 50px; padding: 0 10px; }
         [data-theme="dark"] .bottom-nav { backdrop-filter: none; }
-
-        .nav-item {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-decoration: none; color: var(--nav-inactive); font-size: 11px; font-weight: 500;
-            flex-grow: 1; height: 60px; position: relative; border-radius: 25px; 
-        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: var(--nav-inactive); font-size: 11px; font-weight: 500; flex-grow: 1; height: 60px; position: relative; border-radius: 25px; }
         .nav-item.active { color: var(--text-main); font-weight: 600; }
-        
-        .nav-item.active::before {
-            content: ''; position: absolute; top: 50%; left: 50%;
-            width: 100px; height: 55px; background-color: var(--nav-active-bg); 
-            border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; 
-        }
+        .nav-item.active::before { content: ''; position: absolute; top: 50%; left: 50%; width: 100px; height: 55px; background-color: var(--nav-active-bg); border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; }
         .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
 
         /* 팝업 */
@@ -265,13 +120,9 @@
         .alert-box h3 { color: var(--text-main); }
         .alert-box p { color: var(--text-sub); }
         .alert-btn { width: 100%; padding: 15px; border-radius: 16px; border: none; font-size: 16px; font-weight: 700; color: white; cursor: pointer; background-color: var(--primary-blue); margin-top: 20px; }
-        
-        .ripple {
-            position: absolute; border-radius: 50%; transform: scale(0);
-            animation: ripple-anim 0.5s linear; background-color: var(--ripple-color); pointer-events: none; 
-        }
+        .ripple { position: absolute; border-radius: 50%; transform: scale(0); animation: ripple-anim 0.5s linear; background-color: var(--ripple-color); pointer-events: none; }
         @keyframes ripple-anim { to { transform: scale(2.8); opacity: 0; } }
-
+        
         @media (max-width: 600px) {
             .header { width: 100%; padding: 0 16px; } 
             .container { padding: 0 5px 20px 5px; } 
@@ -354,6 +205,7 @@
         </div>
     </div>
     
+    <!-- 내비게이션 링크 수정 완료 -->
     <nav class="bottom-nav">
         <a href="/" class="nav-item active">
             <span class="material-icons">home</span><span>홈</span>
@@ -381,27 +233,9 @@
     </div>
 
     <script>
-        // [AppBox SDK] 네이티브 기능 결과 회신 함수 (필수)
+        // [AppBox SDK]
         function returnAppBoxFunction (obj) {
-            const retCode = obj["retCode"]; // 기능 코드
-            const result = obj["result"]; // 성공 여부
-            const retVal = obj["retVal"]; // 결과 데이터
-
-            switch (retCode) {
-                case "1021" : // 달력 기능 예시
-                    if (result == "success") {
-                        // 성공 했을때 로직 처리 ..
-                        console.log("AppBox 1021 Success:", retVal);
-                    } else if (result == "fail") {
-                        // 실패 했을때 ...
-                        console.log("AppBox 1021 Fail:", retVal);
-                    }
-                    break;
-                // 필요한 다른 기능 코드가 있다면 추가
-                default:
-                    console.log("AppBox Result Received:", obj);
-                    break;
-            }
+            console.log("AppBox Result:", obj);
         }
         
         function toggleTheme() {
@@ -409,18 +243,17 @@
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
-            
-            const uid = firebase.auth().currentUser?.uid;
-            if(uid) loadHomeData(uid);
+            // 테마 변경 시 차트 등 재계산 필요 시 호출 가능
         }
 
         document.addEventListener('contextmenu', event => event.preventDefault());
 
         const firebaseConfig = { apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI", authDomain: "pocketbly.firebaseapp.com", projectId: "pocketbly", storageBucket: "pocketbly.firebasestorage.app", messagingSenderId: "535063683428", appId: "1:535063683428:web:4729815738bee4f8305a71", measurementId: "G-RE71JXSNR3" };
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
 
+        // 시간대별 인사
         const hours = new Date().getHours();
         let timeGreeting = "안녕하세요";
         if (hours >= 5 && hours < 12) timeGreeting = "좋은 아침이에요";
@@ -430,6 +263,7 @@
 
         let pendingReportDocId = null; 
 
+        // Auth State Listener
         auth.onAuthStateChanged((user) => {
             if (user) {
                 const name = user.displayName || "사용자";
@@ -441,28 +275,88 @@
                     greetingEl.innerText = `${timeGreeting}, ${name}님`;
                 }
                 
-                loadHomeData(user.uid);
+                // 배치 데이터 동기화 함수 호출 (읽기 최소화)
+                syncHomeData(user.uid);
                 listenForParentDecision(user.uid); 
             } else {
                 window.location.href = '/auth';
             }
         });
 
-        function loadHomeData(uid) {
-            db.collection('users').doc(uid).collection('transaction_list')
-                .onSnapshot((snapshot) => {
-                    let transactions = [];
-                    snapshot.forEach(doc => {
-                        const d = doc.data();
-                        if (d.createdAt) d.dateObj = d.createdAt.toDate();
-                        else d.dateObj = new Date();
-                        transactions.push(d);
+        // [핵심 변경] 데이터 동기화 (Batch + Cache)
+        async function syncHomeData(uid) {
+            try {
+                // 1. Metadata 확인 (1 Read)
+                const metaRef = db.collection('users').doc(uid).collection('transaction_list').doc('metadata');
+                const metaSnap = await metaRef.get();
+                const metaData = metaSnap.exists ? metaSnap.data() : { lastBatchId: 0, lastUpdatedAt: 0 };
+
+                // 2. Local Cache 확인
+                const cacheKey = `tx_cache_${uid}`;
+                const rawCache = localStorage.getItem(cacheKey);
+                let cache = rawCache ? JSON.parse(rawCache) : { lastBatchId: -1, lastUpdatedAt: -1, transactions: [] };
+
+                // 3. 업데이트 필요 여부 확인
+                let needsUpdate = false;
+                if (metaData.lastBatchId > cache.lastBatchId) needsUpdate = true;
+                if (metaData.lastUpdatedAt && metaData.lastUpdatedAt !== cache.lastUpdatedAt) needsUpdate = true;
+                if (!rawCache) needsUpdate = true;
+
+                let allTransactions = [];
+
+                if (!needsUpdate) {
+                    // 캐시 사용
+                    console.log("Using Cached Data (Home)");
+                    allTransactions = cache.transactions;
+                } else {
+                    // 서버에서 가져오기
+                    console.log("Fetching Batches (Home)...");
+                    let newTransactions = [];
+                    const promises = [];
+                    for (let i = 0; i <= metaData.lastBatchId; i++) {
+                        promises.push(db.collection('users').doc(uid).collection('transaction_list').doc(`batch_${i}`).get());
+                    }
+                    
+                    const batchSnaps = await Promise.all(promises);
+                    batchSnaps.forEach(snap => {
+                        if (snap.exists) {
+                            const batchData = snap.data();
+                            if (batchData.transactions) {
+                                newTransactions = newTransactions.concat(batchData.transactions);
+                            }
+                        }
                     });
-                    calculateMetrics(transactions);
-                });
+
+                    // 캐시 업데이트
+                    cache = {
+                        lastBatchId: metaData.lastBatchId,
+                        lastUpdatedAt: metaData.lastUpdatedAt || Date.now(),
+                        transactions: newTransactions
+                    };
+                    localStorage.setItem(cacheKey, JSON.stringify(cache));
+                    allTransactions = newTransactions;
+                }
+
+                // 데이터 계산
+                calculateMetrics(allTransactions);
+
+            } catch (e) {
+                console.error("Home Sync Error:", e);
+                // 에러 발생 시 UI에 0원 처리 등 안전장치
+                calculateMetrics([]); 
+            }
         }
 
+        // [데이터 계산 및 렌더링]
         function calculateMetrics(transactions) {
+            // 날짜 객체로 변환
+            const processedData = transactions.map(item => {
+                let d = new Date();
+                if (item.date) d = new Date(item.date);
+                else if (item.timestamp) d = new Date(item.timestamp);
+                return { ...item, dateObj: d };
+            });
+
             const now = new Date();
             const currentYear = now.getFullYear();
             const currentMonth = now.getMonth(); 
@@ -474,8 +368,9 @@
             const lastMonthIdx = lastMonthDate.getMonth();
             const categoryMap = {};
 
-            transactions.forEach(item => {
+            processedData.forEach(item => {
                 const amt = Math.abs(parseInt(item.amount));
+                // '지출' 타입이거나 금액이 음수면 지출로 간주
                 const isExpense = item.type === '지출' || parseInt(item.amount) < 0;
                 const tDate = item.dateObj;
 
@@ -484,7 +379,8 @@
                 if (isExpense) {
                     if (tDate.getFullYear() === currentYear && tDate.getMonth() === currentMonth) {
                         thisMonthExpense += amt;
-                        if (categoryMap[item.category]) categoryMap[item.category] += amt; else categoryMap[item.category] = amt;
+                        const cat = item.category || '기타';
+                        if (categoryMap[cat]) categoryMap[cat] += amt; else categoryMap[cat] = amt;
                     }
                     if (tDate.getFullYear() === lastMonthYear && tDate.getMonth() === lastMonthIdx) {
                         lastMonthExpense += amt;
