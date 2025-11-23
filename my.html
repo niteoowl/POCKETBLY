@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>POCKETBLY - MY</title>
     
-    <!-- [깜빡임 방지 스크립트] (홈 화면에서 가져옴) -->
+    <!-- [깜빡임 방지 스크립트] -->
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme');
@@ -34,95 +34,49 @@
         body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
         input, textarea { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
         
-        /* [중요] 전체 트랜지션 -> 배경과 글자색에만 적용 (홈 화면과 통일) */
+        /* 트랜지션 */
         body, .container, .header, .menu-item, .edit-modal-sheet, .bottom-nav, .nav-item, .btn-edit-profile {
             transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
 
-        /* [색상 팔레트] (홈/기록/도전 화면과 통일) */
+        /* [색상 팔레트] */
         :root {
             /* === Light Mode === */
-            --bg-color: #ffffff;
-            --header-bg: rgba(255, 255, 255, 0.95);
-            --card-bg: #ffffff;
-            
-            --text-main: #191f28;
-            --text-sub: #8b95a1;
-            
-            --border-color: #e5e8eb;
-            
-            --nav-bg: rgba(255, 255, 255, 0.85);
-            --nav-border: #e5e8eb;
-            --nav-active-bg: #f2f4f6;
-            --nav-inactive: #b0b8c1;
-            --nav-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-
-            --skeleton-base: #f2f4f6;
-            --skeleton-highlight: rgba(255, 255, 255, 0.5);
-
+            --bg-color: #ffffff; --header-bg: rgba(255, 255, 255, 0.95); --card-bg: #ffffff;
+            --text-main: #191f28; --text-sub: #8b95a1; --border-color: #e5e8eb;
+            --nav-bg: rgba(255, 255, 255, 0.85); --nav-border: #e5e8eb; --nav-active-bg: #f2f4f6; --nav-inactive: #b0b8c1; --nav-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            --skeleton-base: #f2f4f6; --skeleton-highlight: rgba(255, 255, 255, 0.5);
             --popup-bg: #ffffff;
-            
-            --primary-blue: #3b82f6;
-            --expense-color: #f04452;
-            --ripple-color: rgba(0, 0, 0, 0.08);
+            --primary-blue: #3b82f6; --expense-color: #f04452; --ripple-color: rgba(0, 0, 0, 0.08);
             --header-height: 80px; 
-            
-            --avatar-bg: var(--nav-active-bg);
-            --avatar-icon: var(--nav-inactive);
-            --menu-item-border: var(--nav-active-bg);
-            --chevron-color: #d1d6db;
-            --code-box-bg: #f9fafb;
+            --avatar-bg: var(--nav-active-bg); --avatar-icon: var(--nav-inactive);
+            --menu-item-border: var(--nav-active-bg); --chevron-color: #d1d6db;
         }
 
         /* === Dark Mode === */
         [data-theme="dark"] {
-            --bg-color: #18171e;
-            --header-bg: #18171e;
-            
-            --card-bg: #24232b;
-            
-            --text-main: #eff1f3;
-            --text-sub: #8b95a1;
-            
-            --border-color: #2c2b33; 
-            
-            --nav-bg: #25242c;
-            --nav-border: #33323a;
-            --nav-active-bg: #35343d;
-            --nav-inactive: #686d77;
-            --nav-shadow: 0 4px 25px rgba(0, 0, 0, 0.4);
-            
-            --skeleton-base: #24232b;
-            --skeleton-highlight: rgba(255, 255, 255, 0.08);
-
+            --bg-color: #18171e; --header-bg: #18171e; --card-bg: #24232b;
+            --text-main: #eff1f3; --text-sub: #8b95a1; --border-color: #2c2b33; 
+            --nav-bg: #25242c; --nav-border: #33323a; --nav-active-bg: #35343d; --nav-inactive: #686d77; --nav-shadow: 0 4px 25px rgba(0, 0, 0, 0.4);
+            --skeleton-base: #24232b; --skeleton-highlight: rgba(255, 255, 255, 0.08);
             --popup-bg: #24232b;
-            
             --ripple-color: rgba(255, 255, 255, 0.1);
-            
-            --avatar-bg: var(--nav-active-bg);
-            --avatar-icon: var(--text-sub);
-            --menu-item-border: var(--nav-active-bg);
-            --chevron-color: #4b525a;
-            --code-box-bg: var(--nav-active-bg);
+            --avatar-bg: var(--nav-active-bg); --avatar-icon: var(--text-sub);
+            --menu-item-border: var(--nav-active-bg); --chevron-color: #4b525a;
         }
 
         body {
             font-family: 'Pretendard', sans-serif;
-            background-color: var(--bg-color); /* 변수 사용 */
-            margin: 0; padding: 0;
+            background-color: var(--bg-color); margin: 0; padding: 0;
             display: flex; flex-direction: column; align-items: center;
-            overflow-y: scroll; 
-            padding-top: var(--header-height); 
-            padding-bottom: 110px; 
-            color: var(--text-main); /* 변수 사용 */
+            overflow-y: scroll; padding-top: var(--header-height); padding-bottom: 110px; 
+            color: var(--text-main);
         }
 
-        /* 헤더 */
         .header {
             position: fixed; top: 0; left: 50%; transform: translateX(-50%);
             width: 95%; max-width: 1024px; z-index: 1005;
-            background-color: var(--header-bg); /* 변수 사용 */
-            backdrop-filter: blur(5px);
+            background-color: var(--header-bg); backdrop-filter: blur(5px);
             height: var(--header-height); 
             display: flex; align-items: center; justify-content: space-between;
             padding: 16px 24px;
@@ -130,91 +84,51 @@
         [data-theme="dark"] .header { backdrop-filter: none; }
         .header h1 { font-size: 26px; font-weight: 800; color: var(--text-main); margin: 0; }
 
-        /* 컨테이너 */
-        .container {
-            width: 95%;
-            max-width: 1024px; 
-            background-color: var(--bg-color); /* 변수 사용 */
-            padding: 0 24px 24px 24px; 
-        }
+        .container { width: 95%; max-width: 1024px; background-color: var(--bg-color); padding: 0 24px 24px 24px; }
 
         /* 프로필 섹션 */
-        .profile-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 30px 0 40px 0;
-        }
+        .profile-section { display: flex; flex-direction: column; align-items: center; padding: 30px 0 40px 0; }
         .avatar-circle {
-            width: 80px; height: 80px;
-            background-color: var(--avatar-bg); /* 변수 사용 */
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            margin-bottom: 16px;
-            color: var(--avatar-icon); /* 변수 사용 */
+            width: 80px; height: 80px; background-color: var(--avatar-bg); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
+            color: var(--avatar-icon);
         }
         .avatar-icon { font-size: 40px; }
-        
-        .profile-name {
-            font-size: 22px; font-weight: 700; color: var(--text-main); /* 변수 사용 */
-            margin-bottom: 6px;
-        }
-        .profile-email {
-            font-size: 14px; color: var(--text-sub); /* 변수 사용 */
-            margin-bottom: 20px;
-        }
+        .profile-name { font-size: 22px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
+        .profile-email { font-size: 14px; color: var(--text-sub); margin-bottom: 20px; }
         .btn-edit-profile {
-            background-color: var(--nav-active-bg); /* 변수 사용 */
-            color: var(--text-main); /* 변수 사용 */
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
+            background-color: var(--nav-active-bg); color: var(--text-main); border: none;
+            padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;
         }
 
         /* 메뉴 리스트 */
         .menu-group { margin-bottom: 30px; }
-        .menu-group-title {
-            font-size: 13px; font-weight: 600; color: var(--text-sub); /* 변수 사용 */
-            margin-bottom: 10px; padding-left: 4px;
-        }
+        .menu-group-title { font-size: 13px; font-weight: 600; color: var(--text-sub); margin-bottom: 10px; padding-left: 4px; }
         .menu-list {
-            list-style: none; padding: 0; margin: 0;
-            background-color: var(--card-bg); /* 변수 사용 */
-            border-radius: 16px;
-            border: 1px solid var(--border-color); /* 테두리 추가 */
-            overflow: hidden;
+            list-style: none; padding: 0; margin: 0; background-color: var(--card-bg);
+            border-radius: 16px; border: 1px solid var(--border-color); overflow: hidden;
         }
         .menu-item {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 18px 16px; /* 좌우 패딩 수정 */
-            border-bottom: 1px solid var(--menu-item-border); /* 변수 사용 */
-            cursor: pointer;
-            font-size: 16px; font-weight: 500; color: var(--text-main); /* 변수 사용 */
+            padding: 18px 16px; border-bottom: 1px solid var(--menu-item-border);
+            cursor: pointer; font-size: 16px; font-weight: 500; color: var(--text-main); text-decoration: none;
         }
         .menu-item:last-child { border-bottom: none; }
         .menu-left { display: flex; align-items: center; gap: 12px; }
-        .menu-icon { color: var(--text-main); font-size: 22px; } /* 변수 사용 */
-        .chevron { color: var(--chevron-color); font-size: 20px; } /* 변수 사용 */
-
+        .menu-icon { color: var(--text-main); font-size: 22px; }
+        .chevron { color: var(--chevron-color); font-size: 20px; }
         .text-danger { color: var(--expense-color) !important; }
 
         /* 하단 내비게이션 */
         .bottom-nav {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             width: 75%; max-width: 450px; height: 75px;
-            background-color: var(--nav-bg); 
-            backdrop-filter: blur(10px); 
-            display: flex; justify-content: space-around; align-items: center;
-            z-index: 1000; 
-            border: 1px solid var(--nav-border); 
-            box-shadow: var(--nav-shadow);
+            background-color: var(--nav-bg); backdrop-filter: blur(10px); 
+            display: flex; justify-content: space-around; align-items: center; z-index: 1000; 
+            border: 1px solid var(--nav-border); box-shadow: var(--nav-shadow);
             border-radius: 50px; padding: 0 10px;
         }
         [data-theme="dark"] .bottom-nav { backdrop-filter: none; }
-
         .nav-item {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             text-decoration: none; color: var(--nav-inactive); font-size: 11px; font-weight: 500;
@@ -229,91 +143,45 @@
         .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
 
         /* 리플 효과 */
-        .ripple {
-            position: absolute; border-radius: 50%; transform: scale(0);
-            animation: ripple-anim 0.5s linear; background-color: var(--ripple-color); pointer-events: none; 
-        }
+        .ripple { position: absolute; border-radius: 50%; transform: scale(0); animation: ripple-anim 0.5s linear; background-color: var(--ripple-color); pointer-events: none; }
         @keyframes ripple-anim { to { transform: scale(2.8); opacity: 0; } }
 
-        /* 스켈레톤 UI */
-        .skeleton {
-            background: var(--skeleton-base); 
-            color: transparent !important;
-            border-radius: 4px; user-select: none; position: relative; overflow: hidden;
-        }
-        .skeleton::after {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
-            transform: translateX(-100%); animation: shimmer 1.5s infinite;
-        }
+        /* 스켈레톤 */
+        .skeleton { background: var(--skeleton-base); color: transparent !important; border-radius: 4px; user-select: none; position: relative; overflow: hidden; }
+        .skeleton::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); transform: translateX(-100%); animation: shimmer 1.5s infinite; }
         @keyframes shimmer { 100% { transform: translateX(100%); } }
 
-        /* 모달 (수정/이름변경 등) */
+        /* 모달 */
         .edit-modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5); z-index: 2500;
-            display: none; align-items: flex-end; justify-content: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 2500; display: none; align-items: flex-end; justify-content: center;
         }
         .edit-modal-sheet {
-            width: 100%; max-width: 600px; background-color: var(--popup-bg); /* 변수 사용 */
-            border-radius: 24px 24px 0 0; padding: 24px;
-            animation: slideUp 0.3s ease-out;
+            width: 100%; max-width: 600px; background-color: var(--popup-bg); border-radius: 24px 24px 0 0; padding: 24px; animation: slideUp 0.3s ease-out;
         }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .edit-input { 
-            width: 100%; border: none; border-bottom: 1px solid var(--border-color); /* 변수 사용 */
-            padding: 12px 0; font-size: 18px; outline: none; margin-top: 10px;
-            background-color: transparent; color: var(--text-main);
+            width: 100%; border: none; border-bottom: 1px solid var(--border-color); padding: 12px 0; font-size: 18px; outline: none; margin-top: 10px; background-color: transparent; color: var(--text-main);
         }
         .edit-btn-save { 
-            width: 100%; padding: 16px; background-color: var(--text-main); /* 변수 사용 */
-            color: var(--popup-bg); border: none; border-radius: 16px; font-weight: 700; margin-top: 24px; cursor: pointer; 
+            width: 100%; padding: 16px; background-color: var(--text-main); color: var(--popup-bg); border: none; border-radius: 16px; font-weight: 700; margin-top: 24px; cursor: pointer; 
         }
-
-        /* [추가] 코드 표시 모달 */
-        .code-display-box {
-            background-color: var(--code-box-bg); border: 1px solid var(--border-color); /* 변수 사용 */
-            border-radius: 16px; padding: 24px; text-align: center;
-            margin-top: 20px; margin-bottom: 10px;
-        }
-        .generated-code {
-            font-size: 32px; font-weight: 800; letter-spacing: 4px;
-            color: var(--primary-blue); margin: 10px 0;
-        }
-        .code-desc { font-size: 14px; color: var(--text-sub); line-height: 1.5; } /* 변수 사용 */
 
         /* 다이얼로그 */
-        .global-dialog-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 4000;
-            display: none; align-items: center; justify-content: center;
-        }
-        .global-dialog-box {
-            width: 80%; max-width: 300px; background: var(--popup-bg); /* 변수 사용 */
-            border-radius: 20px; padding: 24px; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            animation: popIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
+        .global-dialog-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 4000; display: none; align-items: center; justify-content: center; }
+        .global-dialog-box { width: 80%; max-width: 300px; background: var(--popup-bg); border-radius: 20px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: popIn 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); }
         @keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        .global-dialog-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text-main); } /* 변수 사용 */
-        .global-dialog-msg { font-size: 14px; color: var(--text-sub); margin-bottom: 20px; line-height: 1.4; } /* 변수 사용 */
+        .global-dialog-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--text-main); }
+        .global-dialog-msg { font-size: 14px; color: var(--text-sub); margin-bottom: 20px; line-height: 1.4; }
         .global-dialog-actions { display: flex; gap: 10px; }
         .global-dialog-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .btn-cancel { background-color: var(--nav-active-bg); color: var(--text-sub); } /* 변수 사용 */
-        .btn-confirm { background-color: var(--text-main); color: var(--popup-bg); } /* 변수 사용 */
+        .btn-cancel { background-color: var(--nav-active-bg); color: var(--text-sub); }
+        .btn-confirm { background-color: var(--text-main); color: var(--popup-bg); }
 
-        /* 기타 */
-        .app-footer {
-            text-align:center; margin-top: 30px; margin-bottom: 30px; 
-            font-size: 12px; color: var(--chevron-color); /* 색상 통일 */
-        }
+        .app-footer { text-align:center; margin-top: 30px; margin-bottom: 30px; font-size: 12px; color: var(--chevron-color); }
 
-
-        /* [모바일 최적화] */
         @media (max-width: 600px) {
             .header { width: 100%; padding: 0 16px; } 
             .container { padding: 0 5px 20px 5px; } 
-            
             .bottom-nav { width: 93%; bottom: 20px; }
             .nav-item.active::before { width: 90px; height: 60px; border-radius: 30px; }
         }
@@ -341,9 +209,9 @@
         <div class="menu-group">
             <div class="menu-group-title">계정</div>
             <ul class="menu-list">
-                <!-- [추가됨] 부모님 연결 버튼 -->
-                <li class="menu-item ripple-target" onclick="generateInviteCode()">
-                    <div class="menu-left"><span class="material-icons menu-icon">diversity_3</span>부모님 연결</div>
+                <!-- [수정됨] 부모님 전화번호 등록 (로컬스토리지) -->
+                <li class="menu-item ripple-target" onclick="openPhoneModal()">
+                    <div class="menu-left"><span class="material-icons menu-icon">contact_phone</span>부모님 전화번호 등록</div>
                     <span class="material-icons chevron">chevron_right</span>
                 </li>
                 <li class="menu-item ripple-target" onclick="openNameModal()">
@@ -372,6 +240,12 @@
         <div class="menu-group">
             <div class="menu-group-title">앱 정보</div>
             <ul class="menu-list">
+                <!-- [추가됨] 개인정보처리방침 링크 -->
+                <!-- 실제 링크 주소로 href 값을 변경해주세요 -->
+                <a href="https://www.notion.so/Privacy-Policy-1383d0a16b1a80898306c830596962e0" target="_blank" class="menu-item ripple-target">
+                    <div class="menu-left"><span class="material-icons menu-icon">policy</span>개인정보처리방침</div>
+                    <span class="material-icons chevron">open_in_new</span>
+                </a>
                 <li class="menu-item" style="cursor: default;">
                     <div class="menu-left"><span class="material-icons menu-icon">info</span>버전</div>
                     <div style="font-size: 14px; color: var(--text-sub);">v1.0.2</div>
@@ -415,21 +289,21 @@
         </div>
     </div>
 
-    <!-- [추가됨] 인증코드 표시 모달 -->
-    <div id="code-modal" class="edit-modal-overlay" onclick="if(event.target===this) closeCodeModal()">
+    <!-- [추가됨] 부모님 전화번호 등록 모달 -->
+    <div id="phone-modal" class="edit-modal-overlay" onclick="if(event.target===this) closePhoneModal()">
         <div class="edit-modal-sheet">
             <div style="display:flex; justify-content:space-between; align-items: center;">
-                <h3 style="margin:0; font-size:18px; color:var(--text-main);">부모님 연결</h3>
-                <span class="material-icons" style="cursor:pointer; color:var(--text-sub);" onclick="closeCodeModal()">close</span>
+                <h3 style="margin:0; font-size:18px; color:var(--text-main);">부모님 번호 등록</h3>
+                <span class="material-icons" style="cursor:pointer; color:var(--text-sub);" onclick="closePhoneModal()">close</span>
             </div>
-            
-            <div class="code-display-box">
-                <div class="code-desc">부모님 앱에 아래 코드를 입력해주세요.</div>
-                <div class="generated-code" id="invite-code-display">------</div>
-                <div class="code-desc" style="font-size:12px;">코드는 1회용입니다.</div>
+            <div style="margin-top: 20px;">
+                <p style="font-size:13px; color:var(--text-sub); line-height:1.5; margin-bottom:15px;">
+                    부모님께 소비 내역을 전송할 때 사용할<br>전화번호를 기기에 저장합니다.
+                </p>
+                <label style="font-size: 12px; color: var(--text-sub);">전화번호</label>
+                <input type="tel" id="parent-phone-input" class="edit-input" placeholder="010 1234 5678">
             </div>
-
-            <button class="edit-btn-save ripple-target" onclick="closeCodeModal()">닫기</button>
+            <button class="edit-btn-save ripple-target" onclick="saveParentPhone()">저장하기</button>
         </div>
     </div>
 
@@ -509,31 +383,35 @@
             });
         }
 
-        // [추가됨] 인증 코드 생성 로직
-        function generateInviteCode() {
-            // 6자리 랜덤 코드 생성
-            const code = Math.floor(100000 + Math.random() * 900000).toString();
+        // [수정] 부모님 전화번호 로컬 스토리지 로직
+        function openPhoneModal() {
+            const modal = document.getElementById('phone-modal');
+            const input = document.getElementById('parent-phone-input');
             
-            // 모달 먼저 표시 (로딩 느낌)
-            document.getElementById('invite-code-display').innerText = '...';
-            document.getElementById('code-modal').style.display = 'flex';
-
-            db.collection('invite_codes').add({
-                code: code,
-                uid: currentUser.uid,
-                name: currentUser.displayName || '이름 없음',
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                document.getElementById('invite-code-display').innerText = code;
-            }).catch(err => {
-                console.error(err);
-                closeCodeModal();
-                showGlobalDialog('alert', '코드 생성에 실패했습니다.');
-            });
+            // 저장된 번호 불러오기
+            const savedPhone = localStorage.getItem('parent_phone') || '';
+            input.value = savedPhone;
+            
+            modal.style.display = 'flex';
+            setTimeout(() => input.focus(), 100);
         }
 
-        function closeCodeModal() {
-            document.getElementById('code-modal').style.display = 'none';
+        function closePhoneModal() {
+            document.getElementById('phone-modal').style.display = 'none';
+        }
+
+        function saveParentPhone() {
+            const input = document.getElementById('parent-phone-input');
+            // 숫자만 남기기
+            const phoneVal = input.value.replace(/[^0-9]/g, '');
+
+            if(phoneVal.length < 10) {
+                return showGlobalDialog('alert', '올바른 전화번호를 입력해주세요.');
+            }
+
+            localStorage.setItem('parent_phone', phoneVal);
+            closePhoneModal();
+            showGlobalDialog('alert', '저장되었습니다.');
         }
 
         function openNameModal() {
@@ -568,7 +446,7 @@
                     const batch = db.batch();
                     snapshot.docs.forEach(doc => { batch.delete(doc.ref); });
                     batch.commit().then(() => { 
-                        // 도전 목록도 함께 삭제 (Challenge 목록 추가)
+                        // 도전 목록도 삭제
                         db.collection('users').doc(currentUser.uid).collection('challenges').get().then(chalSnapshot => {
                             if (!chalSnapshot.empty) {
                                 const chalBatch = db.batch();
