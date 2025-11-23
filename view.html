@@ -25,6 +25,7 @@
             background: white; padding: 30px; border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             max-width: 400px; width: 100%; text-align: center;
+            position: relative; overflow: hidden;
         }
 
         .gate-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; color: #191f28; }
@@ -38,25 +39,37 @@
             font-size: 24px; font-weight: 700; text-align: center; line-height: 46px;
             margin-bottom: 20px; color: #333; letter-spacing: 4px;
         }
-        .input-display.error { border-color: #f04452; color: #f04452; }
+        .input-display.error { border-color: #f04452; color: #f04452; animation: shake 0.3s; }
 
-        .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        @keyframes shake { 0% {transform: translateX(0);} 25% {transform: translateX(-5px);} 50% {transform: translateX(5px);} 75% {transform: translateX(-5px);} 100% {transform: translateX(0);} }
+
+        .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
+        
         .num-btn {
             background: #fff; border: 1px solid #d1d6db; border-radius: 10px;
-            height: 50px; font-size: 20px; font-weight: 600; color: #333;
+            height: 55px; font-size: 22px; font-weight: 600; color: #333;
             cursor: pointer; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 2px 0 #e5e8eb;
+            box-shadow: 0 2px 0 #e5e8eb; touch-action: manipulation;
         }
-        .num-btn:active { transform: translateY(2px); box-shadow: none; }
+        .num-btn:active { transform: translateY(2px); box-shadow: none; background-color: #f2f4f6; }
         .num-btn.clear { background-color: #ffebee; color: #d32f2f; border-color: #ffcdd2; }
         .num-btn.enter { background-color: #2c92ff; color: white; border-color: #1b64da; box-shadow: 0 2px 0 #0056b3; }
 
+        /* 차단(Lock) 오버레이 */
+        #lock-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10;
+        }
+        .lock-icon { font-size: 48px; color: #f04452; margin-bottom: 16px; }
+        .lock-msg { font-size: 16px; font-weight: 700; color: #191f28; margin-bottom: 8px; }
+        .lock-timer { font-size: 24px; font-weight: 800; color: #f04452; }
+
         #hp-field { position: absolute; opacity: 0; top: -9999px; left: -9999px; width: 1px; height: 1px; }
-        #block-msg { display: none; color: #f04452; font-weight: 700; margin-top: 20px; }
         
+        /* 리포트 CSS (생략 없이 유지) */
         #real-content { display: none; opacity: 0; transition: opacity 0.5s; }
-        
-        /* 리포트 CSS */
         :root { --text-dark: #191f28; --text-gray: #8b95a1; --border-light: #e5e8eb; --income-color: #2c92ff; --expense-color: #f04452; }
         .report-container { width: 100%; max-width: 600px; background-color: white; min-height: 100vh; margin: 0 auto; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
         .report-header { padding: 40px 24px 20px 24px; background-color: #fff; border-bottom: 1px solid var(--border-light); }
@@ -101,6 +114,13 @@
 
     <div id="security-gate">
         <div class="gate-card">
+            <!-- 잠금 화면 오버레이 -->
+            <div id="lock-overlay">
+                <span class="material-icons lock-icon">lock</span>
+                <div class="lock-msg" id="lock-msg-text">접속이 일시 제한되었습니다.</div>
+                <div class="lock-timer" id="lock-timer">00:00</div>
+            </div>
+
             <div class="gate-title">보안 접속 확인</div>
             <div class="gate-desc">
                 자동 접속 방지를 위해<br>아래 수식의 정답을 입력해 주세요.
@@ -109,50 +129,136 @@
             <canvas id="captcha-canvas" width="300" height="100"></canvas>
             <div id="display-code" class="input-display"></div>
             <div class="numpad-grid" id="numpad"></div>
-            <div id="block-msg">비정상적인 접근이 감지되었습니다.</div>
+            <div id="fail-status" style="font-size:12px; color:#f04452; margin-top:5px; height:16px;"></div>
         </div>
     </div>
 
     <div id="real-content"></div>
 
     <script>
-        /* 설정 */
+        /* ========================================
+           [보안 설정 및 상태 관리]
+           ======================================== */
         const CONFIG = {
-            minTime: 500, // 최소 풀이 시간 (ms) - E01 방지를 위해 시간 단축
-            minMouseEvents: 2 // 최소 터치/클릭 - E01 방지를 위해 완화
+            minTime: 500, // 풀이 최소 시간
+            maxRefreshes: 10, // 연속 새로고침 허용 횟수
+            refreshTimeLimit: 1500, // 새로고침 간격 (ms)
         };
 
         let state = {
             answer: 0,
             userInput: "",
             startTime: Date.now(),
-            mouseMoves: 0,
-            isBot: false,
-            attempts: 0
+            isBot: false
         };
 
-        /* [수정됨] 봇 탐지 로직 완화 - E01 해결 */
+        // 스토리지 키
+        const KEY_FAILS = 'sec_v_fails';
+        const KEY_UNLOCK = 'sec_v_unlock';
+        const KEY_LAST_LOAD = 'sec_last_load';
+        const KEY_REFRESH_CNT = 'sec_refresh_cnt';
+        const KEY_PERM_BLOCK = 'sec_perm_block';
+
+        /* ========================================
+           [1단계] 시스템 무결성 및 새로고침 스팸 검사
+           ======================================== */
+        function checkSystemIntegrity() {
+            // 1. 영구 차단 확인
+            if (localStorage.getItem(KEY_PERM_BLOCK)) {
+                permanentBlock("비정상적인 접근이 반복되어<br>접속이 영구 차단되었습니다.");
+                return false;
+            }
+
+            // 2. 새로고침 폭격 감지
+            const now = Date.now();
+            const lastLoad = parseInt(localStorage.getItem(KEY_LAST_LOAD) || 0);
+            let refreshCnt = parseInt(localStorage.getItem(KEY_REFRESH_CNT) || 0);
+
+            if (now - lastLoad < CONFIG.refreshTimeLimit) {
+                // 너무 빨리 새로고침 함
+                refreshCnt++;
+            } else {
+                // 정상적인 접근이면 카운트 서서히 감소
+                refreshCnt = Math.max(0, refreshCnt - 1);
+            }
+
+            localStorage.setItem(KEY_LAST_LOAD, now);
+            localStorage.setItem(KEY_REFRESH_CNT, refreshCnt);
+
+            if (refreshCnt >= CONFIG.maxRefreshes) {
+                // 새로고침 폭격 -> 영구 차단
+                localStorage.setItem(KEY_PERM_BLOCK, 'true');
+                permanentBlock("반복적인 새로고침 감지됨.<br>접속이 차단되었습니다.");
+                return false;
+            }
+
+            // 3. 시간 차단(Lock) 확인
+            const unlockTime = parseInt(localStorage.getItem(KEY_UNLOCK) || 0);
+            if (unlockTime > now) {
+                startLockTimer(unlockTime);
+                return false; // 잠금 상태
+            }
+
+            return true; // 통과
+        }
+
+        function permanentBlock(msg) {
+            const gate = document.querySelector('.gate-card');
+            gate.innerHTML = `
+                <span class="material-icons lock-icon">block</span>
+                <div class="lock-msg" style="color:#f04452; margin-bottom:10px;">ACCESS DENIED</div>
+                <div style="font-size:14px; color:#666; line-height:1.6;">${msg}</div>
+            `;
+            throw new Error("Blocked");
+        }
+
+        /* ========================================
+           [2단계] 락(Lock) 타이머 UI
+           ======================================== */
+        function startLockTimer(unlockTime) {
+            const overlay = document.getElementById('lock-overlay');
+            const timerDisplay = document.getElementById('lock-timer');
+            const msgDisplay = document.getElementById('lock-msg-text');
+            
+            overlay.style.display = 'flex';
+            
+            const fails = parseInt(localStorage.getItem(KEY_FAILS) || 0);
+            msgDisplay.innerText = `${fails}회 오류! 잠시 대기하세요.`;
+
+            const interval = setInterval(() => {
+                const remaining = unlockTime - Date.now();
+                
+                if (remaining <= 0) {
+                    clearInterval(interval);
+                    overlay.style.display = 'none';
+                    localStorage.removeItem(KEY_UNLOCK);
+                    // 문제 재설정
+                    generateCaptcha();
+                    renderNumpad();
+                } else {
+                    const sec = Math.ceil(remaining / 1000);
+                    timerDisplay.innerText = `${sec}초`;
+                }
+            }, 100);
+        }
+
+        /* ========================================
+           [3단계] 캡차 및 키패드 로직
+           ======================================== */
+        
         function detectHeadless() {
             const userAgent = navigator.userAgent.toLowerCase();
-            
-            // 명확한 봇 시그널만 차단 (Headless Chrome 문자열 확인)
-            // 화면 크기가 0인 경우 (백그라운드 실행)
             if (userAgent.includes('headless') || 
                 (window.outerWidth === 0 && window.outerHeight === 0)) {
                 return true;
             }
-            // 일반적인 브라우저는 통과 (플러그인, 웹드라이버 체크 제거)
             return false;
         }
 
-        // 봇이면 즉시 정지
         if (detectHeadless()) {
-            state.isBot = true;
-            document.body.innerHTML = "<h1>Access Denied (E01)</h1>";
-            throw new Error("Bot Detected");
+            permanentBlock("Bot Detected (E01)");
         }
 
-        /* Canvas CAPTCHA (수학 문제) */
         function generateCaptcha() {
             const canvas = document.getElementById('captcha-canvas');
             const ctx = canvas.getContext('2d');
@@ -172,7 +278,6 @@
                 ctx.stroke();
             }
 
-            // 덧셈, 뺄셈 (곱셈은 모바일에서 어려울 수 있어 제외하거나 간단하게)
             const ops = ['+', '-'];
             const op = ops[Math.floor(Math.random() * ops.length)];
             let n1 = Math.floor(Math.random() * 20) + 10; 
@@ -200,23 +305,22 @@
             }
         }
 
-        /* 키패드 생성 */
         function renderNumpad() {
             const numpad = document.getElementById('numpad');
             numpad.innerHTML = '';
             
-            let nums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-            // 셔플
-            for (let i = nums.length - 1; i > 0; i--) {
+            let items = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+            // 키패드 셔플
+            for (let i = items.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [nums[i], nums[j]] = [nums[j], nums[i]];
+                [items[i], items[j]] = [items[j], items[i]];
             }
 
-            nums.forEach(num => {
+            items.forEach(val => {
                 const btn = document.createElement('button');
-                btn.className = 'num-btn'; 
-                btn.innerText = num;
-                btn.onclick = () => handleInput(num);
+                btn.className = 'num-btn';
+                btn.innerText = val;
+                btn.onclick = () => handleInput(val);
                 numpad.appendChild(btn);
             });
 
@@ -226,6 +330,7 @@
             clearBtn.onclick = () => {
                 state.userInput = state.userInput.slice(0, -1);
                 updateDisplay();
+                setTimeout(() => renderNumpad(), 50); // 지울때도 섞기
             };
             numpad.appendChild(clearBtn);
 
@@ -240,6 +345,7 @@
             if(state.userInput.length < 5) {
                 state.userInput += num;
                 updateDisplay();
+                setTimeout(() => renderNumpad(), 50); // 입력할 때마다 섞기
             }
         }
 
@@ -249,47 +355,78 @@
             disp.classList.remove('error');
         }
 
-        /* 검증 */
+        /* ========================================
+           [4단계] 정답 검증 및 차단 로직
+           ======================================== */
         function verify() {
             const now = Date.now();
             const hp = document.getElementById('hp-field').value;
             const display = document.getElementById('display-code');
 
-            if (hp !== "") { fail("Bot Detected (HP)"); return; }
+            // 허니팟 체크
+            if (hp !== "") {
+                localStorage.setItem(KEY_PERM_BLOCK, 'true');
+                permanentBlock("Bot Detected (HP)");
+                return;
+            }
             
-            // 시간 제한 체크 (너무 빠르면 봇)
+            // 너무 빠른 입력 체크
             if (now - state.startTime < CONFIG.minTime) {
                 alert("조금만 천천히 입력해주세요.");
                 return;
             }
 
-            // 정답 확인
             if (parseInt(state.userInput) === state.answer) {
+                // 성공 시 실패 기록 초기화
+                localStorage.removeItem(KEY_FAILS);
+                localStorage.removeItem(KEY_UNLOCK);
                 pass();
             } else {
+                // 실패 처리
+                handleFail();
                 display.classList.add('error');
                 state.userInput = "";
                 setTimeout(updateDisplay, 500);
-                generateCaptcha(); // 틀리면 문제 변경
-                renderNumpad(); // 키패드 위치 변경
             }
         }
 
-        function fail(msg) {
-            console.warn(msg);
-            document.getElementById('block-msg').style.display = 'block';
+        function handleFail() {
+            // 누적 실패 횟수 증가
+            let fails = parseInt(localStorage.getItem(KEY_FAILS) || 0) + 1;
+            localStorage.setItem(KEY_FAILS, fails);
+            
+            document.getElementById('fail-status').innerText = `현재 ${fails}회 오류`;
+
+            // 단계별 차단 로직
+            let lockDuration = 0;
+
+            if (fails >= 7) {
+                // 7회: 영구 차단
+                localStorage.setItem(KEY_PERM_BLOCK, 'true');
+                permanentBlock("오류 횟수 초과(7회).<br>보안을 위해 접속이 차단되었습니다.");
+                return;
+            } else if (fails >= 5) {
+                // 5회: 1분 (60초)
+                lockDuration = 60 * 1000;
+            } else if (fails >= 3) {
+                // 3회: 30초
+                lockDuration = 30 * 1000;
+            }
+
+            if (lockDuration > 0) {
+                const unlockTime = Date.now() + lockDuration;
+                localStorage.setItem(KEY_UNLOCK, unlockTime);
+                startLockTimer(unlockTime);
+            } else {
+                // 아직 차단 단계가 아니면 문제만 리셋
+                generateCaptcha();
+                renderNumpad();
+            }
         }
 
-        /* 마우스/터치 감지 (최소한의 움직임 확인) */
-        document.addEventListener('mousemove', () => state.mouseMoves++);
-        document.addEventListener('touchmove', () => state.mouseMoves++);
-        document.addEventListener('click', () => state.mouseMoves++);
-
-        /* 통과 시 실행 */
         function pass() {
             const gate = document.getElementById('security-gate');
             const content = document.getElementById('real-content');
-            
             gate.style.opacity = '0';
             setTimeout(() => {
                 gate.style.display = 'none';
@@ -299,9 +436,11 @@
             }, 500);
         }
 
+        /* ========================================
+           [5단계] 원본 컨텐츠 주입 (수정 불필요)
+           ======================================== */
         function injectRealContent() {
             const realContainer = document.getElementById('real-content');
-            
             realContainer.innerHTML = `
                 <div class="report-container">
                     <div class="report-header">
@@ -453,9 +592,11 @@
             }
         }
 
-        /* 초기화 */
-        generateCaptcha();
-        renderNumpad();
+        // 실행 시작 (무결성 체크 통과시에만 캡차 생성)
+        if(checkSystemIntegrity()) {
+            generateCaptcha();
+            renderNumpad();
+        }
     </script>
 </body>
 </html>
