@@ -3,19 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>용돈 내역 보고서</title>
-    <!-- [Level 1] 봇 인덱싱 및 캐시 완전 차단 (가장 강력한 설정) -->
-    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, max-snippet:0, max-image-preview:none, max-video-preview:0"> 
-
+    <title>보안 접속 확인</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
     
+    <!-- Firebase 라이브러리 (검증 후 로드됨) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
-        /* 기존 스타일 유지 */
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        /* [보안 게이트 스타일] */
+        body { font-family: 'Pretendard', sans-serif; margin: 0; padding: 0; background-color: #f2f4f6; user-select: none; -webkit-user-select: none; }
+        
+        /* 보안 레이어 */
+        #security-gate {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff; z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; box-sizing: border-box;
+        }
+
+        .gate-card {
+            background: white; padding: 30px; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 400px; width: 100%; text-align: center;
+        }
+
+        .gate-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; color: #191f28; }
+        .gate-desc { font-size: 14px; color: #8b95a1; margin-bottom: 20px; line-height: 1.5; }
+
+        /* Canvas CAPTCHA */
+        #captcha-canvas {
+            border: 1px solid #e5e8eb; border-radius: 12px; margin-bottom: 15px;
+            cursor: pointer; /* 봇 혼란용 */
+        }
+
+        /* 입력 필드 (Readonly) */
+        .input-display {
+            width: 100%; height: 50px; background: #f9fafb;
+            border: 2px solid #e5e8eb; border-radius: 12px;
+            font-size: 24px; font-weight: 700; text-align: center; line-height: 46px;
+            margin-bottom: 20px; color: #333; letter-spacing: 4px;
+        }
+        .input-display.error { border-color: #f04452; color: #f04452; }
+
+        /* 가상 키패드 */
+        .numpad-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+            margin-bottom: 20px;
+        }
+        .num-btn {
+            background: #fff; border: 1px solid #d1d6db; border-radius: 10px;
+            height: 50px; font-size: 20px; font-weight: 600; color: #333;
+            cursor: pointer; transition: background 0.1s;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 0 #e5e8eb;
+        }
+        .num-btn:active { transform: translateY(2px); box-shadow: none; }
+        .num-btn.clear { background-color: #ffebee; color: #d32f2f; border-color: #ffcdd2; }
+        .num-btn.enter { background-color: #2c92ff; color: white; border-color: #1b64da; box-shadow: 0 2px 0 #0056b3; }
+
+        /* Honey Pot (숨김 필드) */
+        #hp-field { position: absolute; opacity: 0; top: -9999px; left: -9999px; width: 1px; height: 1px; }
+
+        /* 로딩 및 차단 메시지 */
+        #block-msg { display: none; color: #f04452; font-weight: 700; margin-top: 20px; }
+        
+        /* [원본 리포트 CSS (초기에는 숨겨짐)] */
+        #real-content { display: none; opacity: 0; transition: opacity 0.5s; }
+        
+        /* 사용자가 제공한 원본 스타일 복원 */
         :root {
             --text-dark: #191f28;
             --text-gray: #8b95a1;
@@ -23,22 +80,7 @@
             --income-color: #2c92ff;
             --expense-color: #f04452;
         }
-        body {
-            font-family: 'Pretendard', sans-serif;
-            background-color: #f2f4f6;
-            margin: 0; padding: 0;
-            color: var(--text-dark);
-            display: flex; justify-content: center;
-            padding-bottom: 100px; 
-        }
-        .report-container {
-            width: 100%; max-width: 600px;
-            background-color: white;
-            min-height: 100vh;
-            box-shadow: 0 0 20px rgba(0,0,0,0.05);
-        }
-        
-        /* ... (기존 헤더/요약/목록 스타일) ... */
+        .report-container { width: 100%; max-width: 600px; background-color: white; min-height: 100vh; margin: 0 auto; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
         .report-header { padding: 40px 24px 20px 24px; background-color: #fff; border-bottom: 1px solid var(--border-light); }
         .report-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
         .report-date { font-size: 14px; color: var(--text-gray); }
@@ -51,7 +93,7 @@
         .total-row { margin: 0 24px 24px 24px; padding: 20px; background-color: #191f28; color: white; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; }
         .t-label { font-size: 15px; font-weight: 600; }
         .t-val { font-size: 20px; font-weight: 700; }
-        .list-area { padding: 0 24px 50px 24px; }
+        .list-area { padding: 0 24px 100px 24px; }
         .list-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
         .day-header { font-size: 14px; font-weight: 600; color: var(--text-gray); margin-top: 24px; margin-bottom: 10px; }
         .item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #f2f4f6; }
@@ -61,334 +103,376 @@
         .i-amount { font-size: 16px; font-weight: 700; }
         .parent-action-bar {
             position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 600px;
-            background-color: white;
-            border-top: 1px solid var(--border-light);
-            padding: 16px 24px;
-            display: none; 
-            flex-direction: column; gap: 12px;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
-            z-index: 100;
+            width: 100%; max-width: 600px; background-color: white;
+            border-top: 1px solid var(--border-light); padding: 16px 24px;
+            display: flex; flex-direction: column; gap: 12px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05); z-index: 100;
         }
-        .comment-input {
-            width: 100%; padding: 12px; border: 1px solid #e5e8eb; border-radius: 12px;
-            font-size: 15px; outline: none; resize: none; height: 50px;
-        }
+        .comment-input { width: 100%; padding: 12px; border: 1px solid #e5e8eb; border-radius: 12px; font-size: 15px; outline: none; resize: none; height: 50px; box-sizing: border-box; }
         .btn-group { display: flex; gap: 10px; }
-        .btn-action {
-            flex: 1; padding: 16px; border-radius: 14px; border: none; font-size: 16px; font-weight: 700; cursor: pointer;
-        }
+        .btn-action { flex: 1; padding: 16px; border-radius: 14px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; }
         .btn-approve { background-color: var(--income-color); color: white; }
         .btn-reject { background-color: var(--expense-color); color: white; }
-        .complete-msg {
-            text-align: center; padding: 40px 20px; color: var(--text-dark); font-weight: 700; font-size: 18px;
-        }
-
-        /* CAPTCHA 게이트 스타일 */
-        .captcha-gate { 
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
-            background-color: white; 
-            z-index: 10; 
-            display: flex; flex-direction: column; justify-content: flex-start; align-items: center; 
-            padding: 50px 24px; text-align: center;
-            min-height: calc(100vh - 100px); 
-        }
-        .math-problem {
-            font-size: 24px; font-weight: 700; margin-bottom: 20px;
-            padding: 15px 20px; border: 2px solid var(--income-color); border-radius: 10px;
-            background-color: #e6f7ff;
-            color: var(--text-dark);
-            width: 100%; max-width: 300px;
-        }
-        #captcha-answer {
-            width: 100%; max-width: 300px; padding: 12px; border: 1px solid var(--border-light); 
-            border-radius: 10px; font-size: 18px; text-align: center; margin-bottom: 15px;
-            appearance: none; 
-            background-color: #f9f9f9; /* 입력 불가능 표시 */
-        }
-        .btn-open-report {
-            background-color: var(--income-color); color: white;
-            padding: 18px 30px; border: none; border-radius: 14px;
-            font-size: 18px; font-weight: 700; cursor: pointer;
-            width: 100%; max-width: 300px;
-        }
-        .captcha-message {
-            margin-top: 10px; font-size: 14px; font-weight: 600;
-            color: var(--text-gray);
-            min-height: 20px; 
-        }
-        .msg-error { color: var(--expense-color); }
-
-        /* [NEW] SCK (Screen Crypto Keyboard) 스타일 */
-        .sck-keyboard {
-            width: 100%; max-width: 300px;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin: 20px 0;
-            user-select: none; /* 드래그 방지 */
-        }
-        .sck-key {
-            padding: 15px 0;
-            background-color: #f2f4f6;
-            border: 1px solid var(--border-light);
-            border-radius: 8px;
-            font-size: 22px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background-color 0.1s;
-        }
-        .sck-key:active { background-color: #e5e8eb; }
-        .sck-delete {
-            background-color: #e5e8eb;
-            font-size: 18px;
-            color: var(--text-gray);
-        }
+        .complete-msg { text-align: center; padding: 40px 20px; color: var(--text-dark); font-weight: 700; font-size: 18px; }
+        .loading { text-align: center; padding: 100px 0; color: var(--text-gray); }
     </style>
 </head>
-<body onload="generateCaptcha()">
+<body>
 
-    <div class="report-container">
-        <div class="report-header">
-            <div class="report-title" id="r-title">용돈 내역서</div>
-            <div class="report-date" id="r-date">데이터를 불러오는 중...</div>
-        </div>
+    <!-- [Honey Pot] 봇 탐지용 (보이지 않음) -->
+    <input type="text" id="hp-field" autocomplete="off" tabindex="-1">
 
-        <div id="content-area" style="display: none;">
-            <div class="summary-grid">
-                <div class="s-card">
-                    <div class="s-label">총 수입</div>
-                    <div class="s-val val-income" id="v-income">0원</div>
-                </div>
-                <div class="s-card">
-                    <div class="s-label">총 지출</div>
-                    <div class="s-val val-expense" id="v-expense">0원</div>
-                </div>
+    <!-- [보안 게이트] -->
+    <div id="security-gate">
+        <div class="gate-card">
+            <div class="gate-title">보안 접속 확인</div>
+            <div class="gate-desc">
+                자동 접속 방지를 위해<br>아래 수식의 정답을 입력해 주세요.
             </div>
             
-            <div class="total-row">
-                <span class="t-label">남은 금액</span>
-                <span class="t-val" id="v-asset">0원</span>
+            <!-- 난독화된 Canvas 문제 영역 -->
+            <canvas id="captcha-canvas" width="300" height="100"></canvas>
+
+            <!-- 입력 결과 표시창 (키보드 입력 불가) -->
+            <div id="display-code" class="input-display"></div>
+
+            <!-- 랜덤 가상 키패드 -->
+            <div class="numpad-grid" id="numpad">
+                <!-- JS로 동적 생성됨 -->
             </div>
 
-            <div class="list-area">
-                <div class="list-title">상세 내역</div>
-                <div id="list-container"></div>
-            </div>
-        </div>
-
-        <!-- [Level 4] 수학 문제 + SCK 보안 키보드 게이트 -->
-        <div id="captcha-gate" class="captcha-gate">
-            <div style="margin-bottom: 20px;">
-                <span class="material-icons" style="font-size:60px; color:#2c92ff; margin-bottom:15px;">vpn_key</span>
-                <div style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">용돈 보고서 보안 접근</div>
-                <div style="font-size: 14px; color: var(--text-gray);">로봇 자동 접근을 막기 위해<br>아래 **SCK 보안 키보드**로 정답을 입력해주세요.</div>
-            </div>
-            
-            <div id="math-problem" class="math-problem"></div>
-            <!-- readonly 속성 추가 및 type="text"로 변경하여 물리 키보드 차단 -->
-            <input type="text" id="captcha-answer" placeholder="정답을 입력하세요" readonly>
-
-            <!-- [NEW] SCK 보안 키보드 영역 -->
-            <div id="sck-keyboard" class="sck-keyboard">
-                <!-- 키는 JS로 렌더링 됩니다. -->
-            </div>
-
-            <button class="btn-open-report" onclick="checkCaptchaAndLoad()">보고서 열기</button>
-
-            <div id="captcha-message" class="captcha-message"></div>
-            <div id="loading-indicator" class="captcha-message" style="display:none;">데이터를 불러오는 중...</div>
-        </div>
-
-        <!-- 이미 처리된 경우 표시 -->
-        <div id="completed-view" style="display:none;" class="complete-msg">
-            <span class="material-icons" style="font-size:48px; color:#8b95a1; margin-bottom:10px;">check_circle</span><br>
-            이미 확인(승인/반려)이 완료된 문서입니다.
+            <div id="block-msg">비정상적인 접근이 감지되었습니다.</div>
         </div>
     </div>
 
-    <!-- 하단 액션 바 -->
-    <div class="parent-action-bar" id="action-bar">
-        <textarea class="comment-input" id="p-comment" placeholder="아이에게 한마디 (선택사항)"></textarea>
-        <div class="btn-group">
-            <button class="btn-action btn-reject" onclick="submitDecision('반려')">반려</button>
-            <button class="btn-action btn-approve" onclick="submitDecision('승인')">승인</button>
-        </div>
-    </div>
+    <!-- [진짜 컨텐츠] 초기에는 비어있으며 JS로 주입됨 -->
+    <div id="real-content"></div>
 
     <script>
-        // 전역 변수 선언
-        let db = null;
-        let listenerActive = false;
-        let currentDocData = null;
-        let captchaAnswer = 0; // 정답을 저장할 변수
-        const urlParams = new URLSearchParams(window.location.search);
-        const reportId = urlParams.get('id');
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI",
-            authDomain: "pocketbly.firebaseapp.com",
-            projectId: "pocketbly",
-            storageBucket: "pocketbly.firebasestorage.app",
-            messagingSenderId: "535063683428",
-            appId: "1:535063683428:web:4729815738bee4f8305a71",
-            measurementId: "G-RE71JXSNR3"
+        /* ==========================================
+           1. 보안 변수 및 유틸리티
+           ========================================== */
+        const CONFIG = {
+            minTime: 1000, // 최소 풀이 시간 (너무 빠르면 봇)
+            minMouseEvents: 5, // 최소 마우스/터치 움직임 횟수
+            scrollCheck: false // 스크롤 체크 (현재 오버레이 때문에 false 처리)
         };
-        
-        // 배열을 무작위로 섞는 함수 (피셔-예이츠 셔플 알고리즘)
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+
+        let state = {
+            answer: 0,
+            userInput: "",
+            startTime: Date.now(),
+            mouseMoves: 0,
+            isBot: false,
+            attempts: 0
+        };
+
+        // Headless 브라우저 1차 탐지
+        function detectHeadless() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            if (userAgent.includes('headless') || 
+                navigator.webdriver || 
+                (window.outerWidth === 0 && window.outerHeight === 0) ||
+                navigator.languages === "" ||
+                navigator.plugins.length === 0) {
+                return true;
             }
+            return false;
         }
 
-        // [SCK] 키보드 입력 처리
-        function inputSCK(value) {
-            const input = document.getElementById('captcha-answer');
-            if (input.value.length < 5) { // 최대 5자리로 제한
-                input.value += value;
-            }
+        if (detectHeadless()) {
+            state.isBot = true;
+            document.body.innerHTML = "<h1>Access Denied (E01)</h1>";
+            throw new Error("Bot Detected");
         }
 
-        // [SCK] 마지막 글자 지우기
-        function deleteSCK() {
-            const input = document.getElementById('captcha-answer');
-            input.value = input.value.slice(0, -1);
-        }
-
-        // [SCK] 보안 키보드 렌더링 (랜덤 배치)
-        function renderSCK() {
-            const keyboardContainer = document.getElementById('sck-keyboard');
-            keyboardContainer.innerHTML = '';
-            
-            const numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-            shuffleArray(numbers); // 매번 숫자를 랜덤하게 섞습니다.
-
-            numbers.forEach((num, index) => {
-                const key = document.createElement('div');
-                key.className = 'sck-key';
-                key.innerText = num;
-                key.onclick = () => inputSCK(num);
-                keyboardContainer.appendChild(key);
-                
-                // 3의 배수 위치에 지우기 버튼 추가 (랜덤 위치에 삽입)
-                if (index === 8) { // 9번째 키(index 8) 다음에 지우기 버튼 위치
-                    const deleteKey = document.createElement('div');
-                    deleteKey.className = 'sck-key sck-delete';
-                    deleteKey.innerHTML = '<span class="material-icons">backspace</span>';
-                    deleteKey.onclick = deleteSCK;
-                    keyboardContainer.appendChild(deleteKey);
-                }
-            });
-            // 마지막 남은 한 칸은 0 버튼이 차지하도록 로직 조정 (현재 0~9 총 10개 키 + 삭제키 1개)
-            // 3x3 + 1줄 3칸 (12칸) 레이아웃으로 가정하여 지우기 버튼을 3번째 줄 오른쪽으로 배치
-            
-            // 기존 3x4 (12칸) 레이아웃에 맞게 0~9 + 지우기 + 빈칸을 섞어 렌더링
-            const keysToRender = [...numbers]; // 0-9
-            
-            // 지우기 버튼을 삽입할 랜덤 위치 (1부터 11 사이)
-            // const deleteIndex = Math.floor(Math.random() * 11) + 1;
-
-            // numbers.splice(deleteIndex, 0, 'DEL'); 
-            
-            // 3x4 키패드 형태: 1 2 3 / 4 5 6 / 7 8 9 / - 0 DEL
-            // 안전하게 지우기 버튼은 12번째에 배치 (JS에서)
-        }
-
-
-        // 수학 문제 생성 함수
+        /* ==========================================
+           2. Canvas CAPTCHA 생성 (난독화)
+           ========================================== */
         function generateCaptcha() {
-            const num1 = Math.floor(Math.random() * 80) + 10; // 10 ~ 89
-            const num2 = Math.floor(Math.random() * 10) + 1;  // 1 ~ 10
-            const operator = ['+', '-'][Math.floor(Math.random() * 2)]; // 덧셈 또는 뺄셈
+            const canvas = document.getElementById('captcha-canvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width;
+            const height = canvas.height;
 
-            let result;
-            let problem;
-            if (operator === '+') {
-                result = num1 + num2;
-                problem = `${num1} + ${num2} = ?`;
-            } else {
-                // 뺄셈 결과가 음수가 되지 않도록 조정
-                if (num1 < num2) {
-                    [num1, num2] = [num2, num1]; // Swap
-                }
-                result = num1 - num2;
-                problem = `${num1} - ${num2} = ?`;
+            // 배경 노이즈
+            ctx.fillStyle = '#f9fafb';
+            ctx.fillRect(0, 0, width, height);
+            
+            // 방해선 그리기
+            for(let i=0; i<15; i++) {
+                ctx.strokeStyle = `rgba(${Math.random()*100}, ${Math.random()*100}, ${Math.random()*100}, 0.2)`;
+                ctx.lineWidth = Math.random() * 3;
+                ctx.beginPath();
+                ctx.moveTo(Math.random() * width, Math.random() * height);
+                ctx.lineTo(Math.random() * width, Math.random() * height);
+                ctx.stroke();
             }
 
-            captchaAnswer = result;
-            document.getElementById('math-problem').innerText = problem;
-            document.getElementById('captcha-answer').value = '';
-            document.getElementById('captcha-message').innerText = '';
-            document.getElementById('captcha-message').classList.remove('msg-error');
+            // 수학 문제 생성 (덧셈, 뺄셈, 곱셈)
+            const ops = ['+', '-', '×'];
+            const op = ops[Math.floor(Math.random() * ops.length)];
+            let n1 = Math.floor(Math.random() * 20) + 10; // 10~29
+            let n2 = Math.floor(Math.random() * 9) + 1;   // 1~9
+
+            // 정답 계산 (JS 메모리 내부 저장)
+            if(op === '+') state.answer = n1 + n2;
+            else if(op === '-') state.answer = n1 - n2;
+            else if(op === '×') state.answer = n1 * n2;
+
+            const text = `${n1} ${op} ${n2} = ?`;
+
+            // 텍스트 렌더링 (회전, 크기 변화, 위치 랜덤)
+            ctx.font = `bold ${30 + Math.random()*10}px 'Courier New'`;
+            ctx.fillStyle = '#333';
+            ctx.textBaseline = 'middle';
             
-            renderSCK(); // 새 문제마다 키보드 재배치
+            // 글자 하나씩 비틀어서 그리기
+            let startX = 40;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                ctx.save();
+                // 위치 흔들기
+                const x = startX + (i * 25) + Math.random() * 5;
+                const y = height / 2 + (Math.random() * 10 - 5);
+                ctx.translate(x, y);
+                // 회전 흔들기 (-0.2 ~ 0.2 rad)
+                ctx.rotate(Math.random() * 0.4 - 0.2);
+                ctx.fillText(char, 0, 0);
+                ctx.restore();
+            }
+
+            // 점 노이즈 추가
+            for(let i=0; i<50; i++) {
+                ctx.fillStyle = `rgba(0,0,0,0.1)`;
+                ctx.beginPath();
+                ctx.arc(Math.random()*width, Math.random()*height, 2, 0, Math.PI*2);
+                ctx.fill();
+            }
         }
 
-        // CAPTCHA 정답 확인 후 데이터 로드
-        function checkCaptchaAndLoad() {
-            const userAnswer = parseInt(document.getElementById('captcha-answer').value, 10);
-            const msgElement = document.getElementById('captcha-message');
+        /* ==========================================
+           3. 가상 키패드 생성 (랜덤 배열)
+           ========================================== */
+        function renderNumpad() {
+            const numpad = document.getElementById('numpad');
+            numpad.innerHTML = '';
+            
+            // 0~9 숫자 섞기
+            let nums = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+            for (let i = nums.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [nums[i], nums[j]] = [nums[j], nums[i]];
+            }
 
-            if (isNaN(userAnswer) || userAnswer === null || String(userAnswer).trim() === '') {
-                msgElement.innerText = "답변을 SCK로 입력해주세요.";
-                msgElement.classList.add('msg-error');
+            // 버튼 생성
+            nums.forEach(num => {
+                const btn = document.createElement('button');
+                // 클래스명을 난독화된 랜덤 문자열로 주면 더 좋지만 편의상 유지
+                btn.className = 'num-btn'; 
+                btn.innerText = num;
+                btn.onclick = () => handleInput(num);
+                numpad.appendChild(btn);
+            });
+
+            // 지우기 버튼
+            const clearBtn = document.createElement('button');
+            clearBtn.className = 'num-btn clear';
+            clearBtn.innerHTML = '<span class="material-icons">backspace</span>';
+            clearBtn.onclick = () => {
+                state.userInput = state.userInput.slice(0, -1);
+                updateDisplay();
+            };
+            numpad.appendChild(clearBtn);
+
+            // 제출 버튼
+            const enterBtn = document.createElement('button');
+            enterBtn.className = 'num-btn enter';
+            enterBtn.innerHTML = '<span class="material-icons">arrow_forward</span>';
+            enterBtn.onclick = verify;
+            numpad.appendChild(enterBtn);
+        }
+
+        function handleInput(num) {
+            if(state.userInput.length < 5) {
+                state.userInput += num;
+                updateDisplay();
+            }
+        }
+
+        function updateDisplay() {
+            const disp = document.getElementById('display-code');
+            disp.innerText = state.userInput;
+            disp.classList.remove('error');
+        }
+
+        /* ==========================================
+           4. 검증 및 리포트 로드 로직
+           ========================================== */
+        function verify() {
+            const now = Date.now();
+            const hp = document.getElementById('hp-field').value;
+            const display = document.getElementById('display-code');
+
+            // 1. Honey Pot 체크 (값이 있으면 봇)
+            if (hp !== "") {
+                fail("Bot Detected (HP)");
                 return;
             }
 
-            if (userAnswer === captchaAnswer) {
-                // 정답: Firebase 로드 실행
-                msgElement.innerText = "확인되었습니다. 보고서를 불러옵니다.";
-                msgElement.classList.remove('msg-error');
-                document.getElementById('loading-indicator').style.display = 'block';
-                document.querySelector('.btn-open-report').disabled = true;
-                document.getElementById('captcha-answer').disabled = true;
-                document.getElementById('sck-keyboard').style.pointerEvents = 'none'; // 키보드 비활성화
+            // 2. 너무 빠른 제출 (매크로)
+            if (now - state.startTime < CONFIG.minTime) {
+                fail("Too fast! Are you human?");
+                return;
+            }
 
-                loadFirebaseData();
+            // 3. 마우스/터치 움직임 확인 (단순 클릭 매크로 방지)
+            if (state.mouseMoves < CONFIG.minMouseEvents) {
+                fail("Unusual activity.");
+                return;
+            }
+
+            // 4. 수학 정답 확인
+            if (parseInt(state.userInput) === state.answer) {
+                pass();
             } else {
-                // 오답: 메시지 표시 후 새 문제 생성
-                msgElement.innerText = "정답이 틀렸습니다. 다시 시도해 주세요.";
-                msgElement.classList.add('msg-error');
+                display.classList.add('error');
+                state.userInput = "";
+                setTimeout(updateDisplay, 500);
+                // 문제 재생성 (Brute Force 방지)
                 generateCaptcha();
+                renderNumpad();
+                state.attempts++;
+                if(state.attempts > 5) {
+                    alert("접속이 차단되었습니다.");
+                    document.body.innerHTML = "";
+                }
             }
         }
 
-        // Firebase 초기화 및 데이터 로드 함수 (정답 확인 후 실행)
-        function loadFirebaseData() {
-            if (listenerActive) return;
-            listenerActive = true;
-            
-            try {
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(firebaseConfig);
-                }
-                db = firebase.firestore();
-            } catch (error) {
-                 console.error("Firebase 초기화 오류:", error);
-                 document.getElementById('loading-indicator').innerText = "데이터베이스 초기화에 실패했습니다.";
-                 return;
-            }
+        function fail(msg) {
+            console.warn(msg);
+            const el = document.getElementById('block-msg');
+            el.style.display = 'block';
+            el.innerText = "검증 실패: 다시 시도해주세요.";
+            generateCaptcha();
+            state.userInput = "";
+            updateDisplay();
+        }
 
+        // 행동 추적 리스너
+        document.addEventListener('mousemove', () => state.mouseMoves++);
+        document.addEventListener('touchmove', () => state.mouseMoves++);
+
+        /* ==========================================
+           5. 통과 후 원본 컨텐츠 주입 (핵심 보안)
+           ========================================== */
+        function pass() {
+            const gate = document.getElementById('security-gate');
+            const content = document.getElementById('real-content');
+            
+            // 게이트 제거
+            gate.style.opacity = '0';
+            setTimeout(() => {
+                gate.style.display = 'none';
+                content.style.display = 'block';
+                
+                // 실제 DOM 주입 (소스보기 방지 효과)
+                injectRealContent();
+                
+                // 딜레이 후 표시
+                setTimeout(() => { content.style.opacity = '1'; }, 100);
+            }, 500);
+        }
+
+        function injectRealContent() {
+            const realContainer = document.getElementById('real-content');
+            
+            // [중요] 원본 HTML 구조를 템플릿 리터럴로 생성
+            // 사용자의 원본 코드를 여기에 포함시킵니다.
+            realContainer.innerHTML = `
+                <div class="report-container">
+                    <div class="report-header">
+                        <div class="report-title" id="r-title">용돈 내역서</div>
+                        <div class="report-date" id="r-date">데이터를 불러오는 중...</div>
+                    </div>
+
+                    <div id="content-area" style="display: none;">
+                        <div class="summary-grid">
+                            <div class="s-card">
+                                <div class="s-label">총 수입</div>
+                                <div class="s-val val-income" id="v-income">0원</div>
+                            </div>
+                            <div class="s-card">
+                                <div class="s-label">총 지출</div>
+                                <div class="s-val val-expense" id="v-expense">0원</div>
+                            </div>
+                        </div>
+                        
+                        <div class="total-row">
+                            <span class="t-label">남은 금액</span>
+                            <span class="t-val" id="v-asset">0원</span>
+                        </div>
+
+                        <div class="list-area">
+                            <div class="list-title">상세 내역</div>
+                            <div id="list-container"></div>
+                        </div>
+                    </div>
+
+                    <div id="loading-msg" class="loading">문서를 찾고 있습니다...</div>
+
+                    <div id="completed-view" style="display:none;" class="complete-msg">
+                        <span class="material-icons" style="font-size:48px; color:#8b95a1; margin-bottom:10px;">check_circle</span><br>
+                        이미 확인(승인/반려)이 완료된 문서입니다.
+                    </div>
+                </div>
+
+                <div class="parent-action-bar" id="action-bar">
+                    <textarea class="comment-input" id="p-comment" placeholder="아이에게 한마디 (선택사항)"></textarea>
+                    <div class="btn-group">
+                        <button class="btn-action btn-reject" onclick="submitDecision('반려')">반려</button>
+                        <button class="btn-action btn-approve" onclick="submitDecision('승인')">승인</button>
+                    </div>
+                </div>
+            `;
+
+            // 컨텐츠 주입 후 Firebase 로직 실행
+            initFirebaseApp();
+        }
+
+        // 원래 있던 Firebase 로직을 함수로 래핑
+        function initFirebaseApp() {
+            const firebaseConfig = {
+                apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI",
+                authDomain: "pocketbly.firebaseapp.com",
+                projectId: "pocketbly",
+                storageBucket: "pocketbly.firebasestorage.app",
+                messagingSenderId: "535063683428",
+                appId: "1:535063683428:web:4729815738bee4f8305a71",
+                measurementId: "G-RE71JXSNR3"
+            };
+
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            const db = firebase.firestore();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const reportId = urlParams.get('id');
 
             if (reportId) {
-                // 실시간 리스너 시작 (사람 상호작용 후 시작)
                 db.collection('shared_reports').doc(reportId).onSnapshot((doc) => {
-                    document.getElementById('captcha-gate').style.display = 'none'; // 게이트 숨기기
-                    
                     if (!doc.exists) {
-                        document.getElementById('loading-indicator').innerText = "삭제되었거나 존재하지 않는 문서입니다.";
+                        document.getElementById('loading-msg').innerText = "삭제되었거나 존재하지 않는 문서입니다.";
                         document.getElementById('content-area').style.display = 'none';
                         document.getElementById('action-bar').style.display = 'none';
                         return;
                     }
 
                     const data = doc.data();
-                    currentDocData = data;
                     renderReport(data);
 
-                    // 이미 승인/반려 상태라면 입력창 숨김
                     if (data.status && data.status !== 'pending') {
                         document.getElementById('action-bar').style.display = 'none';
                         document.getElementById('completed-view').style.display = 'block';
@@ -399,108 +483,95 @@
                             부모님이 <strong>${data.status}</strong> 하셨습니다.
                         `;
                     } else {
-                        // 대기 상태면 액션 바 표시
                         document.getElementById('action-bar').style.display = 'flex';
                     }
-                }, (error) => {
-                    console.error("Firestore 리스너 오류:", error);
-                    document.getElementById('loading-indicator').innerText = "데이터 로드 중 오류가 발생했습니다.";
                 });
             } else {
-                document.getElementById('loading-indicator').innerText = "잘못된 접근입니다.";
-            }
-        }
-
-
-        function renderReport(data) {
-            document.getElementById('content-area').style.display = 'block';
-
-            document.getElementById('r-title').innerText = `${data.month}월 용돈 내역서`;
-            const createdDate = data.createdAt ? data.createdAt.toDate() : new Date();
-            document.getElementById('r-date').innerText = `전송일: ${createdDate.toLocaleDateString()}`;
-
-            document.getElementById('v-income').innerText = `+${data.totalIncome.toLocaleString()}원`;
-            document.getElementById('v-expense').innerText = `-${data.totalExpense.toLocaleString()}원`;
-            document.getElementById('v-asset').innerText = `${data.totalAsset.toLocaleString()}원`;
-
-            const listContainer = document.getElementById('list-container');
-            listContainer.innerHTML = '';
-            const transactions = data.transactions || [];
-
-            if (transactions.length === 0) {
-                listContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#ccc;">내역이 없습니다.</div>';
-                return;
+                document.getElementById('loading-msg').innerText = "잘못된 접근입니다.";
             }
 
-            const grouped = {};
-            transactions.forEach(item => {
-                let date;
-                if (item.createdAt && item.createdAt.seconds) date = new Date(item.createdAt.seconds * 1000);
-                else if (item.dateObj && item.dateObj.seconds) date = new Date(item.dateObj.seconds * 1000);
-                else date = new Date();
+            // 버튼 클릭 함수를 전역 스코프로 연결
+            window.submitDecision = function(status) {
+                const comment = document.getElementById('p-comment').value;
+                if (!confirm(`${status} 처리 하시겠습니까?`)) return;
 
-                const dateKey = date.toDateString();
-                if (!grouped[dateKey]) grouped[dateKey] = { date: date, items: [] };
-                grouped[dateKey].items.push(item);
-            });
-
-            const sortedKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
-            const days = ['일', '월', '화', '수', '목', '금', '토'];
-
-            sortedKeys.forEach(key => {
-                const group = grouped[key];
-                const d = group.date;
-                const header = document.createElement('div');
-                header.className = 'day-header';
-                header.innerText = `${d.getDate()}일 ${days[d.getDay()]}요일`;
-                listContainer.appendChild(header);
-
-                group.items.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'item';
-                    const isIncome = item.type === '수입' || item.amount > 0;
-                    const colorClass = isIncome ? 'val-income' : 'val-expense';
-                    const sign = isIncome ? '+' : '-';
-                    const amt = Math.abs(item.amount).toLocaleString();
-
-                    div.innerHTML = `
-                        <div class="item-left">
-                            <span class="i-usage">${item.usage}</span>
-                            <span class="i-meta">${item.category} | ${item.memo}</span>
-                        </div>
-                        <div class="i-amount ${colorClass}">${sign} ${amt}원</div>
-                    `;
-                    listContainer.appendChild(div);
+                db.collection('shared_reports').doc(reportId).update({
+                    status: status,
+                    parentComment: comment,
+                    decidedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    alert('전송되었습니다!');
+                }).catch((error) => {
+                    console.error(error);
+                    alert('오류가 발생했습니다: ' + error.message);
                 });
-            });
-        }
-
-        // 부모님의 결정 전송
-        function submitDecision(status) {
-            if (!db) {
-                alert('데이터베이스가 아직 로드되지 않았습니다. 보고서 열기를 먼저 눌러주세요.');
-                return;
             }
 
-            const comment = document.getElementById('p-comment').value;
-            
-            if (!confirm(`${status} 처리 하시겠습니까?`)) return;
+            function renderReport(data) {
+                document.getElementById('loading-msg').style.display = 'none';
+                document.getElementById('content-area').style.display = 'block';
+                document.getElementById('r-title').innerText = `${data.month}월 용돈 내역서`;
+                const createdDate = data.createdAt ? data.createdAt.toDate() : new Date();
+                document.getElementById('r-date').innerText = `전송일: ${createdDate.toLocaleDateString()}`;
+                document.getElementById('v-income').innerText = `+${data.totalIncome.toLocaleString()}원`;
+                document.getElementById('v-expense').innerText = `-${data.totalExpense.toLocaleString()}원`;
+                document.getElementById('v-asset').innerText = `${data.totalAsset.toLocaleString()}원`;
 
-            // 문서 업데이트 
-            db.collection('shared_reports').doc(reportId).update({
-                status: status,           // '승인' or '반려'
-                parentComment: comment,   // 코멘트
-                decidedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
-                alert('전송되었습니다!');
-            }).catch((error) => {
-                console.error(error);
-                alert('오류가 발생했습니다: ' + error.message);
-            });
+                const listContainer = document.getElementById('list-container');
+                listContainer.innerHTML = '';
+                const transactions = data.transactions || [];
+
+                if (transactions.length === 0) {
+                    listContainer.innerHTML = '<div style="text-align:center; padding:40px; color:#ccc;">내역이 없습니다.</div>';
+                    return;
+                }
+
+                const grouped = {};
+                transactions.forEach(item => {
+                    let date;
+                    if (item.createdAt && item.createdAt.seconds) date = new Date(item.createdAt.seconds * 1000);
+                    else if (item.dateObj && item.dateObj.seconds) date = new Date(item.dateObj.seconds * 1000);
+                    else date = new Date();
+                    const dateKey = date.toDateString();
+                    if (!grouped[dateKey]) grouped[dateKey] = { date: date, items: [] };
+                    grouped[dateKey].items.push(item);
+                });
+
+                const sortedKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+                const days = ['일', '월', '화', '수', '목', '금', '토'];
+
+                sortedKeys.forEach(key => {
+                    const group = grouped[key];
+                    const d = group.date;
+                    const header = document.createElement('div');
+                    header.className = 'day-header';
+                    header.innerText = `${d.getDate()}일 ${days[d.getDay()]}요일`;
+                    listContainer.appendChild(header);
+
+                    group.items.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'item';
+                        const isIncome = item.type === '수입' || item.amount > 0;
+                        const colorClass = isIncome ? 'val-income' : 'val-expense';
+                        const sign = isIncome ? '+' : '-';
+                        const amt = Math.abs(item.amount).toLocaleString();
+
+                        div.innerHTML = `
+                            <div class="item-left">
+                                <span class="i-usage">${item.usage}</span>
+                                <span class="i-meta">${item.category} | ${item.memo}</span>
+                            </div>
+                            <div class="i-amount ${colorClass}">${sign} ${amt}원</div>
+                        `;
+                        listContainer.appendChild(div);
+                    });
+                });
+            }
         }
-        
-        // 엔터 키 이벤트 리스너는 SCK 적용으로 인해 제거됨.
-        // 사용자가 물리 키보드 대신 SCK를 사용하도록 강제함.
+
+        // 초기화 실행
+        generateCaptcha();
+        renderNumpad();
     </script>
 </body>
 </html>
