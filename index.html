@@ -205,7 +205,6 @@
         </div>
     </div>
     
-    <!-- 내비게이션 링크 수정 완료 -->
     <nav class="bottom-nav">
         <a href="/" class="nav-item active">
             <span class="material-icons">home</span><span>홈</span>
@@ -243,7 +242,6 @@
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
-            // 테마 변경 시 차트 등 재계산 필요 시 호출 가능
         }
 
         document.addEventListener('contextmenu', event => event.preventDefault());
@@ -275,7 +273,6 @@
                     greetingEl.innerText = `${timeGreeting}, ${name}님`;
                 }
                 
-                // 배치 데이터 동기화 함수 호출 (읽기 최소화)
                 syncHomeData(user.uid);
                 listenForParentDecision(user.uid); 
             } else {
@@ -283,16 +280,18 @@
             }
         });
 
-        // [핵심 변경] 데이터 동기화 (Batch + Cache)
+        // [핵심 변경] 데이터 동기화 (Batch + Cache v2)
+        const CACHE_VERSION = 'v2';
+
         async function syncHomeData(uid) {
             try {
-                // 1. Metadata 확인 (1 Read)
+                // 1. Metadata 확인
                 const metaRef = db.collection('users').doc(uid).collection('transaction_list').doc('metadata');
                 const metaSnap = await metaRef.get();
                 const metaData = metaSnap.exists ? metaSnap.data() : { lastBatchId: 0, lastUpdatedAt: 0 };
 
-                // 2. Local Cache 확인
-                const cacheKey = `tx_cache_${uid}`;
+                // 2. Local Cache (v2) 확인
+                const cacheKey = `tx_cache_${CACHE_VERSION}_${uid}`;
                 const rawCache = localStorage.getItem(cacheKey);
                 let cache = rawCache ? JSON.parse(rawCache) : { lastBatchId: -1, lastUpdatedAt: -1, transactions: [] };
 
@@ -301,15 +300,18 @@
                 if (metaData.lastBatchId > cache.lastBatchId) needsUpdate = true;
                 if (metaData.lastUpdatedAt && metaData.lastUpdatedAt !== cache.lastUpdatedAt) needsUpdate = true;
                 if (!rawCache) needsUpdate = true;
+                
+                // 구버전 데이터 체크
+                if (!needsUpdate && cache.transactions.length > 0 && !cache.transactions[0]._batchId) {
+                    needsUpdate = true;
+                }
 
                 let allTransactions = [];
 
                 if (!needsUpdate) {
-                    // 캐시 사용
                     console.log("Using Cached Data (Home)");
                     allTransactions = cache.transactions;
                 } else {
-                    // 서버에서 가져오기
                     console.log("Fetching Batches (Home)...");
                     let newTransactions = [];
                     const promises = [];
@@ -322,12 +324,15 @@
                         if (snap.exists) {
                             const batchData = snap.data();
                             if (batchData.transactions) {
-                                newTransactions = newTransactions.concat(batchData.transactions);
+                                // [중요] 홈 화면에서도 캐시에 저장할 때 _batchId를 포함해야 합니다.
+                                // 그래야 이후 기록 페이지에서 이 캐시를 사용할 때 오류가 나지 않습니다.
+                                const txs = batchData.transactions.map(t => ({ ...t, _batchId: snap.id }));
+                                newTransactions = newTransactions.concat(txs);
                             }
                         }
                     });
 
-                    // 캐시 업데이트
+                    // 캐시 업데이트 (v2)
                     cache = {
                         lastBatchId: metaData.lastBatchId,
                         lastUpdatedAt: metaData.lastUpdatedAt || Date.now(),
@@ -337,19 +342,15 @@
                     allTransactions = newTransactions;
                 }
 
-                // 데이터 계산
                 calculateMetrics(allTransactions);
 
             } catch (e) {
                 console.error("Home Sync Error:", e);
-                // 에러 발생 시 UI에 0원 처리 등 안전장치
                 calculateMetrics([]); 
             }
         }
 
-        // [데이터 계산 및 렌더링]
         function calculateMetrics(transactions) {
-            // 날짜 객체로 변환
             const processedData = transactions.map(item => {
                 let d = new Date();
                 if (item.date) d = new Date(item.date);
@@ -370,7 +371,6 @@
 
             processedData.forEach(item => {
                 const amt = Math.abs(parseInt(item.amount));
-                // '지출' 타입이거나 금액이 음수면 지출로 간주
                 const isExpense = item.type === '지출' || parseInt(item.amount) < 0;
                 const tDate = item.dateObj;
 
