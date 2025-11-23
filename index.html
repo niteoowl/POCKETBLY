@@ -10,9 +10,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="manifest" href="/manifest.json">
+    <!-- 파비콘 적용 -->
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
     
-    <!-- [테마 설정 스크립트] -->
+    <!-- [테마 설정 스크립트] - 시스템 테마 우선 적용 (유지) -->
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme');
@@ -118,6 +119,14 @@
         .highlight-bad { color: var(--expense-color); }
         .highlight-good { color: var(--primary-blue); }
 
+        /* [추가된 주간 통계 차트 스타일] */
+        .weekly-chart-container { display: flex; align-items: flex-end; justify-content: space-around; height: 100px; margin-bottom: 10px; padding-top: 10px; }
+        .day-bar-col { display: flex; flex-direction: column; align-items: center; width: 10%; }
+        .day-bar-track { width: 100%; height: 80px; background-color: var(--chart-track); border-radius: 4px; display: flex; align-items: flex-end; overflow: hidden; }
+        .day-bar-fill { width: 100%; background-color: var(--primary-blue); transition: height 1s cubic-bezier(0.22, 1, 0.36, 1); min-height: 2px; } 
+        .day-label { font-size: 12px; color: var(--text-sub); margin-top: 5px; font-weight: 500; }
+        .day-tooltip { font-size: 10px; color: var(--text-main); font-weight: 600; margin-bottom: 2px; height: 12px; line-height: 12px; }
+
         .ranking-container { display: flex; align-items: center; gap: 20px; }
         .donut-chart { width: 80px; height: 80px; border-radius: 50%; flex-shrink: 0; background: conic-gradient(var(--chart-track) 0% 100%); position: relative; transition: background 1s ease; }
         .donut-chart::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 50px; height: 50px; background-color: var(--card-bg); border-radius: 50%; }
@@ -212,8 +221,29 @@
             </div>
             <div class="trend-message skeleton" id="trend-text" style="width:80%; height:20px; margin-top:16px;">데이터 분석 중...</div>
         </div>
+        
+        <!-- 3. 주간 소비 통계 (추가됨) -->
+        <div class="insight-card ripple-target">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">주간 소비 통계</div>
+                    <div class="card-desc">이번 주 요일별 지출이에요</div>
+                </div>
+                <span class="material-icons card-icon">calendar_month</span>
+            </div>
+            <!-- 초기 스켈레톤 -->
+            <div id="weekly-chart-container" class="weekly-chart-container">
+                <div class="day-bar-col skeleton" style="width:10%; height:100%;"></div>
+                <div class="day-bar-col skeleton" style="width:10%; height:100%;"></div>
+                <div class="day-bar-col skeleton" style="width:10%; height:100%;"></div>
+                <div class="day-bar-col skeleton" style="width:10%; height:100%;"></div>
+                <div class="day-bar-col skeleton" style="width:10%; height:100%;"></div>
+                <div class="day-bar-col skeleton" style="width:10%; height:100%;"></div>
+                <div class="day-bar-col skeleton" style="width:10%; height:100%;"></div>
+            </div>
+        </div>
 
-        <!-- 3. 지출 랭킹 -->
+        <!-- 4. 지출 랭킹 -->
         <div class="insight-card ripple-target">
             <div class="card-header">
                 <div>
@@ -232,13 +262,26 @@
             </div>
         </div>
 
-        <!-- 4. 하루 평균 -->
+        <!-- 5. 하루 평균 -->
         <div class="insight-card ripple-target" style="display:flex; justify-content:space-between; align-items:center;">
             <div>
                 <div class="card-title" style="margin-bottom:4px;">하루 평균 지출</div>
                 <div class="card-desc">이번 달 기준</div>
             </div>
             <div class="daily-val skeleton" id="daily-avg" style="width:100px; height:30px;">0원</div>
+        </div>
+
+        <!-- 6. 최근 사용 내역 (추가됨) -->
+        <div class="insight-card">
+            <div class="card-header">
+                <div class="card-title">최근 사용 내역</div>
+                <span class="material-icons card-icon">list_alt</span>
+            </div>
+            <div id="recent-transactions-list">
+                <div class="rank-item skeleton" style="height:16px; width:100%; margin-bottom:8px;"></div>
+                <div class="rank-item skeleton" style="height:16px; width:90%; margin-bottom:8px;"></div>
+                <div class="rank-item skeleton" style="height:16px; width:80%;"></div>
+            </div>
         </div>
     </div>
     
@@ -367,6 +410,7 @@
 
         async function syncHomeData(uid) {
             try {
+                // 기존 로직 유지 (메타데이터 및 배치 트랜잭션 가져오기)
                 const metaRef = db.collection('users').doc(uid).collection('transaction_list').doc('metadata');
                 const metaSnap = await metaRef.get();
                 const metaData = metaSnap.exists ? metaSnap.data() : { lastBatchId: 0, lastUpdatedAt: 0 };
@@ -443,6 +487,9 @@
             const lastMonthYear = lastMonthDate.getFullYear();
             const lastMonthIdx = lastMonthDate.getMonth();
             const categoryMap = {};
+            const weeklyExpenses = new Array(7).fill(0); // 0=Sun, 1=Mon, ..., 6=Sat
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay()); // 현재 주의 일요일 (주의 시작)
 
             processedData.forEach(item => {
                 const amt = Math.abs(parseInt(item.amount));
@@ -452,6 +499,7 @@
                 if (!isExpense) totalIncome += amt; else totalExpense += amt;
 
                 if (isExpense) {
+                    // 월별 계산
                     if (tDate.getFullYear() === currentYear && tDate.getMonth() === currentMonth) {
                         thisMonthExpense += amt;
                         const cat = item.category || '기타';
@@ -459,6 +507,15 @@
                     }
                     if (tDate.getFullYear() === lastMonthYear && tDate.getMonth() === lastMonthIdx) {
                         lastMonthExpense += amt;
+                    }
+
+                    // 주간 계산 (Firebase 절약 원칙에 따라 캐시된 데이터 활용)
+                    const timeDiff = tDate.getTime() - startOfWeek.getTime();
+                    const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+                    
+                    if (dayDiff >= 0 && dayDiff < 7) {
+                        const dayOfWeek = tDate.getDay(); // 0 (Sun) to 6 (Sat)
+                        weeklyExpenses[dayOfWeek] += amt;
                     }
                 }
             });
@@ -470,12 +527,13 @@
                 if(el) { el.classList.remove('skeleton'); el.style.width = 'auto'; el.style.height = 'auto'; }
             };
 
+            // 1. 히어로 섹션
             removeSkeleton('total-asset');
             document.getElementById('total-asset').innerText = `${netAsset.toLocaleString()}원`;
             
+            // 2. 소비 리포트
             removeSkeleton('prev-month-amt');
             document.getElementById('prev-month-amt').innerText = `${lastMonthExpense.toLocaleString()}원`;
-            
             removeSkeleton('curr-month-amt');
             document.getElementById('curr-month-amt').innerText = `${thisMonthExpense.toLocaleString()}원`;
 
@@ -497,6 +555,31 @@
                 if (thisMonthExpense === 0 && lastMonthExpense === 0) trendEl.innerText = "아직 지출 내역이 없어요.";
             }
 
+            // 3. 주간 소비 통계 (추가된 부분)
+            const weeklyChartEl = document.getElementById('weekly-chart-container');
+            const maxWeeklyExpense = Math.max(...weeklyExpenses) || 100;
+            const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+            if (weeklyChartEl) {
+                weeklyChartEl.innerHTML = ''; // 스켈레톤 제거 및 내용 채우기
+                dayLabels.forEach((label, index) => {
+                    const expense = weeklyExpenses[index];
+                    const percent = (expense / maxWeeklyExpense) * 100;
+                    const tooltipText = `${expense.toLocaleString()}원`;
+                    
+                    const dayCol = document.createElement('div');
+                    dayCol.className = 'day-bar-col';
+                    dayCol.innerHTML = `
+                        <div class="day-tooltip" style="opacity:${expense > 0 ? 1 : 0};">${tooltipText}</div>
+                        <div class="day-bar-track">
+                            <div class="day-bar-fill" style="height: ${Math.max(2, percent)}%;"></div>
+                        </div>
+                        <div class="day-label">${label}</div>
+                    `;
+                    weeklyChartEl.appendChild(dayCol);
+                });
+            }
+
+            // 4. 지출 랭킹
             const sortedCats = Object.keys(categoryMap).map(key => ({ name: key, amount: categoryMap[key] })).sort((a, b) => b.amount - a.amount).slice(0, 3);
             const rankListEl = document.getElementById('rank-list');
             if(rankListEl) rankListEl.innerHTML = '';
@@ -523,9 +606,38 @@
                 if(donutChart) donutChart.style.background = 'var(--chart-track)';
             }
 
+            // 5. 하루 평균
             removeSkeleton('daily-avg');
             const dayAvg = Math.round(thisMonthExpense / (todayDate || 1));
             document.getElementById('daily-avg').innerText = `${dayAvg.toLocaleString()}원`;
+            
+            // 6. 최근 사용 내역 (추가된 부분)
+            const sortedTransactions = processedData.sort((a, b) => b.dateObj.getTime() - a.dateObj.getTime()).slice(0, 5); // 최신 5개
+            const recentListEl = document.getElementById('recent-transactions-list');
+            if(recentListEl) recentListEl.innerHTML = ''; 
+
+            if (sortedTransactions.length > 0) {
+                sortedTransactions.forEach(item => {
+                    const sign = (item.type === '수입' || parseInt(item.amount) >= 0) ? '+' : '-';
+                    const color = (item.type === '수입' || parseInt(item.amount) >= 0) ? 'var(--primary-blue)' : 'var(--expense-color)';
+                    const dateStr = item.dateObj.toLocaleDateString('ko-KR', { month: '2-digit', day: '2-digit' }).replace(/\./g, '/');
+                    
+                    const listItem = document.createElement('div');
+                    listItem.className = 'rank-item';
+                    listItem.innerHTML = `
+                        <div class="rank-name" style="gap:10px;">
+                            <span style="font-size:12px; color:var(--text-sub);">${dateStr}</span>
+                            ${item.content || item.category || '내용 없음'}
+                        </div>
+                        <div class="rank-amt" style="color: ${color};">
+                            ${sign}${Math.abs(parseInt(item.amount)).toLocaleString()}원
+                        </div>
+                    `;
+                    recentListEl.appendChild(listItem);
+                });
+            } else {
+                if(recentListEl) recentListEl.innerHTML = '<div class="rank-item" style="color:var(--text-sub);justify-content:center;">최근 내역이 없습니다.</div>';
+            }
         }
 
         function createRipple(event) {
