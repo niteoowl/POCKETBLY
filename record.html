@@ -238,6 +238,7 @@
         </div>
     </div>
 
+    <!-- 공유 모달 -->
     <div id="share-modal" class="modal" style="z-index: 2100;">
         <div class="modal-header"><h2>부모님께 전송</h2><button class="icon-button ripple-target" onclick="closeShareModal()"><span class="material-icons">close</span></button></div>
         <div class="modal-content" style="padding: 30px 24px; display: flex; flex-direction: column; align-items: center;">
@@ -289,6 +290,7 @@
         </div>
     </div>
 
+    <!-- 전역 다이얼로그 -->
     <div id="global-dialog" class="global-dialog-overlay">
         <div class="global-dialog-box">
             <h3 id="gd-title" class="global-dialog-title">알림</h3>
@@ -351,13 +353,16 @@
             }
         });
 
+        // [중요] 캐시 버전 업그레이드 (v2) - 기존 캐시 무시 및 재다운로드 트리거
+        const CACHE_VERSION = 'v2';
+
         async function syncTransactions(uid) {
             try {
                 const metaRef = db.collection('users').doc(uid).collection('transaction_list').doc('metadata');
                 const metaSnap = await metaRef.get();
                 const metaData = metaSnap.exists ? metaSnap.data() : { lastBatchId: 0, lastUpdatedAt: 0 };
 
-                const cacheKey = `tx_cache_${uid}`;
+                const cacheKey = `tx_cache_${CACHE_VERSION}_${uid}`;
                 const rawCache = localStorage.getItem(cacheKey);
                 let cache = rawCache ? JSON.parse(rawCache) : { lastBatchId: -1, lastUpdatedAt: -1, transactions: [] };
 
@@ -365,6 +370,12 @@
                 if (metaData.lastBatchId > cache.lastBatchId) needsUpdate = true;
                 if (metaData.lastUpdatedAt && metaData.lastUpdatedAt !== cache.lastUpdatedAt) needsUpdate = true;
                 if (!rawCache) needsUpdate = true;
+
+                // 구버전 데이터 체크 (batchId 누락 시 강제 업데이트)
+                if (!needsUpdate && cache.transactions.length > 0 && !cache.transactions[0]._batchId) {
+                    console.log("Format mismatch, forcing update...");
+                    needsUpdate = true;
+                }
 
                 if (!needsUpdate) {
                     console.log("Using Cached Data");
@@ -382,7 +393,7 @@
                         if (snap.exists) {
                             const batchData = snap.data();
                             if (batchData.transactions) {
-                                // 여기서 로컬 사용을 위해 _batchId를 주입합니다.
+                                // [중요] 문서 ID(batchId)를 각 항목에 주입
                                 const txs = batchData.transactions.map(t => ({ ...t, _batchId: snap.id }));
                                 newTransactions = newTransactions.concat(txs);
                             }
@@ -555,7 +566,8 @@
 
         function openEditModal(item) {
             document.getElementById('edit-tx-id').value = item.id;
-            document.getElementById('edit-batch-id').value = item._batchId || ''; // 안전장치 추가
+            // 데이터 안전장치
+            document.getElementById('edit-batch-id').value = item._batchId || ''; 
             document.getElementById('edit-usage').value = item.usage;
             document.getElementById('edit-amount').value = Math.abs(item.amount);
             document.getElementById('edit-memo').value = item.memo || item.desc || '';
@@ -572,11 +584,16 @@
         async function deleteTransaction() {
             const txId = document.getElementById('edit-tx-id').value;
             const batchId = document.getElementById('edit-batch-id').value;
-            if (!batchId) { showGlobalDialog('alert', "오류: 데이터를 찾을 수 없습니다."); return; }
+            
+            // 배치 ID 확인 (오류 방지)
+            if (!batchId) { 
+                showGlobalDialog('alert', "오류: 데이터를 찾을 수 없습니다. (새로고침 후 다시 시도해주세요)"); 
+                return; 
+            }
 
             showGlobalDialog('confirm', "정말 삭제하시겠습니까?", async () => {
                 await runBatchUpdate(batchId, (transactions) => {
-                    // ID 비교를 위해 둘 다 문자열로 변환
+                    // 문자열 비교로 안전하게 처리
                     return transactions.filter(t => String(t.id) !== String(txId));
                 });
                 closeEditModal(); 
@@ -587,7 +604,11 @@
         async function updateTransaction() {
             const txId = document.getElementById('edit-tx-id').value;
             const batchId = document.getElementById('edit-batch-id').value;
-            if (!batchId) { showGlobalDialog('alert', "오류: 데이터를 찾을 수 없습니다."); return; }
+            
+            if (!batchId) { 
+                showGlobalDialog('alert', "오류: 데이터를 찾을 수 없습니다. (새로고침 후 다시 시도해주세요)"); 
+                return; 
+            }
 
             const usage = document.getElementById('edit-usage').value;
             const amountVal = parseInt(document.getElementById('edit-amount').value);
@@ -597,7 +618,7 @@
             await runBatchUpdate(batchId, (transactions) => {
                 return transactions.map(t => {
                     if (String(t.id) === String(txId)) {
-                        // 기존에 type이 명시되어 있다면 '수입' 여부 체크, 없다면 금액이 양수인지 체크
+                        // 수입/지출 타입 보존 로직
                         const isIncome = t.type ? t.type === '수입' : t.amount > 0;
                         const newAmount = isIncome ? Math.abs(amountVal) : -Math.abs(amountVal);
                         
@@ -608,7 +629,6 @@
                             desc: memo, 
                             memo: memo, 
                             date: dateVal,
-                            // 정렬을 위한 타임스탬프 업데이트
                             timestamp: new Date(dateVal).getTime() 
                         };
                     }
@@ -638,8 +658,8 @@
                     transaction.set(metaRef, { lastUpdatedAt: Date.now() }, { merge: true });
                 });
                 
-                // 캐시 삭제 및 UI 갱신
-                localStorage.removeItem(`tx_cache_${currentUserId}`);
+                // 업데이트 후 캐시 초기화 및 재동기화
+                localStorage.removeItem(`tx_cache_${CACHE_VERSION}_${currentUserId}`);
                 await syncTransactions(currentUserId);
             } catch (error) { 
                 console.error(error); 
