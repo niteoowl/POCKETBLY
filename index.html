@@ -5,8 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>POCKETBLY - 홈</title>
     
-    <!-- [PWA 설정] -->
-    <link rel="manifest" href="/manifest.json">
+    <!-- PWA 메타 태그 -->
+<meta name="theme-color" content="#색상코드">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="description" content="어린이와 청소년을 위한 간편한 용돈 관리. POCKETBLY에서 용돈을 더욱 똑똑하게 사용하세요!">
+<!-- 매니페스트 링크 -->
+<link rel="manifest" href="/manifest.json">
+<!-- 아이콘 설정 -->
+<link rel="icon" href="/image/icon_192.png">
+<link rel="apple-touch-icon" href="/image/icon_192.png">
     
     <!-- [테마 설정 스크립트] -->
     <script>
@@ -557,18 +566,6 @@
                 document.getElementById('alert-overlay').style.display='none';
             });
         }
-
-            if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-            navigator.serviceWorker.register('/service-worker.js')
-            .then(function(registration) {
-                console.log('ServiceWorker 등록 성공:', registration.scope);
-            })
-            .catch(function(error) {
-                console.log('ServiceWorker 등록 실패:', error);
-            });
-        });
-                   }
     </script>
 </body>
-</html>
+                                                                                                   </html>
