@@ -37,13 +37,11 @@
     <script src="https://www.appboxapp.com/app/script/appbox.js"></script>
 
     <style>
-        /* 초기화 및 기본 스타일 */
+        /* [기본 설정 - 네이티브 감성] */
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
         
-        /* 스크롤 바운스 효과 (iOS 느낌) */
-        html, body {
-            overscroll-behavior-y: contain; 
-        }
+        /* 스크롤 바운스 (iOS 느낌) */
+        html, body { overscroll-behavior-y: contain; }
 
         body { 
             -webkit-user-select: none; user-select: none; 
@@ -54,8 +52,8 @@
             overflow-y: scroll; 
             padding-top: var(--header-height); padding-bottom: 110px; 
             color: var(--text-main);
-            /* 부드러운 배경 전환 */
-            transition: background-color 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            /* 테마 변경 시 부드러운 전환 */
+            transition: background-color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         
         input, textarea { -webkit-user-select: text; user-select: text; }
@@ -64,82 +62,74 @@
         :root {
             --bg-color: #ffffff; --header-bg: rgba(255, 255, 255, 0.85); --card-bg: #ffffff;
             --text-main: #191f28; --text-sub: #8b95a1; --border-color: #e5e8eb;
-            --nav-bg: rgba(255, 255, 255, 0.85); --nav-border: #e5e8eb; --nav-active-bg: #f2f4f6; --nav-inactive: #b0b8c1; --nav-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+            --nav-bg: rgba(255, 255, 255, 0.95); --nav-border: #e5e8eb; --nav-active-bg: #f2f4f6; --nav-inactive: #b0b8c1; --nav-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
             --chart-track: #f2f4f6; --chart-fill-prev: #d1d6db;
             --skeleton-base: #f2f4f6; --skeleton-highlight: rgba(255, 255, 255, 0.6);
             --popup-bg: #ffffff; --popup-comment: #f5f5f5;
-            --primary-blue: #3182f6; --expense-color: #f04452; --ripple-color: rgba(0, 0, 0, 0.08);
-            --header-height: 80px; --shadow-card: 0 8px 24px rgba(0,0,0,0.04);
-            --dropdown-bg: #ffffff; --dropdown-hover: #f2f4f6; --dropdown-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --primary-blue: #3182f6; --expense-color: #f04452; --ripple-color: rgba(0, 0, 0, 0.06);
+            --header-height: 80px; 
+            --shadow-card: 0 4px 24px rgba(0,0,0,0.03); /* 그림자 부드럽게 개선 */
+            --dropdown-bg: #ffffff; --dropdown-hover: #f2f4f6; --dropdown-shadow: 0 8px 30px rgba(0,0,0,0.12);
         }
 
         [data-theme="dark"] {
-            --bg-color: #18171e; --header-bg: rgba(24, 23, 30, 0.85); --card-bg: #24232b;
+            --bg-color: #18171e; --header-bg: rgba(24, 23, 30, 0.8); --card-bg: #24232b;
             --text-main: #eff1f3; --text-sub: #8b95a1; --border-color: #2c2b33; 
-            --nav-bg: rgba(37, 36, 44, 0.85); --nav-border: #33323a; --nav-active-bg: #35343d; --nav-inactive: #686d77; --nav-shadow: 0 -4px 25px rgba(0, 0, 0, 0.4);
+            --nav-bg: #25242c; --nav-border: #33323a; --nav-active-bg: #35343d; --nav-inactive: #686d77; --nav-shadow: 0 -4px 25px rgba(0, 0, 0, 0.4);
             --chart-track: #35343d; --chart-fill-prev: #504f58;
             --skeleton-base: #24232b; --skeleton-highlight: rgba(255, 255, 255, 0.08);
             --popup-bg: #24232b; --popup-comment: #1c1c24; --ripple-color: rgba(255, 255, 255, 0.1);
             --shadow-card: 0 4px 12px rgba(0,0,0,0.2);
-            --dropdown-bg: #24232b; --dropdown-hover: #35343d; --dropdown-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            --dropdown-bg: #24232b; --dropdown-hover: #35343d; --dropdown-shadow: 0 8px 30px rgba(0,0,0,0.4);
         }
 
-        /* 공통 트랜지션 (색상 변경 시 부드럽게) */
-        .header, .insight-card, .bottom-nav, .nav-item, .dropdown-menu, .card-title, .card-desc, .bar-value {
-            transition: background-color 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), 
-                        border-color 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), 
-                        color 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
-                        box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        /* [요소 공통 트랜지션] */
+        .container, .header, .insight-card, .bottom-nav, .nav-item, .dropdown-menu {
+            transition: background-color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                        border-color 0.4s, color 0.4s, box-shadow 0.4s;
         }
 
         .container { 
-            width: 100%; max-width: 1024px; 
+            width: 95%; max-width: 1024px; 
             padding: 0 24px 24px 24px; 
-            /* 등장 애니메이션을 위한 초기 설정 */
-            opacity: 1;
         }
 
+        /* [헤더 - 글래스모피즘 강화] */
         .header { 
             position: fixed; top: 0; left: 50%; transform: translateX(-50%); 
-            width: 100%; max-width: 1024px; z-index: 1005; 
+            width: 95%; max-width: 1024px; z-index: 1005; 
             background-color: var(--header-bg); 
-            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); /* 블러 강화 */
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             height: var(--header-height); 
             display: flex; align-items: center; justify-content: space-between; 
             padding: 16px 24px; 
         }
+        [data-theme="dark"] .header { backdrop-filter: blur(12px); } /* 다크모드도 블러 적용 */
 
         .header h1 { font-size: 26px; font-weight: 800; color: var(--text-main); margin: 0; letter-spacing: -0.5px; }
-        .header-action { display: flex; gap: 8px; position: relative; }
-        
+        .header-action { display: flex; gap: 6px; position: relative; }
+
+        /* [버튼 인터랙션 - 쫀득한 느낌] */
         .icon-button { 
             background: none; border: none; color: var(--text-main); 
             cursor: pointer; padding: 10px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
+            transition: background-color 0.2s, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative; overflow: hidden;
-            /* 터치 시 즉각적인 반응을 위한 설정 */
-            touch-action: manipulation;
-            transition: background-color 0.2s, transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        
-        /* 버튼 눌림 효과 (손맛 핵심) */
-        .icon-button:active { transform: scale(0.92); background-color: var(--nav-active-bg); }
+        .icon-button:active { transform: scale(0.9); background-color: var(--nav-active-bg); }
 
-        /* [드롭다운 메뉴 스타일 개선] */
+        /* [드롭다운 애니메이션] */
         .dropdown-menu {
-            position: absolute; top: 120%; right: 0; width: 180px;
+            position: absolute; top: 110%; right: 0; width: 180px;
             background-color: var(--dropdown-bg); border: 1px solid var(--border-color);
             border-radius: 16px; box-shadow: var(--dropdown-shadow);
             display: none; flex-direction: column; overflow: hidden; z-index: 2000;
             transform-origin: top right;
-            opacity: 0; transform: scale(0.9) translateY(-10px);
-            transition: opacity 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            opacity: 0; transform: scale(0.95);
+            transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .dropdown-menu.show { 
-            display: flex; 
-            /* 애니메이션 강제 적용을 위해 약간의 딜레이 후 클래스 추가 방식 대신 keyframes 사용 안함, transition 활용 */
-            opacity: 1; transform: scale(1) translateY(0);
-        }
+        .dropdown-menu.show { display: flex; opacity: 1; transform: scale(1); }
         
         .dropdown-item {
             padding: 14px 16px; font-size: 15px; color: var(--text-main); font-weight: 500;
@@ -150,31 +140,28 @@
         .dropdown-item:active { background-color: var(--dropdown-hover); }
         .dropdown-icon { font-size: 20px; color: var(--text-sub); }
 
+        /* [히어로 섹션] */
         .hero-section { margin-top: 10px; margin-bottom: 30px; padding: 0 4px; }
-        .hero-greeting { font-size: 16px; color: var(--text-sub); font-weight: 600; margin-bottom: 6px; }
-        .hero-balance { font-size: 34px; font-weight: 800; color: var(--text-main); letter-spacing: -0.8px; }
+        .hero-greeting { font-size: 16px; color: var(--text-sub); font-weight: 600; margin-bottom: 8px; }
+        .hero-balance { font-size: 34px; font-weight: 800; color: var(--text-main); letter-spacing: -0.8px; font-variant-numeric: tabular-nums; }
 
-        /* 카드 인터랙션 강화 */
+        /* [카드 스타일 & 손맛 추가] */
         .insight-card { 
             background-color: var(--card-bg); border: 1px solid var(--border-color); 
-            border-radius: 26px; padding: 26px; margin-bottom: 20px; 
-            position: relative; overflow: hidden; 
-            box-shadow: var(--shadow-card);
-            /* 등장 애니메이션 초기 상태 */
-            opacity: 0; transform: translateY(20px);
-            /* 터치 반응 */
-            touch-action: manipulation;
-            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s, background-color 0.4s;
+            border-radius: 26px; padding: 26px; margin-bottom: 18px; 
+            position: relative; overflow: hidden; box-shadow: var(--shadow-card);
+            /* 터치 시 반응 설정 */
+            transform: scale(1);
+            transition: transform 0.15s cubic-bezier(0.3, 0, 0.5, 1), box-shadow 0.2s, background-color 0.3s;
+            cursor: pointer;
+            /* 진입 애니메이션 초기값 */
+            opacity: 0; animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        
-        /* 카드 누를 때 살짝 들어가는 효과 */
-        .insight-card:active { transform: scale(0.97) translateY(0); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .insight-card:active { transform: scale(0.97); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
 
-        /* 카드 순차적 등장 애니메이션 클래스 */
-        .animate-enter { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
+        /* 진입 애니메이션 키프레임 */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -182,19 +169,14 @@
         .card-title { font-size: 19px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; letter-spacing: -0.3px; }
         .card-desc { font-size: 14px; color: var(--text-sub); font-weight: 500; line-height: 1.4; }
         .card-icon { color: var(--nav-inactive); font-size: 26px; transition: color 0.3s; }
-        .insight-card:active .card-icon { color: var(--primary-blue); } /* 터치 시 아이콘 색상 반응 */
+        .insight-card:hover .card-icon { color: var(--primary-blue); }
 
+        /* [차트 스타일] */
         .bar-chart-container { display: flex; flex-direction: column; gap: 14px; }
         .bar-row { display: flex; align-items: center; gap: 12px; }
-        .bar-label { width: 45px; font-size: 13px; color: var(--text-sub); font-weight: 600; }
-        .bar-track { flex-grow: 1; height: 12px; background-color: var(--chart-track); border-radius: 6px; overflow: hidden; }
-        
-        /* 막대 차트 애니메이션 부드럽게 */
-        .bar-fill { 
-            height: 100%; border-radius: 6px; width: 0%; 
-            transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1); /* 쫀득한 그래프 */
-        }
-        
+        .bar-label { width: 50px; font-size: 13px; color: var(--text-sub); font-weight: 600; }
+        .bar-track { flex-grow: 1; height: 10px; background-color: var(--chart-track); border-radius: 5px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 5px; width: 0%; transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1); } /* 그래프 쫀득하게 */
         .fill-prev { background-color: var(--chart-fill-prev); }
         .fill-curr { background-color: var(--expense-color); }
         .bar-value { width: 70px; text-align: right; font-size: 15px; font-weight: 700; color: var(--text-main); font-variant-numeric: tabular-nums; }
@@ -206,23 +188,22 @@
         .ranking-container { display: flex; align-items: center; gap: 24px; }
         .donut-chart { 
             width: 86px; height: 86px; border-radius: 50%; flex-shrink: 0; 
-            background: conic-gradient(var(--chart-track) 0% 100%); 
-            position: relative; 
+            background: conic-gradient(var(--chart-track) 0% 100%); position: relative; 
             transition: background 1.5s cubic-bezier(0.22, 1, 0.36, 1); 
         }
         .donut-chart::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 54px; height: 54px; background-color: var(--card-bg); border-radius: 50%; transition: background-color 0.4s; }
+        
         .rank-list { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; }
-        .rank-item { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .rank-item { display: flex; justify-content: space-between; align-items: center; font-size: 14px; opacity: 0; animation: fadeUp 0.5s forwards; }
         .rank-name { display: flex; align-items: center; gap: 8px; color: var(--text-main); font-weight: 600; }
         .rank-dot { width: 10px; height: 10px; border-radius: 4px; }
         .rank-amt { font-weight: 700; color: var(--text-main); font-variant-numeric: tabular-nums; }
-        .daily-val { font-size: 26px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
+        .daily-val { font-size: 26px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; font-variant-numeric: tabular-nums; }
 
-        /* 스켈레톤 애니메이션 부드럽게 */
+        /* [스켈레톤 - 부드러운 로딩] */
         .skeleton { 
             background: var(--skeleton-base); color: transparent !important; 
             border-radius: 6px; user-select: none; position: relative; overflow: hidden; 
-            transform: translateZ(0); /* 하드웨어 가속 */
         }
         .skeleton::after { 
             content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
@@ -233,92 +214,58 @@
         @keyframes shimmer { 100% { transform: translateX(100%); } }
         .skeleton * { opacity: 0; }
 
-        /* 하단 내비게이션 */
-        .bottom-nav { 
-            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); 
-            width: 78%; max-width: 450px; height: 72px; 
-            background-color: var(--nav-bg); 
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            display: flex; justify-content: space-around; align-items: center; 
-            z-index: 1000; border: 1px solid var(--nav-border); 
-            box-shadow: var(--nav-shadow); border-radius: 36px; padding: 0 8px; 
-        }
-        
-        .nav-item { 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            text-decoration: none; color: var(--nav-inactive); 
-            font-size: 11px; font-weight: 500; flex-grow: 1; height: 60px; 
-            position: relative; border-radius: 28px; 
-            transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s;
-            touch-action: manipulation;
-        }
-        
-        /* 탭 누를 때 쫀득한 반동 */
-        .nav-item:active { transform: scale(0.9); }
+        /* ==============================================================
+           [하단 내비게이션 바] - 요청하신 대로 원본 디자인 100% 유지
+           ============================================================== */
+        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 75%; max-width: 450px; height: 75px; background-color: var(--nav-bg); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; z-index: 1000; border: 1px solid var(--nav-border); box-shadow: var(--nav-shadow); border-radius: 50px; padding: 0 10px; }
+        [data-theme="dark"] .bottom-nav { backdrop-filter: none; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: var(--nav-inactive); font-size: 11px; font-weight: 500; flex-grow: 1; height: 60px; position: relative; border-radius: 25px; transition: transform 0.1s; } /* transition만 살짝 추가 */
+        .nav-item:active { transform: scale(0.92); } /* 클릭 시 살짝 작아지는 효과만 추가 */
         .nav-item.active { color: var(--text-main); font-weight: 600; }
-        
-        /* 활성 탭 배경 애니메이션 */
-        .nav-item.active::before { 
-            content: ''; position: absolute; top: 50%; left: 50%; 
-            width: 80%; height: 80%; 
-            background-color: var(--nav-active-bg); border-radius: 24px; 
-            transform: translate(-50%, -50%) scale(0.8); 
-            opacity: 0;
-            animation: navActivePop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            z-index: -1; 
-        }
-        @keyframes navActivePop {
-            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        }
-        
-        .nav-item .material-icons { font-size: 26px; margin-bottom: 3px; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .nav-item.active .material-icons { transform: translateY(-2px); }
+        .nav-item.active::before { content: ''; position: absolute; top: 50%; left: 50%; width: 100px; height: 55px; background-color: var(--nav-active-bg); border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; }
+        .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
 
-        /* 팝업 애니메이션 */
+        /* [팝업 - 모달 애니메이션] */
         .alert-overlay { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
             z-index: 3000; display: none; justify-content: center; align-items: center; 
-            opacity: 0; transition: opacity 0.3s;
+            opacity: 0; transition: opacity 0.3s ease;
         }
         .alert-overlay.show { opacity: 1; }
         
         .alert-box { 
             width: 85%; max-width: 320px; background-color: var(--popup-bg); 
             border-radius: 28px; padding: 28px; text-align: center; 
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
-            transform: scale(0.9); opacity: 0;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3); 
+            transform: scale(0.8); opacity: 0;
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s;
         }
         .alert-overlay.show .alert-box { transform: scale(1); opacity: 1; }
         
-        .alert-box h3 { color: var(--text-main); margin-bottom: 8px; font-weight: 800; }
-        .alert-box p { color: var(--text-sub); }
+        .alert-box h3 { color: var(--text-main); margin-bottom: 8px; font-size: 19px; font-weight: 700; }
+        .alert-box p { color: var(--text-sub); font-size: 15px; }
         .alert-btn { 
             width: 100%; padding: 16px; border-radius: 18px; border: none; 
             font-size: 16px; font-weight: 700; color: white; cursor: pointer; 
             background-color: var(--primary-blue); margin-top: 24px; 
-            transition: transform 0.1s, box-shadow 0.2s;
+            transition: transform 0.1s;
         }
-        .alert-btn:active { transform: scale(0.96); box-shadow: 0 0 0 rgba(0,0,0,0); }
-        
-        /* 리플 효과 개선 */
+        .alert-btn:active { transform: scale(0.96); }
+
+        /* [리플 이펙트 - 물결 효과] */
         .ripple { 
             position: absolute; border-radius: 50%; 
-            transform: scale(0); opacity: 0.6;
-            animation: ripple-anim 0.6s cubic-bezier(0, 0, 0.2, 1); 
-            background-color: var(--ripple-color); 
-            pointer-events: none; 
+            transform: scale(0); animation: ripple-anim 0.5s linear; 
+            background-color: var(--ripple-color); pointer-events: none; 
         }
-        @keyframes ripple-anim { 
-            to { transform: scale(4); opacity: 0; } 
-        }
+        @keyframes ripple-anim { to { transform: scale(2.8); opacity: 0; } }
         
         @media (max-width: 600px) {
-            .header { width: 100%; padding: 0 20px; } 
-            .container { padding: 0 16px 20px 16px; } 
-            .bottom-nav { width: 92%; bottom: 24px; padding: 0 4px; }
-            .hero-balance { font-size: 30px; }
+            .header { width: 100%; padding: 0 16px; } 
+            .container { padding: 0 5px 20px 5px; } 
+            .bottom-nav { width: 93%; bottom: 20px; }
+            .nav-item.active::before { width: 90px; height: 60px; border-radius: 30px; }
         }
     </style>
 </head>
@@ -335,7 +282,7 @@
                     <span class="material-icons">settings</span>
                 </button>
                 <div class="dropdown-menu" id="settings-dropdown">
-                    <button class="dropdown-item" onclick="toggleTheme()">
+                    <button class="dropdown-item ripple-target" onclick="toggleTheme()">
                         <span class="material-icons dropdown-icon" id="theme-icon">dark_mode</span>
                         <span id="theme-text">다크 모드</span>
                     </button>
@@ -346,14 +293,14 @@
 
     <div class="container">
         <!-- 1. 히어로 섹션 -->
-        <section class="hero-section" style="animation-delay: 0.1s;">
+        <section class="hero-section" style="animation-delay: 0.05s;">
             <div class="hero-greeting skeleton" id="greeting-text" style="width:150px; height:20px;">안녕하세요</div>
-            <!-- 숫자에 tabular-nums 적용하여 숫자 변경 시 떨림 방지 -->
-            <div class="hero-balance skeleton" id="total-asset" style="width:120px; height:38px; margin-top:8px; font-variant-numeric: tabular-nums;">0원</div>
+            <!-- 숫자가 롤링될 곳 -->
+            <div class="hero-balance skeleton" id="total-asset" style="width:120px; height:38px; margin-top:5px;">0원</div>
         </section>
 
         <!-- 2. 소비 리포트 -->
-        <div class="insight-card ripple-target" style="animation-delay: 0.2s;">
+        <div class="insight-card ripple-target" style="animation-delay: 0.15s;">
             <div class="card-header">
                 <div>
                     <div class="card-title">소비 리포트</div>
@@ -373,11 +320,11 @@
                     <span class="bar-value skeleton" id="curr-month-amt" style="border-radius:4px;">0원</span>
                 </div>
             </div>
-            <div class="trend-message skeleton" id="trend-text" style="width:80%; height:20px; margin-top:18px;">데이터 분석 중...</div>
+            <div class="trend-message skeleton" id="trend-text" style="width:80%; height:20px; margin-top:16px;">데이터 분석 중...</div>
         </div>
 
         <!-- 3. 지출 랭킹 -->
-        <div class="insight-card ripple-target" style="animation-delay: 0.3s;">
+        <div class="insight-card ripple-target" style="animation-delay: 0.25s;">
             <div class="card-header">
                 <div>
                     <div class="card-title">지출 TOP 3</div>
@@ -396,15 +343,16 @@
         </div>
 
         <!-- 4. 하루 평균 -->
-        <div class="insight-card ripple-target" style="display:flex; justify-content:space-between; align-items:center; animation-delay: 0.4s;">
+        <div class="insight-card ripple-target" style="display:flex; justify-content:space-between; align-items:center; animation-delay: 0.35s;">
             <div>
                 <div class="card-title" style="margin-bottom:4px;">하루 평균 지출</div>
                 <div class="card-desc">이번 달 기준</div>
             </div>
-            <div class="daily-val skeleton" id="daily-avg" style="width:100px; height:30px; font-variant-numeric: tabular-nums;">0원</div>
+            <div class="daily-val skeleton" id="daily-avg" style="width:100px; height:30px;">0원</div>
         </div>
     </div>
     
+    <!-- 하단 내비게이션 (원본 디자인 유지 + 리플 효과만 추가) -->
     <nav class="bottom-nav">
         <a href="/" class="nav-item active ripple-target">
             <span class="material-icons">home</span><span>홈</span>
@@ -423,10 +371,10 @@
     <!-- 알림 팝업 -->
     <div id="alert-overlay" class="alert-overlay">
         <div class="alert-box">
-            <span class="material-icons" id="alert-icon" style="font-size:52px; margin-bottom:12px;">check_circle</span>
-            <h3 id="alert-title">승인 완료</h3>
-            <p id="alert-msg" style="margin:0; font-size:15px; line-height:1.5;">부모님이 확인하셨습니다.</p>
-            <div id="alert-comment" style="background:var(--popup-comment); padding:14px; border-radius:12px; margin-top:18px; font-size:14px; text-align:left; color:var(--text-main);"></div>
+            <span class="material-icons" id="alert-icon" style="font-size:48px; margin-bottom:10px;">check_circle</span>
+            <h3 id="alert-title" style="margin:0 0 10px 0;">승인 완료</h3>
+            <p id="alert-msg" style="margin:0; line-height:1.4;">부모님이 확인하셨습니다.</p>
+            <div id="alert-comment" style="background:var(--popup-comment); padding:12px; border-radius:10px; margin-top:15px; font-size:14px; text-align:left; color:var(--text-main);"></div>
             <button class="alert-btn ripple-target" onclick="confirmAlert()">확인</button>
         </div>
     </div>
@@ -464,32 +412,24 @@
             updateThemeUI(newTheme);
         }
 
-        // [드롭다운 애니메이션 로직 수정]
+        // [드롭다운 애니메이션 개선]
         function toggleSettingsDropdown(e) {
             e.stopPropagation();
             const dropdown = document.getElementById('settings-dropdown');
             const current = document.documentElement.getAttribute('data-theme');
-            updateThemeUI(current);
+            updateThemeUI(current); 
             
             if (dropdown.classList.contains('show')) {
-                dropdown.style.opacity = '0';
-                dropdown.style.transform = 'scale(0.9) translateY(-10px)';
-                setTimeout(() => dropdown.classList.remove('show'), 200);
+                dropdown.classList.remove('show');
             } else {
                 dropdown.classList.add('show');
-                // 강제 리플로우 (애니메이션 트리거)
-                void dropdown.offsetWidth; 
-                dropdown.style.opacity = '1';
-                dropdown.style.transform = 'scale(1) translateY(0)';
             }
         }
 
         window.addEventListener('click', (e) => {
             const dropdown = document.getElementById('settings-dropdown');
             if (dropdown && dropdown.classList.contains('show')) {
-                dropdown.style.opacity = '0';
-                dropdown.style.transform = 'scale(0.9) translateY(-10px)';
-                setTimeout(() => dropdown.classList.remove('show'), 200);
+                dropdown.classList.remove('show');
             }
         });
 
@@ -499,21 +439,13 @@
                 navigator.serviceWorker.register('/sw.js');
             });
         }
-        
+
         document.addEventListener('contextmenu', event => event.preventDefault());
 
-        // [Firebase 설정 - 기존 유지]
         const firebaseConfig = { apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI", authDomain: "pocketbly.firebaseapp.com", projectId: "pocketbly", storageBucket: "pocketbly.firebasestorage.app", messagingSenderId: "535063683428", appId: "1:535063683428:web:4729815738bee4f8305a71", measurementId: "G-RE71JXSNR3" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
-
-        // [입장 애니메이션 적용]
-        document.addEventListener("DOMContentLoaded", () => {
-            // 카드를 순차적으로 나타나게 클래스 부여
-            const sections = document.querySelectorAll('.hero-section, .insight-card');
-            sections.forEach(el => el.classList.add('animate-enter'));
-        });
 
         const hours = new Date().getHours();
         let timeGreeting = "안녕하세요";
@@ -533,13 +465,12 @@
                     greetingEl.style.width = 'auto'; 
                     greetingEl.style.height = 'auto';
                     greetingEl.innerText = `${timeGreeting}, ${name}님`;
-                    // 텍스트 페이드인
-                    greetingEl.style.opacity = 0;
-                    setTimeout(() => { 
-                        greetingEl.style.transition = 'opacity 0.5s'; 
-                        greetingEl.style.opacity = 1; 
-                    }, 50);
+                    // 텍스트 등장 애니메이션
+                    greetingEl.style.opacity = '0';
+                    setTimeout(() => greetingEl.style.opacity = '1', 50);
+                    greetingEl.style.transition = 'opacity 0.5s ease';
                 }
+                
                 syncHomeData(user.uid);
                 listenForParentDecision(user.uid); 
             } else {
@@ -551,7 +482,6 @@
 
         async function syncHomeData(uid) {
             try {
-                // ... (기존 캐시 로직 동일) ...
                 const metaRef = db.collection('users').doc(uid).collection('transaction_list').doc('metadata');
                 const metaSnap = await metaRef.get();
                 const metaData = metaSnap.exists ? metaSnap.data() : { lastBatchId: 0, lastUpdatedAt: 0 };
@@ -595,9 +525,10 @@
             }
         }
 
-        // [숫자 카운팅 애니메이션 함수]
+        // [숫자 카운팅 애니메이션 함수 (v2.0 핵심)]
         function animateValue(obj, start, end, duration) {
             if (!obj) return;
+            // 스켈레톤 해제
             obj.classList.remove('skeleton');
             obj.style.width = 'auto'; obj.style.height = 'auto';
             
@@ -605,7 +536,7 @@
             const step = (timestamp) => {
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                // Ease-out expo 느낌의 커브
+                // Ease-Out Expo (처음엔 빠르고 끝에 부드럽게)
                 const easeProgress = 1 - Math.pow(1 - progress, 4); 
                 const value = Math.floor(easeProgress * (end - start) + start);
                 obj.innerText = value.toLocaleString() + '원';
@@ -664,28 +595,27 @@
             animateValue(document.getElementById('curr-month-amt'), 0, thisMonthExpense, 1200);
 
             const maxVal = Math.max(thisMonthExpense, lastMonthExpense) || 1;
+            // 차트 딜레이 애니메이션
             setTimeout(() => {
                 const barPrev = document.getElementById('bar-prev');
                 const barCurr = document.getElementById('bar-curr');
                 if(barPrev) barPrev.style.width = `${(lastMonthExpense / maxVal) * 100}%`;
                 if(barCurr) barCurr.style.width = `${(thisMonthExpense / maxVal) * 100}%`;
-            }, 300); // 딜레이를 주어 화면 진입 후 차트가 차오르도록 함
+            }, 300);
 
             const trendEl = document.getElementById('trend-text');
             trendEl.classList.remove('skeleton');
             trendEl.style.width = 'auto'; trendEl.style.height = 'auto';
-            const diff = thisMonthExpense - lastMonthExpense;
-            
-            // 텍스트 등장 페이드인
             trendEl.style.opacity = 0;
             trendEl.style.transition = 'opacity 0.6s ease';
-            
+
+            const diff = thisMonthExpense - lastMonthExpense;
             if (diff > 0) trendEl.innerHTML = `지난달보다 <span class="highlight-bad">${Math.abs(diff).toLocaleString()}원</span> 더 썼어요.`;
             else if (diff < 0) trendEl.innerHTML = `지난달보다 <span class="highlight-good">${Math.abs(diff).toLocaleString()}원</span> 절약했어요!`;
             else trendEl.innerText = "지난달과 지출이 비슷해요.";
             if (thisMonthExpense === 0 && lastMonthExpense === 0) trendEl.innerText = "아직 지출 내역이 없어요.";
             
-            requestAnimationFrame(() => trendEl.style.opacity = 1);
+            setTimeout(() => trendEl.style.opacity = 1, 100);
 
             const sortedCats = Object.keys(categoryMap).map(key => ({ name: key, amount: categoryMap[key] })).sort((a, b) => b.amount - a.amount).slice(0, 3);
             const rankListEl = document.getElementById('rank-list');
@@ -697,13 +627,11 @@
             if (sortedCats.length > 0) {
                 const colors = ['#f04452', '#ff8c00', '#ffc107'];
                 let gradientStr = "", currentDeg = 0;
-                
                 sortedCats.forEach((cat, idx) => {
-                    // 리스트 아이템에 딜레이 애니메이션 적용
+                    // 리스트 아이템 순차 등장
                     const div = document.createElement('div');
                     div.className = 'rank-item';
-                    div.style.opacity = 0;
-                    div.style.animation = `fadeInUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards ${0.5 + (idx * 0.1)}s`;
+                    div.style.animationDelay = `${0.1 * idx}s`; // 딜레이 부여
                     div.innerHTML = `<div class="rank-name"><div class="rank-dot" style="background-color: ${colors[idx]}"></div>${cat.name}</div><div class="rank-amt">${cat.amount.toLocaleString()}원</div>`;
                     rankListEl.appendChild(div);
 
@@ -715,14 +643,16 @@
                 const trackColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-track').trim();
                 gradientStr += `${trackColor} ${currentDeg}deg 360deg`;
                 
+                // 도넛 차트 회전 애니메이션
                 setTimeout(() => {
                     donutChart.style.background = `conic-gradient(${gradientStr})`;
-                    donutChart.style.transform = "rotate(360deg)"; // 회전 애니메이션 효과 추가
-                    donutChart.style.transition = "background 1s, transform 1.5s cubic-bezier(0.19, 1, 0.22, 1)";
-                    donutChart.style.transform = "rotate(0deg)";
+                    donutChart.style.transform = 'rotate(360deg)';
+                    donutChart.style.transition = 'transform 1s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                    setTimeout(() => donutChart.style.transform = 'rotate(0deg)', 50); // 리셋 후 애니메이션 트리거
                 }, 100);
+
             } else {
-                rankListEl.innerHTML = '<div class="rank-item" style="color:var(--text-sub);justify-content:center; padding:10px 0;">내역이 없습니다.</div>';
+                rankListEl.innerHTML = '<div class="rank-item" style="color:var(--text-sub);justify-content:center;opacity:1;">내역이 없습니다.</div>';
                 donutChart.style.background = 'var(--chart-track)';
             }
 
@@ -730,43 +660,36 @@
             animateValue(document.getElementById('daily-avg'), 0, dayAvg, 1200);
         }
 
-        // [리플 이펙트 부드럽게 개선]
+        // [리플 이펙트 로직]
         function createRipple(event) {
             const button = event.currentTarget; 
-            // 중복 클릭 시 기존 리플 제거
             const oldRipple = button.querySelector('.ripple'); 
             if(oldRipple) oldRipple.remove();
             
             const circle = document.createElement('span'); 
             const diameter = Math.max(button.clientWidth, button.clientHeight); 
             const radius = diameter / 2; 
-            
-            // 터치/클릭 좌표 계산
             const rect = button.getBoundingClientRect();
-            // 터치 이벤트 지원 시 touches 사용
+            
+            // 터치/클릭 위치 계산
             const clientX = event.clientX || (event.touches ? event.touches[0].clientX : 0);
             const clientY = event.clientY || (event.touches ? event.touches[0].clientY : 0);
-            
+
             circle.style.width = circle.style.height = `${diameter}px`; 
             circle.style.left = `${clientX - rect.left - radius}px`; 
             circle.style.top = `${clientY - rect.top - radius}px`; 
             circle.classList.add('ripple');
             
             button.appendChild(circle); 
-            setTimeout(() => circle.remove(), 600);
+            setTimeout(() => circle.remove(), 500);
         }
         
-        // 터치 및 클릭 이벤트 모두 대응
+        // 모든 리플 타겟에 이벤트 연결
         document.querySelectorAll('.ripple-target').forEach(btn => {
             btn.addEventListener('mousedown', createRipple);
-            // 모바일 터치 반응 속도 개선
-            btn.addEventListener('touchstart', (e) => {
-                // 스크롤이 아닐 때만 리플 발생은 CSS active가 처리, 여기선 시각효과만
-                 createRipple(e);
-            }, {passive: true});
+            btn.addEventListener('touchstart', createRipple, {passive: true});
         });
 
-        // [알림 팝업 애니메이션]
         function listenForParentDecision(uid) {
             db.collection('shared_reports').where('uid','==',uid).where('status','in',['승인','반려'])
             .onSnapshot(ss => {
@@ -776,24 +699,20 @@
                         document.getElementById('alert-title').innerText = `부모님 ${d.status}`;
                         document.getElementById('alert-icon').innerText = d.status==='승인'?'check_circle':'cancel';
                         document.getElementById('alert-icon').style.color = d.status==='승인'?'#3182f6':'#f04452';
-                        
-                        const commentEl = document.getElementById('alert-comment');
                         if(d.parentComment) {
-                            commentEl.innerText = d.parentComment;
-                            commentEl.style.display='block';
+                            document.getElementById('alert-comment').innerText = d.parentComment;
+                            document.getElementById('alert-comment').style.display='block';
                         } else {
-                            commentEl.style.display='none';
+                            document.getElementById('alert-comment').style.display='none';
                         }
                         
                         const overlay = document.getElementById('alert-overlay');
                         overlay.style.display='flex';
-                        // Display Flex 적용 후 애니메이션 클래스 추가 (setTimeout 필수)
                         setTimeout(() => overlay.classList.add('show'), 10);
                     }
                 });
             });
         }
-        
         function confirmAlert() {
             const overlay = document.getElementById('alert-overlay');
             overlay.classList.remove('show');
@@ -802,7 +721,7 @@
                     overlay.style.display='none';
                 });
                 else overlay.style.display='none';
-            }, 300); // fade out 시간 대기
+            }, 300);
         }
     </script>
 </body>
