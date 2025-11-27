@@ -6,26 +6,26 @@
     <title>POCKETBLY - 홈</title>
     
     <!-- PWA 메타 태그 -->
-    <meta name="theme-color" content="#f9fafb">
+    <meta name="theme-color" content="#F2F4F6">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="/manifest.json">
     
+    <!-- 테마 설정 -->
     <script>
         (function() {
             const savedTheme = localStorage.getItem('theme');
             const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
                 document.documentElement.setAttribute('data-theme', 'dark');
-                document.querySelector('meta[name="theme-color"]').setAttribute('content', '#121212');
             } else {
                 document.documentElement.setAttribute('data-theme', 'light');
-                document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f9fafb');
             }
         })();
     </script>
 
+    <!-- 폰트 및 아이콘 -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Round" rel="stylesheet">
     <link as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet" />
     
@@ -33,300 +33,292 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <!-- AppBox SDK -->
     <script src="https://www.appboxapp.com/app/script/appbox.js"></script>
 
     <style>
-        /* [v2.0 Reset & Base] */
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
-        html, body { overscroll-behavior-y: contain; }
-
-        body { 
-            -webkit-user-select: none; user-select: none; 
-            font-family: 'Pretendard', sans-serif; 
-            background-color: var(--bg-color); 
-            margin: 0; padding: 0; 
-            display: flex; flex-direction: column; align-items: center; 
-            overflow-y: scroll; 
-            padding-top: var(--header-height); padding-bottom: 110px; 
-            color: var(--text-main);
-            transition: background-color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        /* [색상 팔레트 - 고도화] */
+        /* [토스 스타일 디자인 시스템] */
         :root {
-            --bg-color: #f9fafb; /* 더 세련된 연한 회색 배경 */
-            --header-bg: rgba(249, 250, 251, 0.85);
-            --card-bg: #ffffff;
-            --text-main: #191f28; 
-            --text-sub: #8b95a1; 
-            --text-accent: #3182f6;
-            --border-color: rgba(0,0,0,0.04);
+            /* Light Mode (Toss Style) */
+            --bg-page: #F2F4F6;
+            --bg-card: #FFFFFF;
+            --text-primary: #191F28;
+            --text-secondary: #8B95A1;
+            --text-tertiary: #B0B8C1;
             
-            --nav-bg: rgba(255, 255, 255, 0.9); 
-            --nav-border: rgba(0,0,0,0.05); 
-            --nav-active-bg: #f2f4f6; 
-            --nav-inactive: #b0b8c1; 
-            --nav-shadow: 0 -4px 20px rgba(0, 0, 0, 0.04);
+            --primary-blue: #3182F6; /* 토스 블루 */
+            --point-red: #F04452;
+            --point-green: #26D07C;
+            
+            --border-line: rgba(0,0,0,0.04);
+            --shadow-soft: 0 8px 24px rgba(0,0,0,0.04);
+            
+            --nav-bg: rgba(255, 255, 255, 0.85);
+            --nav-active: #191F28;
+            --nav-inactive: #B0B8C1;
 
-            /* v2.0 New Gradients */
-            --gradient-primary: linear-gradient(135deg, #3182f6 0%, #0055ff 100%);
-            --gradient-danger: linear-gradient(135deg, #ff6b6b 0%, #f04452 100%);
-            --chart-track: #f0f2f5;
-            
-            --skeleton-base: #f2f4f6; 
-            --skeleton-highlight: rgba(255, 255, 255, 0.8);
-            
-            --popup-bg: #ffffff; 
-            --popup-comment: #f5f5f5;
-            --ripple-color: rgba(0, 0, 0, 0.06);
-            
-            --header-height: 80px; 
-            --shadow-card: 0 10px 30px rgba(0,0,0,0.04); /* 더 부드럽고 넓은 그림자 */
-            --shadow-card-hover: 0 15px 35px rgba(0,0,0,0.08);
-            
-            --dropdown-bg: #ffffff; 
-            --dropdown-hover: #f9fafb; 
-            --dropdown-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            --skeleton-base: #F2F4F6;
+            --skeleton-highlight: #FAFAFA;
+
+            --safe-area-top: env(safe-area-inset-top);
+            --safe-area-bottom: env(safe-area-inset-bottom);
         }
 
         [data-theme="dark"] {
-            --bg-color: #121212; 
-            --header-bg: rgba(18, 18, 18, 0.85);
-            --card-bg: #1e1e1e;
-            --text-main: #fcfcfc; 
-            --text-sub: #8b95a1; 
-            --border-color: rgba(255,255,255,0.05);
+            /* Dark Mode */
+            --bg-page: #101012;
+            --bg-card: #1C1C1E;
+            --text-primary: #FDFDFD;
+            --text-secondary: #8B95A1;
+            --text-tertiary: #505050;
             
-            --nav-bg: rgba(30, 30, 30, 0.85); 
-            --nav-border: rgba(255,255,255,0.05); 
-            --nav-active-bg: #2c2c2c; 
-            --nav-inactive: #686d77; 
-            --nav-shadow: 0 -4px 25px rgba(0, 0, 0, 0.5);
+            --primary-blue: #4D96FF;
+            --point-red: #FF5F6D;
+            
+            --border-line: rgba(255,255,255,0.05);
+            --shadow-soft: none;
+            
+            --nav-bg: rgba(28, 28, 30, 0.85);
+            --nav-active: #FFFFFF;
+            --nav-inactive: #636366;
 
-            --chart-track: #2c2c2c;
-            
-            --skeleton-base: #2c2c2c; 
-            --skeleton-highlight: rgba(255, 255, 255, 0.05);
-            
-            --popup-bg: #1e1e1e; 
-            --popup-comment: #2c2c2c; 
-            --ripple-color: rgba(255, 255, 255, 0.1);
-            
-            --shadow-card: 0 4px 20px rgba(0,0,0,0.3);
-            --dropdown-bg: #1e1e1e; 
-            --dropdown-hover: #2c2c2c; 
-            --dropdown-shadow: 0 8px 30px rgba(0,0,0,0.5);
+            --skeleton-base: #2C2C2E;
+            --skeleton-highlight: #3A3A3C;
         }
 
-        /* [공통 트랜지션] */
-        .container, .header, .insight-card, .bottom-nav, .nav-item, .dropdown-menu {
-            transition: background-color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), 
-                        color 0.4s, border-color 0.4s, box-shadow 0.4s;
+        /* 기본 설정 */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-primary);
+            margin: 0; padding: 0;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .container { width: 95%; max-width: 1024px; padding: 0 20px 24px 20px; }
+        /* 스크롤바 숨기기 */
+        ::-webkit-scrollbar { display: none; }
 
         /* [헤더] */
-        .header { 
-            position: fixed; top: 0; left: 50%; transform: translateX(-50%); 
-            width: 95%; max-width: 1024px; z-index: 1005; 
-            background-color: var(--header-bg); 
+        .header {
+            position: sticky; top: 0;
+            height: calc(56px + var(--safe-area-top));
+            padding-top: var(--safe-area-top);
+            padding-left: 20px; padding-right: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            background-color: rgba(var(--bg-page), 0.8); /* 배경색 투명도 */
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            height: var(--header-height); 
-            display: flex; align-items: center; justify-content: space-between; 
-            padding: 16px 20px; 
+            z-index: 1000;
+            transition: background-color 0.3s;
+        }
+        .logo-area { font-size: 20px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.5px; }
+        .header-actions { display: flex; gap: 8px; }
+
+        .btn-icon {
+            background: none; border: none; padding: 8px;
+            color: var(--text-primary); cursor: pointer;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: background-color 0.2s;
+        }
+        .btn-icon:hover { background-color: rgba(0,0,0,0.05); }
+        .material-icons-round { font-size: 24px; }
+
+        /* [메인 컨테이너] */
+        .main-container {
+            padding: 10px 20px 120px 20px;
+            max-width: 600px; margin: 0 auto;
+            display: flex; flex-direction: column; gap: 16px;
         }
 
-        .header h1 { font-size: 24px; font-weight: 800; color: var(--text-main); margin: 0; letter-spacing: -0.5px; }
-        .header-action { display: flex; gap: 8px; position: relative; }
+        /* [카드 공통 스타일] */
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: var(--shadow-soft);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.15s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        /* 클릭 시 쫀득하게 눌리는 효과 (Toss Style) */
+        .press-scale:active { transform: scale(0.96); }
 
-        .icon-button { 
-            background: none; border: none; color: var(--text-main); 
-            cursor: pointer; padding: 10px; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; 
-            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s;
+        .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .card-title { font-size: 18px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; margin-bottom: 4px; }
+        .card-sub { font-size: 14px; color: var(--text-secondary); font-weight: 500; }
+        .card-icon-bg {
+            width: 40px; height: 40px; border-radius: 16px;
+            background-color: var(--bg-page);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-secondary);
+        }
+
+        /* [히어로 섹션] */
+        .hero-section { padding: 20px 4px 10px 4px; }
+        .greeting { font-size: 15px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+        .total-balance {
+            font-size: 36px; font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -1px;
+            display: flex; align-items: baseline;
+        }
+        .currency { font-size: 24px; font-weight: 600; margin-left: 4px; color: var(--text-secondary); }
+
+        /* [바 차트] */
+        .chart-row { margin-bottom: 14px; }
+        .chart-label-area { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+        .chart-label-text { color: var(--text-secondary); }
+        .chart-value-text { color: var(--text-primary); font-weight: 700; }
+        .track { width: 100%; height: 12px; background-color: var(--bg-page); border-radius: 10px; overflow: hidden; }
+        /* 쫀득한 그래프 애니메이션 */
+        .bar { 
+            height: 100%; border-radius: 10px; width: 0; 
+            transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1); 
+        }
+        .bar.prev { background-color: var(--text-tertiary); opacity: 0.5; }
+        .bar.curr { background-color: var(--primary-blue); }
+        
+        .trend-badge {
+            display: inline-flex; align-items: center;
+            background-color: rgba(49, 130, 246, 0.1);
+            color: var(--primary-blue);
+            padding: 8px 12px; border-radius: 12px;
+            font-size: 13px; font-weight: 600; margin-top: 12px;
+        }
+        .trend-badge.bad { background-color: rgba(240, 68, 82, 0.1); color: var(--point-red); }
+
+        /* [도넛 차트 랭킹] */
+        .ranking-wrap { display: flex; align-items: center; gap: 24px; }
+        .donut-container { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+        .donut-ring {
+            width: 100%; height: 100%; border-radius: 50%;
+            background: conic-gradient(var(--bg-page) 0% 100%);
+            transition: background 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        /* 도넛 가운데 구멍 */
+        .donut-hole {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 55%; height: 55%; background-color: var(--bg-card); border-radius: 50%;
+        }
+        .rank-list { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; }
+        .rank-row { display: flex; justify-content: space-between; align-items: center; font-size: 15px; }
+        .rank-cat { display: flex; align-items: center; gap: 8px; color: var(--text-primary); font-weight: 500; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .rank-val { font-weight: 700; color: var(--text-primary); }
+
+        /* [하단 내비게이션 (플로팅 스타일)] */
+        .bottom-nav-container {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: auto; max-width: 90%; 
+            z-index: 2000;
+        }
+        .bottom-nav {
+            background-color: var(--nav-bg);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 8px 24px;
+            display: flex; gap: 28px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-decoration: none; color: var(--nav-inactive);
+            font-size: 10px; font-weight: 500; gap: 4px;
+            transition: color 0.2s, transform 0.1s;
+            width: 44px;
+        }
+        .nav-item:active { transform: scale(0.9); }
+        .nav-item.active { color: var(--text-primary); }
+        .nav-item .material-icons-round { font-size: 26px; }
+
+        /* [애니메이션] 진입 효과 */
+        .fade-in-up {
+            opacity: 0; transform: translateY(20px);
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* [스켈레톤 로딩] */
+        .skeleton {
+            background: var(--skeleton-base);
+            color: transparent !important; border-radius: 6px;
             position: relative; overflow: hidden;
         }
-        .icon-button:active { transform: scale(0.9); background-color: var(--nav-active-bg); }
-
-        /* [드롭다운] */
-        .dropdown-menu {
-            position: absolute; top: 120%; right: 0; width: 160px;
-            background-color: var(--dropdown-bg); border: 1px solid var(--border-color);
-            border-radius: 16px; box-shadow: var(--dropdown-shadow);
-            display: none; flex-direction: column; overflow: hidden; z-index: 2000;
-            transform-origin: top right; opacity: 0; transform: scale(0.95);
-            transition: all 0.2s ease;
-        }
-        .dropdown-menu.show { display: flex; opacity: 1; transform: scale(1); }
-        .dropdown-item {
-            padding: 14px 16px; font-size: 14px; color: var(--text-main); font-weight: 500;
-            display: flex; align-items: center; gap: 10px; cursor: pointer;
-            text-decoration: none; background: none; border: none; width: 100%; text-align: left;
-        }
-        .dropdown-item:active { background-color: var(--dropdown-hover); }
-
-        /* [히어로 섹션 - 텍스트 강조형] */
-        .hero-section { margin-top: 10px; margin-bottom: 32px; padding: 0 4px; }
-        .hero-greeting { 
-            font-size: 17px; color: var(--text-sub); font-weight: 600; margin-bottom: 6px; 
-            display: flex; align-items: center; gap: 6px;
-        }
-        .hero-balance { 
-            font-size: 38px; font-weight: 800; color: var(--text-main); 
-            letter-spacing: -1px; font-variant-numeric: tabular-nums; 
-            display: flex; align-items: center; gap: 4px;
-        }
-        .hero-currency { font-size: 24px; font-weight: 600; color: var(--text-sub); margin-top: 8px; }
-
-        /* [v2.0 카드 디자인 - 완전히 새로움] */
-        .insight-card { 
-            background-color: var(--card-bg); 
-            border-radius: 24px; 
-            padding: 24px; margin-bottom: 20px; 
-            position: relative; overflow: hidden; 
-            box-shadow: var(--shadow-card);
-            border: 1px solid var(--border-color);
-            /* 터치감 */
-            transform: scale(1);
-            transition: transform 0.2s cubic-bezier(0.3, 0, 0.5, 1), box-shadow 0.2s;
-            /* 등장 애니메이션 */
-            opacity: 0; animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        .insight-card:active { transform: scale(0.98); box-shadow: var(--shadow-card-hover); }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        .card-header-v2 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .card-title-v2 { font-size: 18px; font-weight: 700; color: var(--text-main); }
-        .card-badge { 
-            font-size: 12px; font-weight: 600; color: #fff; 
-            background: var(--gradient-primary); padding: 4px 10px; border-radius: 20px; 
-            box-shadow: 0 2px 8px rgba(49, 130, 246, 0.3);
-        }
-
-        /* [1. 지출 리포트 - 게이지 스타일] */
-        .gauge-container { position: relative; width: 100%; padding: 10px 0 0 0; }
-        .gauge-label-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-weight: 600; font-size: 14px; color: var(--text-sub); }
-        .gauge-val-current { font-size: 20px; font-weight: 800; color: var(--text-main); }
-        
-        .progress-track { 
-            width: 100%; height: 16px; background-color: var(--chart-track); 
-            border-radius: 12px; overflow: hidden; position: relative;
-        }
-        .progress-fill { 
-            height: 100%; border-radius: 12px; width: 0%; 
-            background: var(--gradient-danger);
-            transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
-            position: relative;
-        }
-        /* 반짝이는 효과 */
-        .progress-fill::after {
-            content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            transform: translateX(-100%); animation: shimmer-bar 2s infinite;
-        }
-        @keyframes shimmer-bar { 100% { transform: translateX(100%); } }
-        
-        .compare-text { 
-            margin-top: 16px; font-size: 15px; color: var(--text-main); font-weight: 500; line-height: 1.5; 
-            background: var(--bg-color); padding: 12px 16px; border-radius: 16px; display: flex; align-items: center; gap: 8px;
-        }
-        .trend-icon { font-size: 20px; color: var(--text-sub); }
-
-        /* [2. 랭킹 리더보드 스타일] */
-        .ranking-list-v2 { display: flex; flex-direction: column; gap: 16px; margin-top: 10px; }
-        .rank-row-v2 { display: flex; align-items: center; gap: 14px; position: relative; }
-        .rank-icon-box { 
-            width: 44px; height: 44px; border-radius: 14px; 
-            background-color: var(--bg-color); display: flex; align-items: center; justify-content: center;
-            font-size: 22px; color: var(--text-main); flex-shrink: 0;
-            border: 1px solid var(--border-color);
-        }
-        .rank-info { flex-grow: 1; display: flex; flex-direction: column; gap: 6px; }
-        .rank-header { display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; color: var(--text-main); }
-        .rank-bar-bg { width: 100%; height: 6px; background-color: var(--chart-track); border-radius: 4px; overflow: hidden; }
-        .rank-bar-fill { height: 100%; border-radius: 4px; background: var(--gradient-primary); width: 0%; transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1); }
-        
-        /* [3. 데일리 카드] */
-        .daily-wrapper { display: flex; align-items: center; justify-content: space-between; }
-        .daily-icon { 
-            width: 48px; height: 48px; border-radius: 50%; background: var(--bg-color); 
-            display: flex; align-items: center; justify-content: center; font-size: 24px; color: #3182f6; 
-        }
-        .daily-content { text-align: right; }
-        .daily-label { font-size: 13px; color: var(--text-sub); font-weight: 600; margin-bottom: 4px; }
-        .daily-amount { font-size: 22px; font-weight: 800; color: var(--text-main); font-variant-numeric: tabular-nums; }
-
-        /* [스켈레톤] */
-        .skeleton { 
-            background: var(--skeleton-base); color: transparent !important; 
-            border-radius: 6px; position: relative; overflow: hidden; 
-        }
-        .skeleton::after { 
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent); 
-            transform: translateX(-100%); animation: shimmer 1.5s infinite; 
+        .skeleton::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
+            transform: translateX(-100%); animation: shimmer 1.5s infinite;
         }
         @keyframes shimmer { 100% { transform: translateX(100%); } }
 
-        /* ==============================================================
-           [하단 내비게이션 바] - 원본 100% 유지 (요청사항 준수)
-           ============================================================== */
-        .bottom-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 75%; max-width: 450px; height: 75px; background-color: var(--nav-bg); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; z-index: 1000; border: 1px solid var(--nav-border); box-shadow: var(--nav-shadow); border-radius: 50px; padding: 0 10px; }
-        [data-theme="dark"] .bottom-nav { backdrop-filter: none; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; color: var(--nav-inactive); font-size: 11px; font-weight: 500; flex-grow: 1; height: 60px; position: relative; border-radius: 25px; transition: transform 0.1s; } 
-        .nav-item:active { transform: scale(0.92); } 
-        .nav-item.active { color: var(--text-main); font-weight: 600; }
-        .nav-item.active::before { content: ''; position: absolute; top: 50%; left: 50%; width: 100px; height: 55px; background-color: var(--nav-active-bg); border-radius: 30px; transform: translate(-50%, -50%); z-index: -1; }
-        .nav-item .material-icons { font-size: 24px; margin-bottom: 2px; }
+        /* [드롭다운] */
+        .dropdown-menu {
+            position: absolute; top: 50px; right: 10px;
+            background-color: var(--bg-card); border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            padding: 8px; display: none; flex-direction: column;
+            width: 160px; z-index: 2000;
+            transform-origin: top right;
+            animation: scaleIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .dropdown-menu.show { display: flex; }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        
+        .dropdown-item {
+            padding: 12px; border-radius: 12px; border: none; background: none;
+            display: flex; align-items: center; gap: 10px;
+            font-size: 14px; font-weight: 500; color: var(--text-primary);
+            cursor: pointer; text-align: left;
+        }
+        .dropdown-item:active { background-color: var(--bg-page); }
 
         /* [알림 팝업] */
-        .alert-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
-            z-index: 3000; display: none; justify-content: center; align-items: center; 
-            opacity: 0; transition: opacity 0.3s ease;
+        .alert-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 3000;
+            display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px);
         }
-        .alert-overlay.show { opacity: 1; }
-        .alert-box { 
-            width: 85%; max-width: 320px; background-color: var(--popup-bg); 
-            border-radius: 28px; padding: 32px 24px; text-align: center; 
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3); 
-            transform: scale(0.8); opacity: 0;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s;
+        .alert-box {
+            background: var(--bg-card); padding: 28px; border-radius: 28px;
+            width: 85%; max-width: 320px; text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: popupSpring 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        .alert-overlay.show .alert-box { transform: scale(1); opacity: 1; }
-        .alert-btn { 
-            width: 100%; padding: 16px; border-radius: 20px; border: none; 
-            font-size: 16px; font-weight: 700; color: white; cursor: pointer; 
-            background: var(--gradient-primary); margin-top: 24px; 
-            box-shadow: 0 4px 15px rgba(49, 130, 246, 0.4);
+        @keyframes popupSpring { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .alert-btn {
+            background-color: var(--primary-blue); color: white;
+            border: none; padding: 16px; width: 100%; border-radius: 16px;
+            font-size: 16px; font-weight: 700; margin-top: 24px; cursor: pointer;
         }
-        .alert-btn:active { transform: scale(0.96); }
-
-        /* [리플 효과] */
-        .ripple { 
-            position: absolute; border-radius: 50%; 
-            transform: scale(0); animation: ripple-anim 0.5s linear; 
-            background-color: var(--ripple-color); pointer-events: none; 
-        }
-        @keyframes ripple-anim { to { transform: scale(2.8); opacity: 0; } }
+        .alert-btn:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
     
+    <!-- 헤더 -->
     <header class="header">
-        <h1>홈</h1>
-        <div class="header-action">
-            <button class="icon-button ripple-target">
+        <div class="logo-area">POCKETBLY</div>
+        <div class="header-actions">
+            <button class="btn-icon">
                 <span class="material-icons-round">notifications</span>
             </button>
             <div style="position:relative;">
-                <button class="icon-button ripple-target" id="btn-settings" onclick="toggleSettingsDropdown(event)">
+                <button class="btn-icon" onclick="toggleSettingsDropdown(event)">
                     <span class="material-icons-round">settings</span>
                 </button>
                 <div class="dropdown-menu" id="settings-dropdown">
-                    <button class="dropdown-item ripple-target" onclick="toggleTheme()">
+                    <button class="dropdown-item" onclick="toggleTheme()">
                         <span class="material-icons-round" id="theme-icon">dark_mode</span>
                         <span id="theme-text">다크 모드</span>
                     </button>
@@ -335,111 +327,130 @@
         </div>
     </header>
 
-    <div class="container">
-        <!-- 1. 히어로 섹션: 단순 텍스트에서 타이포그래피 강조형으로 변경 -->
-        <section class="hero-section" style="animation-delay: 0.05s;">
-            <div class="hero-greeting skeleton" id="greeting-text" style="width:140px; height:20px;">안녕하세요</div>
-            <div class="hero-balance skeleton" id="total-asset" style="width:160px; height:46px; margin-top:8px;">0 <span class="hero-currency">원</span></div>
+    <div class="main-container">
+        <!-- 1. 히어로 섹션 (총 자산) -->
+        <section class="hero-section fade-in-up">
+            <div class="greeting skeleton" id="greeting-text" style="width:140px; height:20px;"></div>
+            <div class="total-balance skeleton" id="total-asset" style="width:180px; height:44px; margin-top:8px;"></div>
         </section>
 
-        <!-- 2. 월간 지출 분석 (완전 개편: 게이지 & 배지) -->
-        <div class="insight-card ripple-target" style="animation-delay: 0.15s;">
-            <div class="card-header-v2">
-                <span class="card-title-v2">이번 달 지출</span>
-                <span class="card-badge skeleton" id="percent-badge">0%</span>
+        <!-- 2. 소비 리포트 카드 -->
+        <div class="card press-scale fade-in-up delay-1">
+            <div class="card-head">
+                <div>
+                    <div class="card-title">이번 달 지출</div>
+                    <div class="card-sub">지난달과 비교해봤어요</div>
+                </div>
+                <div class="card-icon-bg">
+                    <span class="material-icons-round">analytics</span>
+                </div>
             </div>
             
-            <div class="gauge-container">
-                <div class="gauge-label-row">
-                    <span id="current-date-label">1일 ~ 오늘</span>
-                    <span class="gauge-val-current skeleton" id="curr-month-amt">0원</span>
+            <div class="bar-chart-wrap">
+                <!-- 지난달 -->
+                <div class="chart-row">
+                    <div class="chart-label-area">
+                        <span class="chart-label-text">지난달</span>
+                        <span class="chart-value-text skeleton" id="prev-month-amt" style="width:60px;">0원</span>
+                    </div>
+                    <div class="track">
+                        <div class="bar prev" id="bar-prev"></div>
+                    </div>
                 </div>
-                
-                <div class="progress-track">
-                    <div class="progress-fill" id="main-progress-bar"></div>
+                <!-- 이번달 -->
+                <div class="chart-row">
+                    <div class="chart-label-area">
+                        <span class="chart-label-text">이번달</span>
+                        <span class="chart-value-text skeleton" id="curr-month-amt" style="width:60px;">0원</span>
+                    </div>
+                    <div class="track">
+                        <div class="bar curr" id="bar-curr"></div>
+                    </div>
                 </div>
+            </div>
 
-                <div class="compare-text skeleton" id="trend-text" style="height:48px;">
-                    분석 중...
+            <div class="trend-badge skeleton" id="trend-text" style="width:100%; height:36px;">분석 중...</div>
+        </div>
+
+        <!-- 3. 지출 랭킹 -->
+        <div class="card press-scale fade-in-up delay-2">
+            <div class="card-head">
+                <div>
+                    <div class="card-title">지출 랭킹</div>
+                    <div class="card-sub">어디에 가장 많이 썼을까요?</div>
+                </div>
+                <div class="card-icon-bg">
+                    <span class="material-icons-round">pie_chart</span>
+                </div>
+            </div>
+            <div class="ranking-wrap">
+                <div class="donut-container">
+                    <div class="donut-ring" id="donut-chart"></div>
+                    <div class="donut-hole"></div>
+                </div>
+                <div class="rank-list" id="rank-list">
+                    <div class="skeleton" style="height:20px; width:100%;"></div>
+                    <div class="skeleton" style="height:20px; width:80%;"></div>
+                    <div class="skeleton" style="height:20px; width:60%;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- 3. 지출 랭킹 (완전 개편: 리더보드 스타일) -->
-        <div class="insight-card ripple-target" style="animation-delay: 0.25s;">
-            <div class="card-header-v2" style="margin-bottom:12px;">
-                <span class="card-title-v2">지출 TOP 3</span>
-                <span class="material-icons-round" style="color:var(--text-sub);">pie_chart</span>
+        <!-- 4. 하루 평균 -->
+        <div class="card press-scale fade-in-up delay-3" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div class="card-title" style="font-size:16px;">하루 평균 지출</div>
+                <div class="card-sub">이번 달 기준</div>
             </div>
-            
-            <div class="ranking-list-v2" id="rank-list">
-                <!-- 랭킹 아이템 스켈레톤 -->
-                <div class="rank-row-v2 skeleton" style="height:44px; width:100%;"></div>
-                <div class="rank-row-v2 skeleton" style="height:44px; width:100%;"></div>
-                <div class="rank-row-v2 skeleton" style="height:44px; width:100%;"></div>
-            </div>
-        </div>
-
-        <!-- 4. 데일리 인사이트 (아이콘 + 텍스트 강조) -->
-        <div class="insight-card ripple-target" style="animation-delay: 0.35s; padding: 20px 24px;">
-            <div class="daily-wrapper">
-                <div class="daily-icon">
-                    <span class="material-icons-round">calendar_today</span>
-                </div>
-                <div class="daily-content">
-                    <div class="daily-label">하루 평균 지출</div>
-                    <div class="daily-amount skeleton" id="daily-avg" style="width:100px; height:26px;">0원</div>
-                </div>
-            </div>
+            <div class="total-balance skeleton" id="daily-avg" style="font-size:22px; width:100px; height:28px;">0원</div>
         </div>
     </div>
     
-    <!-- 하단 내비게이션 (원본 유지) -->
-    <nav class="bottom-nav">
-        <a href="/" class="nav-item active ripple-target">
-            <span class="material-icons">home</span><span>홈</span>
-        </a>
-        <a href="/record" class="nav-item ripple-target">
-            <span class="material-icons">receipt_long</span><span>기록</span>
-        </a>
-        <a href="/challenge" class="nav-item ripple-target">
-            <span class="material-icons">track_changes</span><span>도전</span>
-        </a>
-        <a href="/my" class="nav-item ripple-target">
-            <span class="material-icons">person</span><span>MY</span>
-        </a>
-    </nav>
+    <!-- 하단 내비게이션 -->
+    <div class="bottom-nav-container">
+        <nav class="bottom-nav">
+            <a href="/" class="nav-item active">
+                <span class="material-icons-round">home</span><span>홈</span>
+            </a>
+            <a href="/record" class="nav-item">
+                <span class="material-icons-round">receipt_long</span><span>기록</span>
+            </a>
+            <a href="/challenge" class="nav-item">
+                <span class="material-icons-round">track_changes</span><span>도전</span>
+            </a>
+            <a href="/my" class="nav-item">
+                <span class="material-icons-round">person</span><span>MY</span>
+            </a>
+        </nav>
+    </div>
 
     <!-- 알림 팝업 -->
     <div id="alert-overlay" class="alert-overlay">
         <div class="alert-box">
-            <span class="material-icons-round" id="alert-icon" style="font-size:56px; margin-bottom:16px;">check_circle</span>
-            <h3 id="alert-title" style="margin:0 0 8px 0; font-size:20px;">알림</h3>
-            <p id="alert-msg" style="margin:0; font-size:15px; color:var(--text-sub); line-height:1.5;">내용</p>
-            <div id="alert-comment" style="background:var(--popup-comment); padding:16px; border-radius:16px; margin-top:20px; font-size:14px; text-align:left; color:var(--text-main); line-height:1.4;"></div>
-            <button class="alert-btn ripple-target" onclick="confirmAlert()">확인</button>
+            <span class="material-icons-round" id="alert-icon" style="font-size:48px; margin-bottom:12px;">check_circle</span>
+            <h3 id="alert-title" style="margin:0 0 8px 0; font-size:18px; color:var(--text-primary);">승인 완료</h3>
+            <p id="alert-msg" style="margin:0; font-size:15px; color:var(--text-secondary); line-height:1.5;">부모님이 확인하셨습니다.</p>
+            <div id="alert-comment" style="background:var(--bg-page); padding:14px; border-radius:12px; margin-top:20px; font-size:14px; text-align:left; color:var(--text-primary);"></div>
+            <button class="alert-btn" onclick="confirmAlert()">확인</button>
         </div>
     </div>
 
     <script>
-        // [설정]
-        function returnAppBoxFunction (obj) { console.log("AppBox Result:", obj); }
-        
-        // 테마 로직
+        // [테마 UI 업데이트]
         function updateThemeUI(theme) {
             const icon = document.getElementById('theme-icon');
             const text = document.getElementById('theme-text');
-            const metaTheme = document.querySelector('meta[name="theme-color"]');
-            
             if (!icon || !text) return;
+            
             if (theme === 'dark') {
-                icon.textContent = 'light_mode'; text.textContent = '라이트 모드';
-                if(metaTheme) metaTheme.setAttribute('content', '#121212');
+                icon.textContent = 'light_mode';
+                text.textContent = '라이트 모드';
             } else {
-                icon.textContent = 'dark_mode'; text.textContent = '다크 모드';
-                if(metaTheme) metaTheme.setAttribute('content', '#f9fafb');
+                icon.textContent = 'dark_mode';
+                text.textContent = '다크 모드';
             }
         }
+
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
@@ -448,38 +459,53 @@
             updateThemeUI(newTheme);
         }
 
-        // 드롭다운
         function toggleSettingsDropdown(e) {
             e.stopPropagation();
             const dropdown = document.getElementById('settings-dropdown');
-            updateThemeUI(document.documentElement.getAttribute('data-theme'));
-            if (dropdown.classList.contains('show')) dropdown.classList.remove('show');
-            else dropdown.classList.add('show');
+            const current = document.documentElement.getAttribute('data-theme');
+            updateThemeUI(current); 
+            dropdown.classList.toggle('show');
         }
+
         window.addEventListener('click', () => {
             const dropdown = document.getElementById('settings-dropdown');
             if (dropdown) dropdown.classList.remove('show');
         });
 
-        // PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() { navigator.serviceWorker.register('/sw.js'); });
+        // [숫자 카운트 애니메이션 함수] - 토스 스타일
+        function animateValue(obj, start, end, duration, suffix = "원") {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                // Ease-out effect for numbers
+                const easeProgress = 1 - Math.pow(1 - progress, 3); 
+                const currentVal = Math.floor(easeProgress * (end - start) + start);
+                
+                obj.innerText = currentVal.toLocaleString() + suffix;
+                
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    obj.innerText = end.toLocaleString() + suffix; // Ensure final value is accurate
+                }
+            };
+            window.requestAnimationFrame(step);
         }
-        document.addEventListener('contextmenu', event => event.preventDefault());
 
-        // Firebase
+        // [Firebase Config & Logic]
         const firebaseConfig = { apiKey: "AIzaSyBwn6nH3yiscgy5Oa2pbqJ83Nx7YwFjlJI", authDomain: "pocketbly.firebaseapp.com", projectId: "pocketbly", storageBucket: "pocketbly.firebasestorage.app", messagingSenderId: "535063683428", appId: "1:535063683428:web:4729815738bee4f8305a71", measurementId: "G-RE71JXSNR3" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // 인사말
+        // 인사말 로직
         const hours = new Date().getHours();
         let timeGreeting = "안녕하세요";
-        if (hours >= 5 && hours < 12) timeGreeting = "좋은 아침입니다";
-        else if (hours >= 12 && hours < 18) timeGreeting = "맛점 하셨나요?";
+        if (hours >= 5 && hours < 12) timeGreeting = "좋은 아침이에요";
+        else if (hours >= 12 && hours < 18) timeGreeting = "점심 맛있게 드셨나요?";
         else if (hours >= 18 && hours < 22) timeGreeting = "오늘 하루 고생했어요";
-        else timeGreeting = "편안한 밤 되세요";
+        else timeGreeting = "편안한 밤 보내세요";
 
         let pendingReportDocId = null; 
 
@@ -487,13 +513,11 @@
             if (user) {
                 const name = user.displayName || "사용자";
                 const greetingEl = document.getElementById('greeting-text');
-                if(greetingEl) {
-                    greetingEl.classList.remove('skeleton');
-                    greetingEl.style.width = 'auto'; greetingEl.style.height = 'auto';
-                    greetingEl.innerHTML = `${timeGreeting}, <span style="color:var(--text-main); font-weight:700;">${name}님</span>`;
-                    greetingEl.style.opacity = '0'; setTimeout(() => greetingEl.style.opacity = '1', 50);
-                    greetingEl.style.transition = 'opacity 0.6s ease';
-                }
+                greetingEl.classList.remove('skeleton');
+                greetingEl.style.width = 'auto'; 
+                greetingEl.style.height = 'auto';
+                greetingEl.innerText = `${timeGreeting}, ${name}님`;
+                
                 syncHomeData(user.uid);
                 listenForParentDecision(user.uid); 
             } else {
@@ -501,9 +525,10 @@
             }
         });
 
-        // 데이터 동기화 및 캐싱 (v2 유지)
         const CACHE_VERSION = 'v2';
+
         async function syncHomeData(uid) {
+            // (기존 데이터 동기화 로직 유지)
             try {
                 const metaRef = db.collection('users').doc(uid).collection('transaction_list').doc('metadata');
                 const metaSnap = await metaRef.get();
@@ -516,9 +541,9 @@
                 if (metaData.lastBatchId > cache.lastBatchId) needsUpdate = true;
                 if (metaData.lastUpdatedAt && metaData.lastUpdatedAt !== cache.lastUpdatedAt) needsUpdate = true;
                 if (!rawCache) needsUpdate = true;
-                if (!needsUpdate && cache.transactions.length > 0 && !cache.transactions[0]._batchId) needsUpdate = true;
-
+                
                 let allTransactions = [];
+
                 if (!needsUpdate) {
                     allTransactions = cache.transactions;
                 } else {
@@ -532,8 +557,7 @@
                         if (snap.exists) {
                             const batchData = snap.data();
                             if (batchData.transactions) {
-                                const txs = batchData.transactions.map(t => ({ ...t, _batchId: snap.id }));
-                                newTransactions = newTransactions.concat(txs);
+                                newTransactions = newTransactions.concat(batchData.transactions);
                             }
                         }
                     });
@@ -543,48 +567,13 @@
                 }
                 calculateMetrics(allTransactions);
             } catch (e) {
-                console.error(e);
+                console.error("Sync Error:", e);
                 calculateMetrics([]); 
             }
         }
 
-        // [숫자 카운팅 애니메이션]
-        function animateValue(obj, start, end, duration, suffix = '원') {
-            if (!obj) return;
-            obj.classList.remove('skeleton');
-            obj.style.width = 'auto'; obj.style.height = 'auto';
-            
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const easeProgress = 1 - Math.pow(1 - progress, 4); 
-                const value = Math.floor(easeProgress * (end - start) + start);
-                
-                // 통화 표시면 콤마 추가
-                if(suffix === '원') {
-                     obj.innerHTML = value.toLocaleString() + `<span class="hero-currency">${suffix}</span>`;
-                     // 데일리/리포트 카드의 경우 작은 폰트 적용
-                     if(obj.id !== 'total-asset') obj.innerText = value.toLocaleString() + suffix;
-                } else {
-                    obj.innerText = value + suffix;
-                }
-
-                if (progress < 1) window.requestAnimationFrame(step);
-                else {
-                    if(suffix === '원') {
-                         if(obj.id === 'total-asset') obj.innerHTML = end.toLocaleString() + `<span class="hero-currency">${suffix}</span>`;
-                         else obj.innerText = end.toLocaleString() + suffix;
-                    } else {
-                        obj.innerText = end + suffix;
-                    }
-                }
-            };
-            window.requestAnimationFrame(step);
-        }
-
-        // [v2.0 통계 계산 및 렌더링]
         function calculateMetrics(transactions) {
+            // (데이터 계산 로직 동일)
             const processedData = transactions.map(item => {
                 let d = new Date();
                 if (item.date) d = new Date(item.date);
@@ -614,7 +603,7 @@
                     if (tDate.getFullYear() === currentYear && tDate.getMonth() === currentMonth) {
                         thisMonthExpense += amt;
                         const cat = item.category || '기타';
-                        categoryMap[cat] = (categoryMap[cat] || 0) + amt;
+                        if (categoryMap[cat]) categoryMap[cat] += amt; else categoryMap[cat] = amt;
                     }
                     if (tDate.getFullYear() === lastMonthYear && tDate.getMonth() === lastMonthIdx) {
                         lastMonthExpense += amt;
@@ -624,162 +613,125 @@
 
             const netAsset = totalIncome - totalExpense;
             
-            // 1. 자산 애니메이션
-            animateValue(document.getElementById('total-asset'), 0, netAsset, 1500, '원');
-            
-            // 2. 게이지 카드 렌더링
-            animateValue(document.getElementById('curr-month-amt'), 0, thisMonthExpense, 1200, '원');
-            
-            // 지난달 대비 퍼센트 계산
-            let percent = 0;
-            if (lastMonthExpense > 0) percent = Math.round((thisMonthExpense / lastMonthExpense) * 100);
-            else if (thisMonthExpense > 0) percent = 100;
-            
-            const badge = document.getElementById('percent-badge');
-            badge.classList.remove('skeleton');
-            badge.innerText = `지난달의 ${percent}%`;
-            
-            // 프로그레스 바 (최대 100%)
-            const progressBar = document.getElementById('main-progress-bar');
-            setTimeout(() => {
-                const width = Math.min(percent, 100);
-                progressBar.style.width = `${width}%`;
-                // 100% 넘어가면 색상 변경 (경고)
-                if (percent > 100) progressBar.style.background = 'var(--gradient-danger)';
-                else progressBar.style.background = 'var(--gradient-primary)';
-            }, 300);
-
-            // 트렌드 텍스트 (아이콘 포함)
-            const trendEl = document.getElementById('trend-text');
-            trendEl.classList.remove('skeleton');
-            trendEl.style.height = 'auto';
-            const diff = thisMonthExpense - lastMonthExpense;
-            
-            let trendHtml = '';
-            if (diff > 0) trendHtml = `<span class="material-icons-round trend-icon" style="color:#f04452;">trending_up</span>지난달보다 <b>${Math.abs(diff).toLocaleString()}원</b> 더 썼어요.`;
-            else if (diff < 0) trendHtml = `<span class="material-icons-round trend-icon" style="color:#3182f6;">trending_down</span>지난달보다 <b>${Math.abs(diff).toLocaleString()}원</b> 아꼈어요!`;
-            else trendHtml = `<span class="material-icons-round trend-icon">remove</span>지난달과 지출이 비슷해요.`;
-            
-            if (thisMonthExpense === 0 && lastMonthExpense === 0) trendHtml = `<span class="material-icons-round trend-icon">savings</span>아직 지출 내역이 없어요.`;
-            
-            trendEl.innerHTML = trendHtml;
-
-            // 3. 랭킹 리더보드 렌더링
-            const sortedCats = Object.keys(categoryMap).map(key => ({ name: key, amount: categoryMap[key] })).sort((a, b) => b.amount - a.amount).slice(0, 3);
-            const rankListEl = document.getElementById('rank-list');
-            rankListEl.innerHTML = '';
-            
-            const categoryIcons = {
-                '식비': 'restaurant', '교통': 'directions_bus', '쇼핑': 'shopping_bag', 
-                '취미': 'sports_esports', '편의점': 'store', '간식': 'icecream', '기타': 'more_horiz'
+            // [UI 업데이트 - 애니메이션 적용]
+            const removeSkeleton = (id) => {
+                const el = document.getElementById(id);
+                if(el) { 
+                    el.classList.remove('skeleton'); 
+                    el.style.width = 'auto'; 
+                    el.style.height = 'auto'; 
+                    return el;
+                }
             };
 
-            if (sortedCats.length > 0) {
-                const maxCatAmt = sortedCats[0].amount;
-                sortedCats.forEach((cat, idx) => {
-                    const iconName = categoryIcons[cat.name] || 'category';
-                    const barWidth = (cat.amount / maxCatAmt) * 100;
-                    
-                    const div = document.createElement('div');
-                    div.className = 'rank-row-v2';
-                    div.style.animation = `fadeUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards ${0.1 * idx}s`;
-                    div.style.opacity = '0';
-                    div.innerHTML = `
-                        <div class="rank-icon-box">
-                            <span class="material-icons-round" style="font-size:20px;">${iconName}</span>
-                        </div>
-                        <div class="rank-info">
-                            <div class="rank-header">
-                                <span>${cat.name}</span>
-                                <span>${cat.amount.toLocaleString()}원</span>
-                            </div>
-                            <div class="rank-bar-bg">
-                                <div class="rank-bar-fill" style="width:0%"></div>
-                            </div>
-                        </div>
-                    `;
-                    rankListEl.appendChild(div);
-                    
-                    // 바 애니메이션
-                    setTimeout(() => {
-                        div.querySelector('.rank-bar-fill').style.width = `${barWidth}%`;
-                    }, 200 + (idx * 100));
-                });
-            } else {
-                rankListEl.innerHTML = '<div style="text-align:center; color:var(--text-sub); padding:10px;">지출 내역이 없습니다.</div>';
+            const assetEl = removeSkeleton('total-asset');
+            if(assetEl) animateValue(assetEl, 0, netAsset, 1500);
+
+            const prevEl = removeSkeleton('prev-month-amt');
+            if(prevEl) animateValue(prevEl, 0, lastMonthExpense, 1000);
+
+            const currEl = removeSkeleton('curr-month-amt');
+            if(currEl) animateValue(currEl, 0, thisMonthExpense, 1000);
+
+            const maxVal = Math.max(thisMonthExpense, lastMonthExpense) || 1;
+            // 지연 후 그래프 애니메이션 시작
+            setTimeout(() => {
+                const barPrev = document.getElementById('bar-prev');
+                const barCurr = document.getElementById('bar-curr');
+                if(barPrev) barPrev.style.width = `${(lastMonthExpense / maxVal) * 100}%`;
+                if(barCurr) barCurr.style.width = `${(thisMonthExpense / maxVal) * 100}%`;
+            }, 300);
+
+            removeSkeleton('trend-text');
+            const trendEl = document.getElementById('trend-text');
+            const diff = thisMonthExpense - lastMonthExpense;
+            
+            if(trendEl) {
+                trendEl.className = "trend-badge"; // reset classes
+                if (diff > 0) {
+                    trendEl.classList.add('bad');
+                    trendEl.innerHTML = `지난달보다 ${Math.abs(diff).toLocaleString()}원 더 썼어요`;
+                } else if (diff < 0) {
+                    trendEl.innerHTML = `지난달보다 ${Math.abs(diff).toLocaleString()}원 아꼈어요!`;
+                } else {
+                    trendEl.style.background = "var(--bg-page)";
+                    trendEl.style.color = "var(--text-secondary)";
+                    trendEl.innerText = "지난달과 비슷하게 소비하고 있어요";
+                }
             }
 
-            // 4. 하루 평균
+            // 랭킹
+            const sortedCats = Object.keys(categoryMap).map(key => ({ name: key, amount: categoryMap[key] })).sort((a, b) => b.amount - a.amount).slice(0, 3);
+            const rankListEl = document.getElementById('rank-list');
+            if(rankListEl) rankListEl.innerHTML = '';
+            
+            const donutChart = document.getElementById('donut-chart');
+            
+            if (sortedCats.length > 0) {
+                const colors = ['#3182F6', '#26D07C', '#F04452']; // Toss Colors
+                let gradientStr = "", currentDeg = 0;
+                
+                sortedCats.forEach((cat, idx) => {
+                    if(rankListEl) {
+                        rankListEl.innerHTML += `
+                        <div class="rank-row">
+                            <div class="rank-cat">
+                                <div class="dot" style="background-color: ${colors[idx]}"></div>
+                                ${cat.name}
+                            </div>
+                            <div class="rank-val">${cat.amount.toLocaleString()}원</div>
+                        </div>`;
+                    }
+                    const deg = (cat.amount / thisMonthExpense) * 360; 
+                    gradientStr += `${colors[idx]} ${currentDeg}deg ${currentDeg + deg}deg, `;
+                    currentDeg += deg;
+                });
+                
+                gradientStr += `var(--bg-page) ${currentDeg}deg 360deg`;
+                
+                // 도넛 차트 애니메이션 (약간의 딜레이)
+                setTimeout(() => {
+                    if(donutChart) donutChart.style.background = `conic-gradient(${gradientStr})`;
+                }, 400);
+
+            } else {
+                if(rankListEl) rankListEl.innerHTML = '<div style="color:var(--text-tertiary); text-align:center; padding:10px;">내역이 없습니다</div>';
+                if(donutChart) donutChart.style.background = 'var(--bg-page)';
+            }
+
+            const dailyAvgEl = removeSkeleton('daily-avg');
             const dayAvg = Math.round(thisMonthExpense / (todayDate || 1));
-            animateValue(document.getElementById('daily-avg'), 0, dayAvg, 1200, '원');
+            if(dailyAvgEl) animateValue(dailyAvgEl, 0, dayAvg, 1200);
         }
 
-        // 리플 효과
-        function createRipple(event) {
-            const button = event.currentTarget; 
-            const circle = document.createElement('span'); 
-            const diameter = Math.max(button.clientWidth, button.clientHeight); 
-            const radius = diameter / 2; 
-            const rect = button.getBoundingClientRect();
-            
-            const clientX = event.clientX || (event.touches ? event.touches[0].clientX : 0);
-            const clientY = event.clientY || (event.touches ? event.touches[0].clientY : 0);
-
-            circle.style.width = circle.style.height = `${diameter}px`; 
-            circle.style.left = `${clientX - rect.left - radius}px`; 
-            circle.style.top = `${clientY - rect.top - radius}px`; 
-            circle.classList.add('ripple');
-            
-            const oldRipple = button.querySelector('.ripple');
-            if (oldRipple) oldRipple.remove();
-
-            button.appendChild(circle); 
-            setTimeout(() => circle.remove(), 500);
-        }
-        document.querySelectorAll('.ripple-target').forEach(btn => {
-            btn.addEventListener('mousedown', createRipple);
-            btn.addEventListener('touchstart', createRipple, {passive: true});
-        });
-
-        // 팝업 리스너
+        // [알림 로직]
         function listenForParentDecision(uid) {
             db.collection('shared_reports').where('uid','==',uid).where('status','in',['승인','반려'])
             .onSnapshot(ss => {
                 ss.docChanges().forEach(c => {
                     if(c.type==='added' || c.type==='modified') {
                         let d = c.doc.data(); pendingReportDocId = c.doc.id;
-                        const overlay = document.getElementById('alert-overlay');
-                        const icon = document.getElementById('alert-icon');
-                        
                         document.getElementById('alert-title').innerText = `부모님 ${d.status}`;
-                        icon.innerText = d.status==='승인'?'check_circle':'cancel';
-                        icon.style.color = d.status==='승인'?'#3182f6':'#f04452';
-                        
-                        document.getElementById('alert-msg').innerText = d.status==='승인' ? "요청하신 내역이 승인되었습니다." : "요청이 반려되었습니다.";
+                        const iconEl = document.getElementById('alert-icon');
+                        iconEl.innerText = d.status==='승인'?'check_circle':'cancel';
+                        iconEl.style.color = d.status==='승인'?'var(--primary-blue)':'var(--point-red)';
                         
                         const commentEl = document.getElementById('alert-comment');
                         if(d.parentComment) {
-                            commentEl.innerText = `"${d.parentComment}"`;
+                            commentEl.innerText = d.parentComment;
                             commentEl.style.display='block';
                         } else {
                             commentEl.style.display='none';
                         }
-                        
-                        overlay.style.display='flex';
-                        setTimeout(() => overlay.classList.add('show'), 10);
+                        document.getElementById('alert-overlay').style.display='flex';
                     }
                 });
             });
         }
         function confirmAlert() {
-            const overlay = document.getElementById('alert-overlay');
-            overlay.classList.remove('show');
-            setTimeout(() => {
-                if(pendingReportDocId) db.collection('shared_reports').doc(pendingReportDocId).delete().then(()=>{
-                    overlay.style.display='none';
-                });
-                else overlay.style.display='none';
-            }, 300);
+            if(pendingReportDocId) db.collection('shared_reports').doc(pendingReportDocId).delete().then(()=>{
+                document.getElementById('alert-overlay').style.display='none';
+            });
         }
     </script>
 </body>
