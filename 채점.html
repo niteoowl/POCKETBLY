@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부산남중학교 1-2 도덕 OMR 채점</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+
+        :root {
+            --omr-pink: #ff0055;
+            --omr-black: #000;
+            --pen-color: #ff0000; /* 채점용 빨간펜 */
+        }
+
+        body {
+            background-color: #e0e0e0;
+            font-family: 'Noto Sans KR', sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        /* OMR 종이 스타일 */
+        .omr-paper {
+            width: 700px; /* A4 비율 대략 맞춤 */
+            min-height: 900px;
+            background-color: #fff;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            position: relative;
+            box-sizing: border-box;
+            border-left: 15px solid var(--omr-pink); /* 좌측 타이밍 마크 영역 */
+        }
+
+        /* 타이밍 마크 (장식용) */
+        .timing-marks {
+            position: absolute;
+            left: -15px;
+            top: 50px;
+            bottom: 50px;
+            width: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .mark {
+            width: 100%;
+            height: 5px;
+            background: var(--omr-black);
+            margin-bottom: 15px;
+        }
+
+        /* 헤더 영역 */
+        header {
+            border-bottom: 2px solid var(--omr-black);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            letter-spacing: 2px;
+        }
+
+        .exam-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 20px;
+            border: 1px solid #000;
+            padding: 10px;
+        }
+
+        .info-box {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .info-box input {
+            border: none;
+            border-bottom: 1px solid #000;
+            width: 60px;
+            text-align: center;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .guide-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* 문제 영역 레이아웃 */
+        .questions-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+        }
+
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .column-header {
+            display: flex;
+            font-weight: bold;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        .col-no { width: 40px; text-align: center; }
+        .col-ans { flex: 1; text-align: center; }
+
+        /* 개별 문제 행 */
+        .q-row {
+            display: flex;
+            align-items: center;
+            height: 28px;
+            position: relative; /* 채점 마킹 위치 기준 */
+        }
+
+        .q-num {
+            width: 40px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .q-bubbles {
+            flex: 1;
+            display: flex;
+            justify-content: space-around;
+            padding: 0 10px;
+        }
+
+        /* OMR 마킹 디자인 */
+        input[type="radio"] {
+            display: none;
+        }
+
+        .bubble-label {
+            width: 20px; /* 세로 타원형 */
+            height: 26px;
+            border: 1px solid var(--omr-pink);
+            border-radius: 50%; /* 타원형 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: var(--omr-pink);
+            cursor: pointer;
+            transition: background 0.1s;
+            font-family: Arial, sans-serif;
+        }
+
+        /* 마킹 했을 때 (컴싸 효과) */
+        input[type="radio"]:checked + .bubble-label {
+            background-color: var(--omr-black);
+            color: white;
+            border-color: var(--omr-black);
+        }
+
+        /* 컨트롤 버튼 */
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+
+        .btn-grade { background-color: #2ecc71; color: white; }
+        .btn-reset { background-color: #e74c3c; color: white; }
+        
+        button:active { transform: scale(0.95); }
+
+        /* 채점 결과 표시 (선생님 펜 효과) */
+        .grade-mark {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* 클릭 방해 안 함 */
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            font-weight: bold;
+            font-size: 24px;
+            color: var(--pen-color);
+            z-index: 10;
+        }
+
+        .correct-mark {
+            color: var(--pen-color);
+            font-size: 30px;
+            opacity: 0.8;
+        }
+        
+        .wrong-mark {
+            color: var(--pen-color);
+            font-size: 24px;
+            opacity: 0.8;
+            /* 빗금 효과 */
+            text-decoration: none; 
+        }
+
+        /* 결과 점수판 */
+        .result-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border: 4px solid var(--pen-color);
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            display: none;
+            z-index: 100;
+        }
+        .result-score { font-size: 48px; color: var(--pen-color); font-weight: bold; }
+        .close-btn { margin-top: 20px; background: #333; color: white; padding: 10px 20px; font-size: 14px; }
+
+        /* 정답 표시 (채점 후 보임) */
+        .correct-answer-indicator {
+            position: absolute;
+            right: -25px;
+            font-size: 12px;
+            color: blue;
+            font-weight: bold;
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="omr-paper">
+    <!-- 왼쪽 장식용 타이밍 마크 -->
+    <div class="timing-marks">
+        <!-- JS로 생성 -->
+    </div>
+
+    <header>
+        <h1>OMR 답안지</h1>
+        <p style="font-size: 14px; margin:0;">(부산남중학교 1학년 2학기 도덕 기말고사)</p>
+        
+        <div class="exam-info">
+            <div class="info-box">
+                <label>학년 <input type="text" value="1"></label>
+                <label>반 <input type="text"></label>
+                <label>번호 <input type="text"></label>
+                <label>성명 <input type="text"></label>
+            </div>
+            <div class="info-box">
+                <span>과목코드: <b>도덕</b></span>
+            </div>
+        </div>
+        <p class="guide-text">※ 모의채점 서비스입니다.</p>
+    </header>
+
+    <div class="questions-container">
+        <!-- 1열: 1~18번 -->
+        <div class="column" id="col1">
+            <div class="column-header">
+                <span class="col-no">문항</span>
+                <span class="col-ans">표 기 란</span>
+            </div>
+        </div>
+
+        <!-- 2열: 19~35번 -->
+        <div class="column" id="col2">
+            <div class="column-header">
+                <span class="col-no">문항</span>
+                <span class="col-ans">표 기 란</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 채점 컨트롤 -->
+<div class="controls">
+    <button class="btn-grade" onclick="grade()">채점하기</button>
+    <button class="btn-reset" onclick="reset()">새 답안지</button>
+</div>
+
+<!-- 점수판 -->
+<div id="resultModal" class="result-overlay">
+    <h2>채점 결과</h2>
+    <div class="result-score" id="finalScore">0</div>
+    <p>총 35문항 중 <span id="correctCount">0</span>개 정답</p>
+    <button class="close-btn" onclick="document.getElementById('resultModal').style.display='none'">닫기</button>
+</div>
+
+<script>
+    // 데이터 (문항, 배점, 정답)
+    const examData = [
+        {no: 1, point: 2, answer: 4}, {no: 2, point: 2, answer: 3}, {no: 3, point: 3, answer: 1},
+        {no: 4, point: 2, answer: 3}, {no: 5, point: 3, answer: 4}, {no: 6, point: 2, answer: 4},
+        {no: 7, point: 2, answer: 1}, {no: 8, point: 2, answer: 1}, {no: 9, point: 2, answer: 3},
+        {no: 10, point: 3, answer: 4}, {no: 11, point: 3, answer: 3}, {no: 12, point: 3, answer: 5},
+        {no: 13, point: 2, answer: 1}, {no: 14, point: 3, answer: 5}, {no: 15, point: 3, answer: 2},
+        {no: 16, point: 3, answer: 4}, {no: 17, point: 3, answer: 5}, {no: 18, point: 3, answer: 5},
+        {no: 19, point: 3, answer: 4}, {no: 20, point: 3, answer: 5}, {no: 21, point: 4, answer: 1},
+        {no: 22, point: 3, answer: 1}, {no: 23, point: 2, answer: 5}, {no: 24, point: 2, answer: 5},
+        {no: 25, point: 3, answer: 5}, {no: 26, point: 4, answer: 4}, {no: 27, point: 3, answer: 4},
+        {no: 28, point: 3, answer: 2}, {no: 29, point: 4, answer: 2}, {no: 30, point: 3, answer: 2},
+        {no: 31, point: 4, answer: 2}, {no: 32, point: 3, answer: 5}, {no: 33, point: 4, answer: 2},
+        {no: 34, point: 3, answer: 3}, {no: 35, point: 3, answer: 3}
+    ];
+
+    // 초기화
+    function init() {
+        const col1 = document.getElementById('col1');
+        const col2 = document.getElementById('col2');
+        
+        // 타이밍 마크 생성 (장식)
+        const marksContainer = document.querySelector('.timing-marks');
+        for(let i=0; i<30; i++) {
+            const div = document.createElement('div');
+            div.className = 'mark';
+            marksContainer.appendChild(div);
+        }
+
+        examData.forEach((q, index) => {
+            const row = document.createElement('div');
+            row.className = 'q-row';
+            row.id = `row-${q.no}`;
+
+            // 보기 생성 (1~5)
+            let bubblesHtml = '';
+            for(let i=1; i<=5; i++) {
+                bubblesHtml += `
+                    <input type="radio" name="q${q.no}" id="q${q.no}-${i}" value="${i}">
+                    <label for="q${q.no}-${i}" class="bubble-label">${i}</label>
+                `;
+            }
+
+            row.innerHTML = `
+                <div class="q-num">${q.no}</div>
+                <div class="q-bubbles">${bubblesHtml}</div>
+                <div class="grade-mark" id="mark-${q.no}"></div>
+                <div class="correct-answer-indicator" id="ans-${q.no}">정답:${q.answer}</div>
+            `;
+
+            // 1~18번은 1열, 19~35번은 2열
+            if (index < 18) {
+                col1.appendChild(row);
+            } else {
+                col2.appendChild(row);
+            }
+        });
+    }
+
+    function grade() {
+        let score = 0;
+        let correctCount = 0;
+
+        examData.forEach(q => {
+            const selected = document.querySelector(`input[name="q${q.no}"]:checked`);
+            const markEl = document.getElementById(`mark-${q.no}`);
+            const ansEl = document.getElementById(`ans-${q.no}`);
+            
+            markEl.style.display = 'flex'; // 채점 표시 보이기
+            
+            let isCorrect = false;
+            if (selected && parseInt(selected.value) === q.answer) {
+                isCorrect = true;
+            }
+
+            if (isCorrect) {
+                score += q.point;
+                correctCount++;
+                markEl.innerHTML = '<span class="correct-mark">○</span>'; // 동그라미
+                markEl.style.color = 'var(--pen-color)';
+                ansEl.style.display = 'none'; // 정답 감춤
+            } else {
+                // 틀리거나 안 푼 경우 빗금
+                markEl.innerHTML = '<span class="wrong-mark">／</span>'; // 빗금
+                markEl.style.color = 'var(--pen-color)';
+                ansEl.style.display = 'block'; // 실제 정답 보여줌
+            }
+        });
+
+        // 점수판 업데이트
+        document.getElementById('finalScore').innerText = score + '점';
+        document.getElementById('correctCount').innerText = correctCount;
+        document.getElementById('resultModal').style.display = 'block';
+    }
+
+    function reset() {
+        if(confirm("새 답안지를 작성하시겠습니까?")) {
+            // 라디오 버튼 초기화
+            const radios = document.querySelectorAll('input[type="radio"]');
+            radios.forEach(r => r.checked = false);
+            
+            // 채점 표시 초기화
+            const marks = document.querySelectorAll('.grade-mark');
+            marks.forEach(m => {
+                m.style.display = 'none';
+                m.innerHTML = '';
+            });
+
+            // 정답 표시 초기화
+            const ansInds = document.querySelectorAll('.correct-answer-indicator');
+            ansInds.forEach(a => a.style.display = 'none');
+
+            document.getElementById('resultModal').style.display = 'none';
+            window.scrollTo(0,0);
+        }
+    }
+
+    init();
+</script>
+
+</body>
+</html>
