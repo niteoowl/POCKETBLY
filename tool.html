@@ -2,467 +2,536 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lucky Wheel - ToolKit</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>블랙 에디션 돌림판</title>
+    <!-- Pretendard Font -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
-        /* --- 1. Design System & Variables (Toss/Notion Vibe) --- */
+        /* CSS Variables */
         :root {
-            --bg-color: #F9FAFB; /* 연한 회색 배경 */
-            --surface-color: #FFFFFF;
-            --primary-color: #3182F6; /* 토스 블루 */
-            --primary-hover: #1B64DA;
-            --text-main: #191F28; /* 진한 검정 */
-            --text-sub: #8B95A1; /* 회색 텍스트 */
-            --border-color: #E5E8EB;
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.06);
-            --radius-md: 12px;
-            --radius-lg: 24px;
-            --font-stack: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --bg-color: #FFFFFF;
+            --sidebar-bg: #F7F7F5;
+            --text-main: #000000;
+            --text-light: #666666;
+            --border-color: #E0E0E0;
+            --hover-bg: #F2F2F2;
+            --font-stack: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            --wheel-shadow: 0 12px 40px rgba(0,0,0,0.15);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: var(--font-stack);
+            color: var(--text-main);
             background-color: var(--bg-color);
-            color: var(--text-main);
             display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* --- 2. Layout (Header to show it's a suite) --- */
-        header {
-            background: var(--surface-color);
-            border-bottom: 1px solid var(--border-color);
-            padding: 0 24px;
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .brand {
-            font-weight: 700;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-main);
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 24px;
-        }
-
-        .nav-item {
-            font-size: 14px;
-            color: var(--text-sub);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .nav-item:hover, .nav-item.active { color: var(--text-main); }
-
-        /* --- 3. Main Content --- */
-        main {
-            flex: 1;
-            padding: 40px 20px;
-            max-width: 1000px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .tool-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .tool-header h1 {
-            font-size: 32px;
-            font-weight: 800;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-
-        .tool-header p {
-            color: var(--text-sub);
-            font-size: 16px;
-        }
-
-        /* --- 4. Roulette Component --- */
-        .roulette-container {
-            display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: 40px;
-            align-items: start;
-        }
-
-        @media (max-width: 800px) {
-            .roulette-container { grid-template-columns: 1fr; }
-        }
-
-        /* Wheel Area */
-        .wheel-section {
-            background: var(--surface-color);
-            border-radius: var(--radius-lg);
-            padding: 40px;
-            box-shadow: var(--shadow-lg);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            min-height: 400px;
+            height: 100vh;
             overflow: hidden;
         }
 
-        .wheel-wrapper {
+        /* iOS Touch Effect */
+        .ios-touch { transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .ios-touch:active { transform: scale(0.96); opacity: 0.8; }
+
+        /* Sidebar Iframe */
+        .sidebar-frame {
+            width: 240px; height: 100%; border: none;
+            border-right: 1px solid var(--border-color);
+            flex-shrink: 0; background-color: var(--sidebar-bg);
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Fullscreen Mode Styles */
+        body.fullscreen-mode .sidebar-frame { margin-left: -241px; }
+        body.fullscreen-mode .tool-header-text { display: none; }
+        body.fullscreen-mode .main-content { padding: 0; justify-content: center; }
+
+        /* Main Content */
+        .main-content {
+            flex: 1; position: relative; overflow-y: auto;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 40px 20px; transition: padding 0.3s;
+        }
+
+        /* Header Container */
+        .header-container {
+            width: 100%; max-width: 1100px; margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            z-index: 50;
+        }
+
+        .tool-header-text { display: flex; flex-direction: column; gap: 8px; }
+        .breadcrumbs { font-size: 13px; color: var(--text-light); }
+        h1 { font-size: 32px; font-weight: 800; letter-spacing: -0.02em; }
+
+        /* Fullscreen Button */
+        .fullscreen-btn {
+            background: white; border: 1px solid #000;
+            padding: 8px 16px; border-radius: 8px; font-family: var(--font-stack);
+            font-size: 14px; font-weight: 600; cursor: pointer; color: #000;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+        .fullscreen-btn:hover { background: #000; color: #fff; }
+
+        /* 전체화면 모드 버튼 고정 */
+        body.fullscreen-mode .fullscreen-btn {
+            position: fixed; top: 20px; right: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 9999; 
+        }
+
+        /* Roulette Wrapper */
+        .roulette-wrapper {
+            display: flex; gap: 60px; width: 100%; height: 100%;
+            align-items: center; justify-content: center; max-width: 1200px;
+        }
+
+        .wheel-container {
             position: relative;
-            width: 380px;
-            height: 380px;
+            width: min(450px, 60vw); height: min(450px, 60vw);
+            flex-shrink: 0; transition: width 0.3s, height 0.3s;
+        }
+        
+        body.fullscreen-mode .wheel-container {
+            width: min(550px, 75vw); height: min(550px, 75vw);
         }
 
         canvas {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            transition: transform 6s cubic-bezier(0.2, 0, 0.1, 1); /* 핵심: 스릴있는 감속 커브 */
+            width: 100%; height: 100%; border-radius: 50%;
+            box-shadow: var(--wheel-shadow); transform: rotate(0deg);
         }
 
-        /* Indicator (The Pin) */
-        .indicator {
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-top: 35px solid var(--text-main);
-            z-index: 10;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+        /* Stopper (RED) */
+        .stopper {
+            position: absolute; top: -15px; left: 50%;
+            transform: translateX(-50%); width: 0; height: 0;
+            border-left: 15px solid transparent; border-right: 15px solid transparent;
+            border-top: 35px solid #E16259;
+            z-index: 10; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
         }
 
-        /* Input Area */
-        .controls-section {
-            background: var(--surface-color);
-            padding: 24px;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-sm);
+        .center-dot {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); width: 14%; height: 14%;
+            background: white; border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 5;
         }
 
-        .controls-section h3 {
-            font-size: 16px;
-            margin-bottom: 12px;
-            font-weight: 600;
+        /* Controls Area */
+        .controls {
+            flex: 1; max-width: 350px; height: 70vh;
+            display: flex; flex-direction: column; gap: 12px;
+            background: transparent; border: none; box-shadow: none; z-index: 20;
         }
 
-        textarea {
-            width: 100%;
-            height: 200px;
-            padding: 16px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
+        /* Inputs & Buttons */
+        .auto-fill-row { display: flex; gap: 8px; margin-bottom: 4px; }
+        .range-input {
+            flex: 1; padding: 10px; border: 1px solid #000;
+            border-radius: 8px; font-size: 14px; outline: none; background: #fff;
+        }
+        .fill-btn {
+            padding: 0 16px; background: #fff; border: 1px solid #000;
+            border-radius: 8px; color: #000; font-weight: 600; cursor: pointer;
+        }
+        .fill-btn:hover { background: #000; color: #fff; }
+
+        .control-header { display: flex; gap: 8px; }
+        .add-input {
+            flex: 1; padding: 12px; border: 1px solid #000;
+            border-radius: 8px; font-size: 14px; background: #fff; outline: none;
             font-family: var(--font-stack);
-            font-size: 14px;
-            resize: none;
-            outline: none;
-            background: var(--bg-color);
-            transition: border 0.2s;
-            line-height: 1.6;
         }
-
-        textarea:focus { border-color: var(--primary-color); background: #fff; }
-
-        .btn-group {
-            margin-top: 20px;
-            display: flex;
-            gap: 12px;
-        }
-
-        button {
-            flex: 1;
-            padding: 16px;
-            border: none;
-            border-radius: var(--radius-md);
-            font-size: 16px;
-            font-weight: 700;
+        .add-input:focus { background: #fafafa; }
+        .add-btn {
+            padding: 0 20px; background: #000; border: 1px solid #000;
+            border-radius: 8px; color: white; font-weight: 600; font-size: 14px;
             cursor: pointer;
-            transition: all 0.2s;
         }
 
-        .btn-spin {
-            background-color: var(--primary-color);
-            color: white;
-            box-shadow: 0 4px 12px rgba(49, 130, 246, 0.3);
+        .options-row {
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 13px; color: #000; font-weight: 600;
+        }
+        .checkbox-wrapper { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .checkbox-wrapper input { cursor: pointer; accent-color: #000; }
+
+        /* Item List */
+        .item-list {
+            flex: 1; overflow-y: auto; border: none; background: transparent;
+            padding: 4px 0; display: flex; flex-direction: column; gap: 8px;
+        }
+        .item-box {
+            display: flex; align-items: center; gap: 8px;
+            background: white; padding: 10px 14px;
+            border-radius: 8px; border: 1px solid #E0E0E0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s;
+        }
+        .item-box:hover { border-color: #000; }
+        .item-index { font-size: 12px; font-weight: 800; color: #000; min-width: 24px; }
+        .item-input {
+            flex: 1; border: none; outline: none; font-size: 15px;
+            font-family: var(--font-stack); color: #000; font-weight: 500;
+            background: transparent;
+        }
+        .delete-btn {
+            background: transparent; border: none; color: #FF0000;
+            font-weight: 500; font-size: 13px; cursor: pointer;
+            padding: 4px 8px; border-radius: 4px;
         }
 
-        .btn-spin:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
-        .btn-spin:disabled { background-color: #B0B8C1; cursor: not-allowed; transform: none; box-shadow: none; }
-
-        .btn-reset {
-            background-color: var(--surface-color);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            flex: 0.4;
+        /* Spin Button */
+        .spin-btn {
+            background-color: #000; color: white; border: none; padding: 20px;
+            border-radius: 12px; font-size: 18px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2); margin-top: 8px;
         }
-        .btn-reset:hover { background-color: var(--bg-color); }
+        .spin-btn:disabled { background-color: #999; cursor: not-allowed; box-shadow: none; }
 
-        /* Result Modal Overlay */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.4);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-            z-index: 1000;
-            backdrop-filter: blur(4px);
+        /* Result Overlay */
+        .result-overlay {
+            position: fixed; inset: 0;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9998; opacity: 0; pointer-events: none;
+            transition: opacity 0.4s ease;
         }
-
-        .modal-overlay.show { opacity: 1; pointer-events: auto; }
-
-        .result-card {
-            background: white;
-            padding: 40px 60px;
-            border-radius: 24px;
-            text-align: center;
-            transform: scale(0.9);
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        .result-overlay.active { opacity: 1; pointer-events: auto; }
+        .winner-text {
+            font-size: 4rem; font-weight: 900; color: #000;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 30px;
+            text-align: center; padding: 0 20px; word-break: keep-all;
+            transform: scale(0.9); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .result-overlay.active .winner-text { transform: scale(1); }
+        .overlay-close-btn {
+            background: #000; color: white; border: none; padding: 14px 32px;
+            border-radius: 50px; font-size: 16px; font-weight: 600; cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
 
-        .modal-overlay.show .result-card { transform: scale(1); }
-
-        .result-title { font-size: 14px; color: var(--text-sub); margin-bottom: 8px; font-weight: 600; }
-        .result-value { font-size: 36px; font-weight: 800; color: var(--primary-color); margin-bottom: 24px; }
-        .btn-close {
-            background: var(--bg-color);
-            color: var(--text-main);
-            padding: 12px 30px;
-            font-size: 14px;
+        /* Responsive */
+        @media (max-width: 900px) {
+            .sidebar-frame { display: none; }
+            .roulette-wrapper { flex-direction: column; gap: 20px; }
+            .wheel-container { width: min(80vw, 360px); height: min(80vw, 360px); }
+            .controls { padding: 0; border: none; background: transparent; height: auto; }
+            .item-list { max-height: 300px; }
+            
+            body.fullscreen-mode .roulette-wrapper { justify-content: center; }
+            body.fullscreen-mode .controls { position: absolute; bottom: 30px; width: 90%; height: auto; }
+            body.fullscreen-mode .control-header, 
+            body.fullscreen-mode .auto-fill-row,
+            body.fullscreen-mode .item-list,
+            body.fullscreen-mode .options-row { display: none; }
+            body.fullscreen-mode .spin-btn { width: 100%; box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
         }
     </style>
 </head>
 <body>
 
-    <!-- Fake Header to simulate a Tool Site -->
-    <header>
-        <a href="#" class="brand">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-            </svg>
-            ToolKit
-        </a>
-        <nav class="nav-links">
-            <a href="#" class="nav-item">PDF Tools</a>
-            <a href="#" class="nav-item">Converter</a>
-            <a href="#" class="nav-item active">Roulette</a>
-            <a href="#" class="nav-item">Timer</a>
-        </nav>
-    </header>
+    <!-- Result Overlay -->
+    <div class="result-overlay" id="resultOverlay">
+        <div class="winner-text" id="winnerText">결과</div>
+        <button class="overlay-close-btn ios-touch" id="overlayCloseBtn">확인</button>
+    </div>
 
-    <main>
-        <div class="tool-header">
-            <h1>행운의 돌림판</h1>
-            <p>참가자를 입력하고 스릴 넘치는 결과를 확인하세요.</p>
-        </div>
+    <!-- Sidebar Iframe -->
+    <iframe src="/sidebar" class="sidebar-frame" title="Sidebar"></iframe>
 
-        <div class="roulette-container">
-            <!-- Left: Wheel -->
-            <div class="wheel-section">
-                <div class="wheel-wrapper">
-                    <div class="indicator"></div>
-                    <canvas id="wheelCanvas" width="800" height="800"></canvas>
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- 헤더 -->
+        <div class="header-container">
+            <div class="tool-header-text">
+                <div class="breadcrumbs">
+                    <span>도구</span> / <span>랜덤</span>
                 </div>
+                <h1>블랙 에디션 돌림판</h1>
             </div>
 
-            <!-- Right: Controls -->
-            <div class="controls-section">
-                <h3>참가자 목록 (엔터로 구분)</h3>
-                <textarea id="itemsInput" spellcheck="false">짜장면
-짬뽕
-김치찌개
-돈까스
-햄버거
-초밥</textarea>
-                <div class="btn-group">
-                    <button class="btn-reset" id="resetBtn">초기화</button>
-                    <button class="btn-spin" id="spinBtn">돌리기</button>
+            <!-- 전체화면 버튼 -->
+            <button class="fullscreen-btn ios-touch" id="fullscreenToggle">
+                전체화면
+            </button>
+        </div>
+
+        <div class="roulette-wrapper">
+            <div class="wheel-container">
+                <div id="stopper" class="stopper"></div>
+                <canvas id="wheelCanvas" width="1000" height="1000"></canvas>
+                <div class="center-dot"></div>
+            </div>
+
+            <div class="controls">
+                
+                <!-- 1. 번호 자동 입력 -->
+                <div class="auto-fill-row">
+                    <input type="text" id="rangeInput" class="range-input" placeholder="예: 1-50">
+                    <button class="fill-btn ios-touch" onclick="handleAutoFill()">채우기</button>
                 </div>
+
+                <!-- 2. 개별 항목 추가 -->
+                <div class="control-header">
+                    <input type="text" id="newItemInput" class="add-input" placeholder="항목 직접 추가..." onkeypress="if(event.key==='Enter') addItem()">
+                    <button class="add-btn ios-touch" onclick="addItem()">추가</button>
+                </div>
+
+                <!-- 3. 옵션 -->
+                <div class="options-row">
+                    <span>총 <span id="itemCount">0</span>개 항목</span>
+                    <label class="checkbox-wrapper">
+                        <input type="checkbox" id="autoRemoveCheck">
+                        <span>당첨 시 삭제</span>
+                    </label>
+                </div>
+
+                <!-- 4. 리스트 -->
+                <div id="itemListContainer" class="item-list"></div>
+                
+                <button id="spinBtn" class="spin-btn ios-touch">돌리기</button>
             </div>
         </div>
     </main>
 
-    <!-- Modal -->
-    <div class="modal-overlay" id="resultModal">
-        <div class="result-card">
-            <div class="result-title">당첨된 결과는?</div>
-            <div class="result-value" id="winnerName">결과</div>
-            <button class="btn-close" onclick="closeModal()">확인</button>
-        </div>
-    </div>
-
     <script>
-        // --- Configuration & State ---
         const canvas = document.getElementById('wheelCanvas');
         const ctx = canvas.getContext('2d');
         const spinBtn = document.getElementById('spinBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const itemsInput = document.getElementById('itemsInput');
-        const modal = document.getElementById('resultModal');
-        const winnerText = document.getElementById('winnerName');
+        const newItemInput = document.getElementById('newItemInput');
+        const rangeInput = document.getElementById('rangeInput');
+        const itemListContainer = document.getElementById('itemListContainer');
+        const itemCountSpan = document.getElementById('itemCount');
+        const autoRemoveCheck = document.getElementById('autoRemoveCheck');
+        
+        const resultOverlay = document.getElementById('resultOverlay');
+        const winnerText = document.getElementById('winnerText');
+        const overlayCloseBtn = document.getElementById('overlayCloseBtn');
+        const fullscreenBtn = document.getElementById('fullscreenToggle');
+        const body = document.body;
 
-        // 토스 스타일 파스텔 팔레트
         const colors = [
-            '#FF9F9F', '#FFC58E', '#FFF09E', '#C0EFA6', 
-            '#A4DDF9', '#D0BFFF', '#FFACE4', '#B0B8C1'
+            '#FFD43B', '#4DAB9A', '#E16259', '#529CCA', 
+            '#9A6DD7', '#787774', '#F09440', '#EB5757'
         ];
 
-        let items = [];
+        // *** 초기 항목: 1, 2, 3 ***
+        let items = ["1", "2", "3"];
         let currentRotation = 0;
+        let velocity = 0;
         let isSpinning = false;
+        let animationFrameId;
 
-        // --- Functions ---
+        const FRICTION = 0.985;
+        const STOP_THRESHOLD = 0.02;
 
-        // 1. Parse Input & Draw
-        function parseItems() {
-            const raw = itemsInput.value.trim();
-            if (!raw) return [];
-            return raw.split('\n').map(item => item.trim()).filter(i => i !== '');
+        let isDramaMode = false;
+        let hasCrossedLine = false;
+        let lastSegmentIndex = -1;
+
+        function init() {
+            renderItemList();
+            drawWheel();
         }
 
+        // --- 자동 채우기 ---
+        function handleAutoFill() {
+            const val = rangeInput.value.trim();
+            const parts = val.split(/[-~]/);
+            if (parts.length !== 2) { alert("형식: 1-50"); return; }
+            const start = parseInt(parts[0]);
+            const end = parseInt(parts[1]);
+            if (isNaN(start) || isNaN(end) || start > end) { alert("올바른 숫자를 입력하세요."); return; }
+            if ((end - start) > 200) { alert("최대 200개까지만 가능합니다."); return; }
+            
+            for (let i = start; i <= end; i++) {
+                items.push(String(i));
+            }
+            rangeInput.value = '';
+            renderItemList();
+            drawWheel();
+            itemListContainer.scrollTop = itemListContainer.scrollHeight;
+        }
+
+        // --- 리스트 렌더링 ---
+        function renderItemList() {
+            itemListContainer.innerHTML = '';
+            items.forEach((item, index) => {
+                const box = document.createElement('div');
+                box.className = 'item-box';
+                
+                const idxSpan = document.createElement('span');
+                idxSpan.className = 'item-index';
+                idxSpan.innerText = index + 1;
+                
+                const input = document.createElement('input');
+                input.className = 'item-input';
+                input.value = item;
+                input.oninput = (e) => {
+                    items[index] = e.target.value;
+                    drawWheel();
+                };
+
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-btn ios-touch';
+                delBtn.innerText = '삭제';
+                delBtn.onclick = () => removeItem(index);
+
+                box.appendChild(idxSpan);
+                box.appendChild(input);
+                box.appendChild(delBtn);
+                itemListContainer.appendChild(box);
+            });
+            itemCountSpan.innerText = items.length;
+        }
+
+        function addItem() {
+            const val = newItemInput.value.trim();
+            if(val) {
+                items.push(val);
+                newItemInput.value = '';
+                renderItemList();
+                drawWheel();
+                itemListContainer.scrollTop = itemListContainer.scrollHeight;
+            }
+        }
+
+        function removeItem(index) {
+            items.splice(index, 1);
+            renderItemList();
+            drawWheel();
+        }
+
+        // --- Wheel Logic ---
         function drawWheel() {
-            items = parseItems();
-            const numItems = items.length;
-            const arc = (2 * Math.PI) / (numItems || 1);
-            
-            // Clear
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+            const displayItems = items.length > 0 ? items : ['항목 없음'];
+            const arc = Math.PI * 2 / displayItems.length;
+            const radius = canvas.width / 2;
             const centerX = canvas.width / 2;
             const centerY = canvas.height / 2;
-            const radius = canvas.width / 2 - 10; // Padding
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            if (numItems === 0) {
-                // Empty state
+            displayItems.forEach((item, i) => {
+                const angle = i * arc;
                 ctx.beginPath();
-                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-                ctx.fillStyle = '#F2F4F6';
-                ctx.fill();
-                return;
-            }
-
-            // Draw Slices
-            for (let i = 0; i < numItems; i++) {
-                const angle = i * arc - Math.PI / 2; // Start from top (-90deg)
+                if (items.length === 0) ctx.fillStyle = "#E0E0E0"; 
+                else ctx.fillStyle = colors[i % colors.length];
                 
-                ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
                 ctx.arc(centerX, centerY, radius, angle, angle + arc);
-                ctx.fillStyle = colors[i % colors.length];
+                ctx.lineTo(centerX, centerY);
                 ctx.fill();
-                ctx.stroke(); // 구분선
+                ctx.strokeStyle = "#FFFFFF";
+                ctx.lineWidth = 4;
+                ctx.stroke();
 
-                // Draw Text
                 ctx.save();
                 ctx.translate(centerX, centerY);
                 ctx.rotate(angle + arc / 2);
                 ctx.textAlign = "right";
-                ctx.fillStyle = "#333";
-                ctx.font = "bold 32px -apple-system, BlinkMacSystemFont, Pretendard";
-                ctx.fillText(items[i], radius - 40, 10);
+                ctx.fillStyle = (items.length === 0) ? "#999" : "#FFFFFF";
+                
+                let fontSize = 42; 
+                if(displayItems.length > 10) fontSize = 36;
+                if(displayItems.length > 20) fontSize = 28;
+                if(displayItems.length > 50) fontSize = 16;
+
+                ctx.font = `bold ${fontSize}px Pretendard, sans-serif`;
+                ctx.shadowColor = "rgba(0,0,0,0.1)";
+                ctx.shadowBlur = 4;
+                ctx.fillText(item, radius - 50, fontSize/3);
                 ctx.restore();
+            });
+        }
+
+        function spin() {
+            if (isSpinning) return;
+            if (items.length < 2) { alert("최소 2개의 항목이 필요합니다."); return; }
+
+            isSpinning = true;
+            spinBtn.disabled = true;
+            resultOverlay.classList.remove('active');
+
+            velocity = Math.random() * 20 + 30; 
+            isDramaMode = Math.random() < 0.5; 
+            hasCrossedLine = false;
+            lastSegmentIndex = getCurrentIndex();
+
+            animate();
+        }
+
+        function animate() {
+            velocity *= FRICTION;
+
+            if (velocity < 0.25 && velocity > 0) {
+                if (isDramaMode && !hasCrossedLine) {
+                    velocity = Math.max(velocity, 0.04); 
+                    const currentIndex = getCurrentIndex();
+                    if (currentIndex !== lastSegmentIndex) {
+                        hasCrossedLine = true; 
+                    }
+                    lastSegmentIndex = currentIndex;
+                } else if (hasCrossedLine) {
+                    velocity *= 0.9; 
+                }
+            }
+
+            currentRotation += velocity;
+            canvas.style.transform = `rotate(-${currentRotation}deg)`;
+
+            if (velocity < STOP_THRESHOLD) {
+                stopSpin();
+            } else {
+                animationFrameId = requestAnimationFrame(animate);
             }
         }
 
-        // 2. Spin Logic
-        function spin() {
-            if (isSpinning || items.length < 1) return;
-            
-            isSpinning = true;
-            spinBtn.disabled = true;
-
-            // 랜덤 회전 각도 계산
-            // 최소 5바퀴(1800도) + 랜덤(0~360도)
-            // "아슬아슬함"을 위해 랜덤 값을 더 미세하게 조정
-            const randomOffset = Math.floor(Math.random() * 360); 
-            const totalSpin = 1800 + randomOffset + 360 * 5; // 아주 많이 돌림
-
-            // 기존 각도에 누적 (반대 방향으로 돌지 않도록)
-            currentRotation += totalSpin;
-
-            // CSS Transition 적용
-            canvas.style.transform = `rotate(-${currentRotation}deg)`;
+        function getCurrentIndex() {
+            const actualRotation = currentRotation % 360;
+            const pointerAngle = (actualRotation + 270) % 360; 
+            const segmentAngle = 360 / items.length;
+            return Math.floor(pointerAngle / segmentAngle) % items.length;
         }
 
-        // 3. Result Calculation
-        canvas.addEventListener('transitionend', () => {
-            if (!isSpinning) return;
-
+        function stopSpin() {
+            cancelAnimationFrame(animationFrameId);
             isSpinning = false;
             spinBtn.disabled = false;
 
-            // 실제 멈춘 각도를 360도로 나눈 나머지
-            const actualDeg = currentRotation % 360;
+            const idx = getCurrentIndex();
+            const winner = items[idx];
             
-            // 캔버스가 반시계방향(rotate 마이너스)으로 돌았으므로
-            // 상단(0도)에 위치한 아이템을 계산하려면 
-            // 360 - actualDeg 위치가 바늘이 가리키는 지점
-            const arcSize = 360 / items.length;
-            const index = Math.floor((360 - actualDeg) / arcSize) % items.length;
-
-            showResult(items[index]);
-        });
-
-        function showResult(winner) {
             winnerText.innerText = winner;
-            modal.classList.add('show');
+            resultOverlay.classList.add('active');
+
+            if (autoRemoveCheck.checked) {
+                items.splice(idx, 1);
+                renderItemList();
+                drawWheel(); 
+            }
+        }
+
+        // 전체화면 토글
+        fullscreenBtn.addEventListener('click', () => {
+            body.classList.toggle('fullscreen-mode');
+            const isFull = body.classList.contains('fullscreen-mode');
+            fullscreenBtn.innerHTML = isFull ? '✕ 나가기' : '전체화면';
             
-            // 축하 효과 (간단한 pop)
-            const jsConfetti = document.createElement('div');
-            // 여기서는 심플함을 위해 모달만 띄움
-        }
+            // 캔버스 리사이징
+            setTimeout(drawWheel, 300); 
+        });
 
-        function closeModal() {
-            modal.classList.remove('show');
-        }
+        overlayCloseBtn.addEventListener('click', () => {
+            resultOverlay.classList.remove('active');
+        });
 
-        // --- Event Listeners ---
-        itemsInput.addEventListener('input', drawWheel);
         spinBtn.addEventListener('click', spin);
-        resetBtn.addEventListener('click', () => {
-            if(isSpinning) return;
-            itemsInput.value = '';
-            drawWheel();
-            currentRotation = 0;
-            canvas.style.transition = 'none';
-            canvas.style.transform = `rotate(0deg)`;
-            setTimeout(() => {
-                canvas.style.transition = 'transform 6s cubic-bezier(0.2, 0, 0.1, 1)';
-            }, 10);
-        });
-        
-        // Modal Click Outside
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
+        window.addEventListener('resize', drawWheel);
 
-        // Initialize
-        drawWheel();
-
+        init();
     </script>
 </body>
 </html>
