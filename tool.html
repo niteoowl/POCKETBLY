@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Wheel - ToolKit</title>
+    <style>
+        /* --- 1. Design System & Variables (Toss/Notion Vibe) --- */
+        :root {
+            --bg-color: #F9FAFB; /* 연한 회색 배경 */
+            --surface-color: #FFFFFF;
+            --primary-color: #3182F6; /* 토스 블루 */
+            --primary-hover: #1B64DA;
+            --text-main: #191F28; /* 진한 검정 */
+            --text-sub: #8B95A1; /* 회색 텍스트 */
+            --border-color: #E5E8EB;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.06);
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --font-stack: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-stack);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- 2. Layout (Header to show it's a suite) --- */
+        header {
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 24px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            font-weight: 700;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-main);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .nav-item {
+            font-size: 14px;
+            color: var(--text-sub);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-item:hover, .nav-item.active { color: var(--text-main); }
+
+        /* --- 3. Main Content --- */
+        main {
+            flex: 1;
+            padding: 40px 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .tool-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .tool-header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .tool-header p {
+            color: var(--text-sub);
+            font-size: 16px;
+        }
+
+        /* --- 4. Roulette Component --- */
+        .roulette-container {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 40px;
+            align-items: start;
+        }
+
+        @media (max-width: 800px) {
+            .roulette-container { grid-template-columns: 1fr; }
+        }
+
+        /* Wheel Area */
+        .wheel-section {
+            background: var(--surface-color);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            min-height: 400px;
+            overflow: hidden;
+        }
+
+        .wheel-wrapper {
+            position: relative;
+            width: 380px;
+            height: 380px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transition: transform 6s cubic-bezier(0.2, 0, 0.1, 1); /* 핵심: 스릴있는 감속 커브 */
+        }
+
+        /* Indicator (The Pin) */
+        .indicator {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 35px solid var(--text-main);
+            z-index: 10;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+        }
+
+        /* Input Area */
+        .controls-section {
+            background: var(--surface-color);
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .controls-section h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-family: var(--font-stack);
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            background: var(--bg-color);
+            transition: border 0.2s;
+            line-height: 1.6;
+        }
+
+        textarea:focus { border-color: var(--primary-color); background: #fff; }
+
+        .btn-group {
+            margin-top: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-spin {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(49, 130, 246, 0.3);
+        }
+
+        .btn-spin:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+        .btn-spin:disabled { background-color: #B0B8C1; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .btn-reset {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            flex: 0.4;
+        }
+        .btn-reset:hover { background-color: var(--bg-color); }
+
+        /* Result Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
+
+        .result-card {
+            background: white;
+            padding: 40px 60px;
+            border-radius: 24px;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .modal-overlay.show .result-card { transform: scale(1); }
+
+        .result-title { font-size: 14px; color: var(--text-sub); margin-bottom: 8px; font-weight: 600; }
+        .result-value { font-size: 36px; font-weight: 800; color: var(--primary-color); margin-bottom: 24px; }
+        .btn-close {
+            background: var(--bg-color);
+            color: var(--text-main);
+            padding: 12px 30px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fake Header to simulate a Tool Site -->
+    <header>
+        <a href="#" class="brand">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            ToolKit
+        </a>
+        <nav class="nav-links">
+            <a href="#" class="nav-item">PDF Tools</a>
+            <a href="#" class="nav-item">Converter</a>
+            <a href="#" class="nav-item active">Roulette</a>
+            <a href="#" class="nav-item">Timer</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="tool-header">
+            <h1>행운의 돌림판</h1>
+            <p>참가자를 입력하고 스릴 넘치는 결과를 확인하세요.</p>
+        </div>
+
+        <div class="roulette-container">
+            <!-- Left: Wheel -->
+            <div class="wheel-section">
+                <div class="wheel-wrapper">
+                    <div class="indicator"></div>
+                    <canvas id="wheelCanvas" width="800" height="800"></canvas>
+                </div>
+            </div>
+
+            <!-- Right: Controls -->
+            <div class="controls-section">
+                <h3>참가자 목록 (엔터로 구분)</h3>
+                <textarea id="itemsInput" spellcheck="false">짜장면
+짬뽕
+김치찌개
+돈까스
+햄버거
+초밥</textarea>
+                <div class="btn-group">
+                    <button class="btn-reset" id="resetBtn">초기화</button>
+                    <button class="btn-spin" id="spinBtn">돌리기</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="resultModal">
+        <div class="result-card">
+            <div class="result-title">당첨된 결과는?</div>
+            <div class="result-value" id="winnerName">결과</div>
+            <button class="btn-close" onclick="closeModal()">확인</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration & State ---
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spinBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const itemsInput = document.getElementById('itemsInput');
+        const modal = document.getElementById('resultModal');
+        const winnerText = document.getElementById('winnerName');
+
+        // 토스 스타일 파스텔 팔레트
+        const colors = [
+            '#FF9F9F', '#FFC58E', '#FFF09E', '#C0EFA6', 
+            '#A4DDF9', '#D0BFFF', '#FFACE4', '#B0B8C1'
+        ];
+
+        let items = [];
+        let currentRotation = 0;
+        let isSpinning = false;
+
+        // --- Functions ---
+
+        // 1. Parse Input & Draw
+        function parseItems() {
+            const raw = itemsInput.value.trim();
+            if (!raw) return [];
+            return raw.split('\n').map(item => item.trim()).filter(i => i !== '');
+        }
+
+        function drawWheel() {
+            items = parseItems();
+            const numItems = items.length;
+            const arc = (2 * Math.PI) / (numItems || 1);
+            
+            // Clear
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2 - 10; // Padding
+
+            if (numItems === 0) {
+                // Empty state
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.fillStyle = '#F2F4F6';
+                ctx.fill();
+                return;
+            }
+
+            // Draw Slices
+            for (let i = 0; i < numItems; i++) {
+                const angle = i * arc - Math.PI / 2; // Start from top (-90deg)
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, angle, angle + arc);
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+                ctx.stroke(); // 구분선
+
+                // Draw Text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(angle + arc / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = "#333";
+                ctx.font = "bold 32px -apple-system, BlinkMacSystemFont, Pretendard";
+                ctx.fillText(items[i], radius - 40, 10);
+                ctx.restore();
+            }
+        }
+
+        // 2. Spin Logic
+        function spin() {
+            if (isSpinning || items.length < 1) return;
+            
+            isSpinning = true;
+            spinBtn.disabled = true;
+
+            // 랜덤 회전 각도 계산
+            // 최소 5바퀴(1800도) + 랜덤(0~360도)
+            // "아슬아슬함"을 위해 랜덤 값을 더 미세하게 조정
+            const randomOffset = Math.floor(Math.random() * 360); 
+            const totalSpin = 1800 + randomOffset + 360 * 5; // 아주 많이 돌림
+
+            // 기존 각도에 누적 (반대 방향으로 돌지 않도록)
+            currentRotation += totalSpin;
+
+            // CSS Transition 적용
+            canvas.style.transform = `rotate(-${currentRotation}deg)`;
+        }
+
+        // 3. Result Calculation
+        canvas.addEventListener('transitionend', () => {
+            if (!isSpinning) return;
+
+            isSpinning = false;
+            spinBtn.disabled = false;
+
+            // 실제 멈춘 각도를 360도로 나눈 나머지
+            const actualDeg = currentRotation % 360;
+            
+            // 캔버스가 반시계방향(rotate 마이너스)으로 돌았으므로
+            // 상단(0도)에 위치한 아이템을 계산하려면 
+            // 360 - actualDeg 위치가 바늘이 가리키는 지점
+            const arcSize = 360 / items.length;
+            const index = Math.floor((360 - actualDeg) / arcSize) % items.length;
+
+            showResult(items[index]);
+        });
+
+        function showResult(winner) {
+            winnerText.innerText = winner;
+            modal.classList.add('show');
+            
+            // 축하 효과 (간단한 pop)
+            const jsConfetti = document.createElement('div');
+            // 여기서는 심플함을 위해 모달만 띄움
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+        }
+
+        // --- Event Listeners ---
+        itemsInput.addEventListener('input', drawWheel);
+        spinBtn.addEventListener('click', spin);
+        resetBtn.addEventListener('click', () => {
+            if(isSpinning) return;
+            itemsInput.value = '';
+            drawWheel();
+            currentRotation = 0;
+            canvas.style.transition = 'none';
+            canvas.style.transform = `rotate(0deg)`;
+            setTimeout(() => {
+                canvas.style.transition = 'transform 6s cubic-bezier(0.2, 0, 0.1, 1)';
+            }, 10);
+        });
+        
+        // Modal Click Outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        // Initialize
+        drawWheel();
+
+    </script>
+</body>
+</html>
